@@ -1,0 +1,57 @@
+export const esMX = {
+  title: "Nueva venta",
+  subtitle: "Agrega productos y confirma la venta.",
+  searchPlaceholder: "Buscar producto por nombre",
+  productListTitle: "Productos",
+  cartTitle: "Carrito",
+  cartEmpty: "No hay productos en el carrito.",
+  quantityLabel: "Cantidad",
+  totalLabel: "Total",
+  confirmAction: "Confirmar venta",
+  confirmHint: "Enter para confirmar cuando el carrito está activo.",
+  errorEmptySale: "Agrega al menos un producto antes de confirmar.",
+  errorLoadProducts: "No se pudieron cargar los productos.",
+  errorSaveSale: "No se pudo registrar la venta.",
+  errorNoShift: "Abre una caja antes de registrar ventas.",
+  errorPaymentMethod: "Selecciona un método de pago.",
+  errorPaymentAmount: "El monto del pago no coincide con el total.",
+  errorPaymentProofType: "El comprobante debe ser imagen o PDF.",
+  warningProofPending: "Venta registrada, comprobante pendiente.",
+  errorProofUpload: "No se pudo subir el comprobante.",
+  errorCustomerRequired: "Selecciona un cliente para usar crédito de tienda.",
+  errorInsufficientCredit: "El crédito disponible no alcanza para esta venta.",
+  paymentTitle: "Método de pago",
+  paymentReferenceLabel: "Referencia",
+  paymentReferencePlaceholder: "Opcional",
+  paymentProofLabel: "Comprobante",
+  paymentProofHint: "Imagen o PDF requerido para transferencia o tarjeta.",
+  paymentProofSelected: "Archivo seleccionado",
+  paymentMethodCash: "Efectivo",
+  paymentMethodTransfer: "Transferencia",
+  paymentMethodCard: "Tarjeta",
+  paymentMethodStoreCredit: "Crédito de tienda",
+  storeCreditCustomerLabel: "Cliente con crédito",
+  storeCreditSearchPlaceholder: "Buscar por teléfono, email o nombre",
+  storeCreditNoResults: "No hay clientes para mostrar.",
+  storeCreditMinChars: "Escribe al menos 5 caracteres para buscar.",
+  storeCreditSelectedLabel: "Cliente seleccionado",
+  storeCreditContactEmpty: "Sin contacto",
+  storeCreditBalanceLabel: "Saldo disponible",
+  storeCreditBalanceEmpty: "Sin saldo",
+  storeCreditClearSelection: "Quitar selección",
+  stockLabel: "Existencias",
+  stockUnlimited: "Sin límite",
+  stockUnavailable: "Sin stock",
+  searchNoResults: "Sin resultados",
+  clearSaleAction: "Limpiar venta",
+  increaseAction: "+",
+  decreaseAction: "-",
+  removeAction: "Quitar"
+} as const;
+
+export type Dictionary = typeof esMX;
+export type DictionaryKey = keyof Dictionary;
+
+export function t(key: DictionaryKey): string {
+  return esMX[key];
+}
