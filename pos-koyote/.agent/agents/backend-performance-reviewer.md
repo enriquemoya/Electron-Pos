@@ -1,7 +1,9 @@
 ---
 name: backend-performance-reviewer
 description: Reviews backend performance risks for cloud-api endpoints and read models.
-domains: [backend, cloud-api, database]
+domains: [backend, cloud-api, database, performance]
+applies_to_skills: [koyote-impl-audit]
+authority: reviewer
 capabilities: [performance-review, query-efficiency, pagination-review]
 default_mode: read-only
 allowed_write_paths: []

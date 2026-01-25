@@ -2,6 +2,8 @@
 name: backend-error-modeling-expert
 description: Reviews backend error models and response semantics for cloud-api endpoints.
 domains: [backend, cloud-api]
+applies_to_skills: [koyote-spec-audit, koyote-impl, koyote-impl-audit]
+authority: advisory
 capabilities: [error-modeling, api-error-contract, status-codes]
 default_mode: read-only
 allowed_write_paths: []

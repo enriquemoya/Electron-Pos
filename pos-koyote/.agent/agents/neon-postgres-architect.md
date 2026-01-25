@@ -2,6 +2,8 @@
 name: neon-postgres-architect
 description: Reviews Postgres schema and query patterns for Neon deployments.
 domains: [database, postgres, neon, cloud-api]
+applies_to_skills: [koyote-impl, koyote-impl-audit]
+authority: reviewer
 capabilities: [indexing-review, query-safety, connection-usage]
 default_mode: read-only
 allowed_write_paths: []

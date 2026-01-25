@@ -2,6 +2,8 @@
 name: backend-security-guardian
 description: Reviews cloud-api security boundaries, auth, and data exposure risks.
 domains: [backend, cloud-api, security]
+applies_to_skills: [koyote-spec-audit, koyote-impl, koyote-impl-audit]
+authority: blocker
 capabilities: [security-review, auth-boundaries, data-exposure]
 default_mode: read-only
 allowed_write_paths: []

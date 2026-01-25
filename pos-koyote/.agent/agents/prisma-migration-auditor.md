@@ -2,6 +2,8 @@
 name: prisma-migration-auditor
 description: Audits Prisma migrations for safety, ordering, and data risk.
 domains: [database, prisma, cloud-api]
+applies_to_skills: [koyote-impl, koyote-impl-audit]
+authority: blocker
 capabilities: [migration-audit, data-safety, drift-check]
 default_mode: read-only
 allowed_write_paths: []

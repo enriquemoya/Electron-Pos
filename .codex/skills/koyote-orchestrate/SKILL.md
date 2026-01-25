@@ -21,6 +21,7 @@ It coordinates other skills and agents and enforces governance.
 - .agent/rules/SPEC_STANDARD.md
 - .agent/rules/DATA_ACCESS.md
 - .agent/rules/MEMORY_BANK.md
+- .agent/AGENT_RESPONSIBILITIES.md
 
 ---
 
@@ -64,6 +65,12 @@ Agents provide:
 
 This skill remains the final decision maker.
 
+After discovery, the orchestrator MUST apply
+AGENT_RESPONSIBILITIES.md to determine:
+- blocking authority
+- escalation
+- final verdict
+
 ---
 
 ## Discovery Matrix (MANDATORY OUTPUT)
@@ -71,6 +78,40 @@ This skill remains the final decision maker.
 Before executing any workflow step, the orchestrator MUST generate a **Discovery Matrix**.
 
 The Discovery Matrix explains **why each agent was selected or excluded**.
+
+After performing agent discovery and BEFORE executing any workflow step,
+this skill MUST produce a Discovery Matrix.
+
+The Discovery Matrix makes agent participation explicit and auditable.
+
+### Discovery Matrix Rules
+
+- Every agent in `.agent/agents/` MUST be classified.
+- No agent may be silently ignored.
+- Each classification MUST include a reason.
+- Discovery is metadata-driven (AGENT_CONTRACT.md).
+- Missing or invalid contracts MUST result in exclusion with reason.
+
+### Discovery Categories
+
+- PRIMARY  
+  Agents required to validate correctness or block progress.
+
+- OPTIONAL  
+  Advisory agents that may surface risks but cannot block.
+
+- EXCLUDED  
+  Agents not applicable to the current task, or contract-incompatible.
+
+### Discovery Matrix Output Format
+
+| Agent | Category | Reason |
+|------|---------|--------|
+| audit-agent | PRIMARY | Read-only audit authority for implementation validation |
+| prisma-schema-guardian | OPTIONAL | Schema integrity review for Cloud API change |
+| shadcn-ui-expert | EXCLUDED | UI-only agent, backend change out of scope |
+
+The matrix MUST be complete and deterministic.
 
 ### Discovery Matrix Table Structure
 
@@ -158,7 +199,7 @@ Do NOT proceed without explicit confirmation.
 - Print Discovery Matrix
 - Show Primary vs Optional vs Excluded agents
 - Ask for confirmation:
-  > Proceed with these agents? (yes/no)
+  > Discovery complete. Proceed with these agents? (yes/no)
 
 ---
 
@@ -248,14 +289,38 @@ Rules:
 
 ---
 
+## Hard Governance Rule
+
+If the Discovery Matrix is missing, incomplete, or contains unexplained exclusions:
+
+- The orchestrator MUST STOP.
+- No workflow step may execute.
+- The final status MUST be BLOCKED.
+
+This rule exists to prevent silent agent bypassing.
+
+## Consistency Guarantees
+
+- The same input MUST always produce the same Discovery Matrix.
+- Agent ordering does not affect classification.
+- Adding a new agent MUST NOT change existing classifications unless relevant.
+
+
 ## Output Format (MANDATORY)
 
 ### Discovery Matrix
-- Full table (all agents)
+A full table listing:
+- Agent name
+- Category (PRIMARY / OPTIONAL / EXCLUDED)
+- Explicit reason
+- Domains
+- Applies to Skills
+- Authority
 
 ### Execution Log
 - Steps executed
 - Gates passed or blocked
+- Audit verdicts
 
 ### Files Affected
 - List of files touched by sub-skills

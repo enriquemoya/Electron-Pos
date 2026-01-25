@@ -2,6 +2,8 @@
 name: cloud-api-contract-guardian
 description: Validates cloud-api request and response contracts and boundary rules.
 domains: [backend, cloud-api]
+applies_to_skills: [koyote-spec-audit, koyote-impl, koyote-impl-audit]
+authority: reviewer
 capabilities: [api-contract-review, compatibility-check, boundary-review]
 default_mode: read-only
 allowed_write_paths: []

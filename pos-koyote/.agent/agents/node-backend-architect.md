@@ -2,6 +2,8 @@
 name: node-backend-architect
 description: Reviews Node backend architecture and layering for cloud-api changes.
 domains: [backend, cloud-api]
+applies_to_skills: [koyote-spec-audit, koyote-impl, koyote-impl-audit]
+authority: reviewer
 capabilities: [architecture-review, layering-check, request-lifecycle]
 default_mode: read-only
 allowed_write_paths: []

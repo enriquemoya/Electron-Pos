@@ -2,6 +2,8 @@
 name: data-integrity-governor
 description: Reviews cross-table invariants and authority boundaries for data changes.
 domains: [database, backend, cloud-api]
+applies_to_skills: [koyote-spec-audit, koyote-impl, koyote-impl-audit]
+authority: blocker
 capabilities: [data-integrity, invariants-check, authority-boundaries]
 default_mode: read-only
 allowed_write_paths: []

@@ -1,7 +1,9 @@
 ---
 name: audit-agent
 description: Audits specs or implementation. Never implements features.
-domains: [audits, governance]
+domains: [audits, governance, backend, cloud-api, database, prisma, security, performance]
+applies_to_skills: [koyote-spec-audit, koyote-impl-audit]
+authority: blocker
 capabilities: [spec-audit, impl-audit, compliance-check]
 default_mode: read-only
 allowed_write_paths: []

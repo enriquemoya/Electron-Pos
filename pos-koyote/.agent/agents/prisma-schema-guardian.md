@@ -2,6 +2,8 @@
 name: prisma-schema-guardian
 description: Reviews Prisma schema integrity, relations, and compatibility.
 domains: [database, prisma, cloud-api]
+applies_to_skills: [koyote-spec-audit, koyote-impl, koyote-impl-audit]
+authority: reviewer
 capabilities: [schema-review, relation-integrity, compatibility-check]
 default_mode: read-only
 allowed_write_paths: []

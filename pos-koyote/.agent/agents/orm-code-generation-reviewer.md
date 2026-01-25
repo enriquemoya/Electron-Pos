@@ -2,6 +2,8 @@
 name: orm-code-generation-reviewer
 description: Reviews ORM code generation usage and Prisma client safety.
 domains: [prisma, data-access, codegen, database]
+applies_to_skills: [koyote-impl, koyote-impl-audit]
+authority: reviewer
 capabilities: [orm-usage-review, transaction-safety, read-only-enforcement]
 default_mode: read-only
 allowed_write_paths: []
