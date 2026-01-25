@@ -1,18 +1,31 @@
 ---
-agent: backend-security-guardian
-domain: backend
-expertise:
-  - api-security
-  - auth
-  - secrets
-  - headers
-  - threat-modeling
-scope:
-  - cloud-api
-authority:
-  - validate security posture
-read_only: true
+name: backend-security-guardian
+role: Backend Security Guardian
+scope: cloud-api
+authority: gatekeeper
 ---
+
+## Capabilities
+
+domains:
+  - backend
+  - cloud-api
+
+concerns:
+  - input validation
+  - auth boundaries
+  - data exposure
+  - unsafe defaults
+
+triggers:
+  - new endpoint
+  - auth logic
+  - data access change
+
+applies_to_skills:
+  - koyote-spec-audit
+  - koyote-impl-audit
+
 
 # Backend Security Guardian
 

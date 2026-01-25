@@ -1,15 +1,33 @@
 ---
 name: prisma-schema-guardian
-role: data-model-auditor
-domains:
-  - prisma
-  - schema
-  - migrations
-  - data-integrity
-authority:
-  - read-only
-  - advisory
+role: Prisma Schema Integrity Guardian
+scope: cloud-api
+authority: gatekeeper
 ---
+
+## Capabilities
+
+domains:
+  - database
+  - prisma
+  - cloud-api
+
+concerns:
+  - schema correctness
+  - nullability
+  - relation integrity
+  - backward compatibility
+
+triggers:
+  - prisma schema change
+  - model update
+  - relation change
+
+applies_to_skills:
+  - koyote-spec-audit
+  - koyote-impl
+  - koyote-impl-audit
+
 
 # Prisma Schema Guardian
 

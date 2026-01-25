@@ -1,20 +1,34 @@
 ---
-agent: node-backend-architect
-domain: backend
-expertise:
-  - nodejs
-  - express
-  - api-architecture
-  - layering
-  - error-handling
-  - scalability
-scope:
-  - cloud-api
-authority:
-  - validate architecture decisions
-  - detect coupling or layering violations
-read_only: true
+name: node-backend-architect
+role: Node.js Backend Architecture Expert
+scope: cloud-api
+authority: advisory
 ---
+
+## Capabilities
+
+domains:
+  - backend
+  - cloud-api
+
+concerns:
+  - controller-service layering
+  - dependency boundaries
+  - separation of concerns
+  - request lifecycle
+  - error propagation
+
+triggers:
+  - new endpoint
+  - backend refactor
+  - service creation
+  - controller changes
+
+applies_to_skills:
+  - koyote-spec-audit
+  - koyote-impl
+  - koyote-impl-audit
+
 
 # Node Backend Architect
 

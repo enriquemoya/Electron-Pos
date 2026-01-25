@@ -1,17 +1,31 @@
 ---
-agent: backend-performance-reviewer
-domain: backend
-expertise:
-  - performance
-  - postgres
-  - prisma
-  - api-optimization
-scope:
-  - cloud-api
-authority:
-  - performance risk assessment
-read_only: true
+name: backend-performance-reviewer
+role: Backend Performance Reviewer
+scope: cloud-api
+authority: advisory
 ---
+
+## Capabilities
+
+domains:
+  - backend
+  - cloud-api
+  - database
+
+concerns:
+  - query efficiency
+  - N+1 risks
+  - pagination correctness
+  - caching suitability
+
+triggers:
+  - list endpoints
+  - read models
+  - aggregation logic
+
+applies_to_skills:
+  - koyote-impl-audit
+
 
 # Backend Performance Reviewer
 

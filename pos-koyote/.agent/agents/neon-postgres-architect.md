@@ -1,14 +1,31 @@
 ---
 name: neon-postgres-architect
-role: database-architect
+role: Neon Postgres Architecture Expert
+scope: cloud-api
+authority: advisory
+---
+
+## Capabilities
+
 domains:
+  - database
   - postgres
   - neon
-  - performance
+
+concerns:
   - indexing
-authority:
-  - read-only
----
+  - constraints
+  - connection usage
+  - production readiness
+
+triggers:
+  - database change
+  - index addition
+  - performance issue
+
+applies_to_skills:
+  - koyote-impl-audit
+
 
 # Neon Postgres Architect
 

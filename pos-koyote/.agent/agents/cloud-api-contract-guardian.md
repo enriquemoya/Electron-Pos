@@ -1,19 +1,31 @@
 ---
-agent: cloud-api-contract-guardian
-domain: backend
-expertise:
-  - api-contracts
-  - dto
-  - versioning
-  - backward-compatibility
-scope:
-  - cloud-api
-authority:
-  - validate api contracts
-  - detect breaking changes
-read_only: true
-discoverable: true
+name: cloud-api-contract-guardian
+role: Cloud API Contract & Boundary Guardian
+scope: cloud-api
+authority: gatekeeper
 ---
+
+## Capabilities
+
+domains:
+  - backend
+  - cloud-api
+
+concerns:
+  - request/response contracts
+  - backward compatibility
+  - read vs write authority
+  - versioning discipline
+
+triggers:
+  - new endpoint
+  - response shape change
+  - api contract change
+
+applies_to_skills:
+  - koyote-spec-audit
+  - koyote-impl-audit
+
 
 # Cloud API Contract Guardian
 

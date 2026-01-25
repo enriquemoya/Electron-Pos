@@ -1,14 +1,30 @@
 ---
 name: prisma-migration-auditor
-role: migration-auditor
-domains:
-  - prisma
-  - migrations
-  - neon
-  - postgres
-authority:
-  - read-only
+role: Prisma Migration Auditor
+scope: cloud-api
+authority: gatekeeper
 ---
+
+## Capabilities
+
+domains:
+  - database
+  - prisma
+
+concerns:
+  - destructive migrations
+  - data safety
+  - idempotency
+  - production safety
+
+triggers:
+  - migration
+  - schema evolution
+  - table change
+
+applies_to_skills:
+  - koyote-impl-audit
+
 
 # Prisma Migration Auditor
 

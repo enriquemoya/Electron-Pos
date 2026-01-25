@@ -1,13 +1,31 @@
 ---
 name: data-integrity-governor
-role: integrity-guardian
-domains:
-  - data-integrity
-  - authority
-  - governance
-authority:
-  - advisory
+role: Data Integrity Governor
+scope: cloud-api
+authority: gatekeeper
 ---
+
+## Capabilities
+
+domains:
+  - database
+  - backend
+
+concerns:
+  - consistency
+  - invariants
+  - cross-table guarantees
+  - read/write authority
+
+triggers:
+  - data mutation
+  - migration
+  - sync logic
+
+applies_to_skills:
+  - koyote-spec-audit
+  - koyote-impl-audit
+
 
 # Data Integrity Governor
 
