@@ -1,8 +1,13 @@
 ---
 name: backend-error-modeling-expert
-role: Backend Error Modeling Expert
-scope: cloud-api
-authority: advisory
+description: Reviews backend error models and response semantics for cloud-api endpoints.
+domains: [backend, cloud-api]
+capabilities: [error-modeling, api-error-contract, status-codes]
+default_mode: read-only
+allowed_write_paths: []
+forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
+triggers: ["endpoint","api","error handling","status code","validation"]
+outputs: ["error model gaps","risk severity","audit notes"]
 ---
 
 ## Capabilities

@@ -1,8 +1,13 @@
 ---
 name: cloud-api-contract-guardian
-role: Cloud API Contract & Boundary Guardian
-scope: cloud-api
-authority: gatekeeper
+description: Validates cloud-api request and response contracts and boundary rules.
+domains: [backend, cloud-api]
+capabilities: [api-contract-review, compatibility-check, boundary-review]
+default_mode: read-only
+allowed_write_paths: []
+forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
+triggers: ["endpoint","contract","response shape","dto","compatibility"]
+outputs: ["contract issues","breaking change risks","audit notes"]
 ---
 
 ## Capabilities

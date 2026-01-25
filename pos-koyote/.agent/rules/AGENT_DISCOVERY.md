@@ -42,6 +42,8 @@ Required domains:
 - prisma
 - postgres
 - backend
+- node
+- cloud-api
 
 ## Discovery rule
 

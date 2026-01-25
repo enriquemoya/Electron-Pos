@@ -1,8 +1,13 @@
 ---
 name: node-backend-architect
-role: Node.js Backend Architecture Expert
-scope: cloud-api
-authority: advisory
+description: Reviews Node backend architecture and layering for cloud-api changes.
+domains: [backend, cloud-api]
+capabilities: [architecture-review, layering-check, request-lifecycle]
+default_mode: read-only
+allowed_write_paths: []
+forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
+triggers: ["endpoint","controller","service","refactor","architecture"]
+outputs: ["architecture risks","layering issues","audit notes"]
 ---
 
 ## Capabilities

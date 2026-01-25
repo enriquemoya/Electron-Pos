@@ -1,8 +1,13 @@
 ---
 name: backend-security-guardian
-role: Backend Security Guardian
-scope: cloud-api
-authority: gatekeeper
+description: Reviews cloud-api security boundaries, auth, and data exposure risks.
+domains: [backend, cloud-api, security]
+capabilities: [security-review, auth-boundaries, data-exposure]
+default_mode: read-only
+allowed_write_paths: []
+forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
+triggers: ["endpoint","auth","secret","security","data exposure"]
+outputs: ["security risks","severity rating","audit notes"]
 ---
 
 ## Capabilities

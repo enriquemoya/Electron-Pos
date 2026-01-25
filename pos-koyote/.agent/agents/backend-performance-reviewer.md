@@ -1,8 +1,13 @@
 ---
 name: backend-performance-reviewer
-role: Backend Performance Reviewer
-scope: cloud-api
-authority: advisory
+description: Reviews backend performance risks for cloud-api endpoints and read models.
+domains: [backend, cloud-api, database]
+capabilities: [performance-review, query-efficiency, pagination-review]
+default_mode: read-only
+allowed_write_paths: []
+forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
+triggers: ["endpoint","list","pagination","aggregation","query"]
+outputs: ["performance risks","query issues","audit notes"]
 ---
 
 ## Capabilities

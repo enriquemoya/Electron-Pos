@@ -50,6 +50,7 @@ Before auditing, the skill MUST:
    - Use architecture rules to detect boundary violations
    - Use spec-agent rules to ensure no scope drift
    - If database changes are in scope, the skill MUST discover and consult all agents whose domains match database-related concerns.
+   - If data access or backend changes are in scope, the skill MUST discover and consult all agents whose domains match backend-related concerns.
 
 
 Agents provide **audit lenses**, not implementation suggestions.

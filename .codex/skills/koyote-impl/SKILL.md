@@ -46,6 +46,7 @@ Before implementing, the skill MUST:
    - data layer (schema, migrations)
    - cross-cutting (i18n, accessibility, auth, sync)
    - If database changes are in scope, the skill MUST discover and consult all agents whose domains match database-related concerns.
+   - If data access or backend changes are in scope, the skill MUST discover and consult all agents whose domains match backend-related concerns.
 
 2. Discover relevant agents by conceptually scanning `.agent/agents/`:
    - Match domain expertise
