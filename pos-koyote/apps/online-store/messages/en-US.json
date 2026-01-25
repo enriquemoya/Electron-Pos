@@ -1,0 +1,155 @@
+{
+  "common": {
+    "meta": {
+      "title": "Koyote Games",
+      "description": "TCG shop online store"
+    },
+    "brand": {
+      "name": "Koyote Games"
+    },
+    "pagination": {
+      "label": "Page {page} of {total}",
+      "prev": "Prev",
+      "next": "Next"
+    },
+    "footer": {
+      "label": "Koyote Games Online Store v1"
+    }
+  },
+  "navigation": {
+    "brand": {
+      "name": "Koyote Games"
+    },
+    "items": {
+      "pokemon": "Pokemon",
+      "onePiece": "One Piece",
+      "yugioh": "Yu-Gi-Oh!",
+      "others": "Others",
+      "preorders": "Preorders",
+      "community": "Community"
+    },
+    "sections": {
+      "products": "Products",
+      "special": "Special",
+      "expansions": "Expansions"
+    },
+    "links": {
+      "sealed": "Sealed products",
+      "singles": "Single cards",
+      "accessories": "Accessories",
+      "newReleases": "New releases",
+      "preorders": "Preorders",
+      "bestSellers": "Best sellers",
+      "viewAllSets": "View all sets"
+    },
+    "expansions": {
+      "item1": "Latest set 1",
+      "item2": "Latest set 2",
+      "item3": "Latest set 3",
+      "empty": "No expansions yet"
+    },
+    "others": {
+      "digimon": "Digimon",
+      "magic": "Magic: The Gathering",
+      "gundam": "Gundam",
+      "more": "More TCGs"
+    },
+    "search": {
+      "placeholder": "Search catalog"
+    },
+    "cart": {
+      "label": "Cart"
+    },
+    "menu": {
+      "status": "Main navigation menu",
+      "locked": "Menu locked"
+    },
+    "mobile": {
+      "title": "Menu",
+      "close": "Close",
+      "menu": "Menu",
+      "expand": "Open",
+      "collapse": "Close"
+    },
+    "switch": {
+      "es": "ES",
+      "en": "EN"
+    }
+  },
+  "landing": {
+    "hero": {
+      "tagline": "Koyote Games",
+      "headline": "Premium TCG store for collectors and competitors",
+      "body": "Explore curated sealed products, singles, and accessories across top TCGs.",
+      "primaryCta": "Shop catalog",
+      "secondaryCta": "Explore Pokemon",
+      "noteTitle": "Inventory note",
+      "noteBody": "Availability is best effort and may update after review."
+    },
+    "featured": {
+      "title": "Featured products",
+      "subtitle": "Curated picks from the latest updates",
+      "viewAll": "View all",
+      "empty": "No featured products available.",
+      "error": "Unable to load featured products. Please try again later."
+    },
+    "highlights": {
+      "title": "Shop by game",
+      "subtitle": "Jump to the TCGs you care about most.",
+      "pokemon": "Booster boxes, singles, and accessories.",
+      "onePiece": "Decks, boosters, and collector staples.",
+      "yugioh": "Sealed product, staples, and accessories.",
+      "others": "Discover more TCGs and side games.",
+      "cta": "Browse"
+    },
+    "community": {
+      "title": "Community and news",
+      "subtitle": "Stay close to tournaments, events, and store updates.",
+      "news": {
+        "title": "Store updates",
+        "body": "Announcements, drops, and restocks."
+      },
+      "events": {
+        "title": "Events",
+        "body": "Meetups and local gatherings."
+      },
+      "tournaments": {
+        "title": "Tournaments",
+        "body": "Competitive play and prize events."
+      },
+      "cta": "Learn more"
+    },
+    "cta": {
+      "title": "Ready to explore the catalog?",
+      "body": "Discover new releases and collector favorites.",
+      "primaryCta": "Browse catalog",
+      "secondaryCta": "See community"
+    }
+  },
+  "catalog": {
+    "title": "Catalog",
+    "subtitle": "Explore the latest sealed products, singles, and accessories.",
+    "searchPlaceholder": "Search by product name",
+    "categoryPlaceholder": "Category (optional)",
+    "availabilityPlaceholder": "Availability (optional)",
+    "applyFilters": "Apply filters",
+    "empty": "No products match the current filters.",
+    "error": "Unable to load the catalog right now. Please try again later."
+  },
+  "product": {
+    "priceLabel": "Price",
+    "addToCart": "Add to cart",
+    "unavailable": "Unavailable",
+    "browseCatalog": "Browse catalog",
+    "inventoryNote": "Inventory availability reflects the latest known status and may change at checkout.",
+    "error": "Unable to load this product right now. Please try again later.",
+    "contactPrice": "Contact for price",
+    "view": "View"
+  },
+  "availability": {
+    "available": "Available",
+    "low": "Limited availability",
+    "soldOut": "Out of stock",
+    "pending": "Updating"
+  }
+}

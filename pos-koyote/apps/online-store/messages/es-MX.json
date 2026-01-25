@@ -1,0 +1,155 @@
+{
+  "common": {
+    "meta": {
+      "title": "Koyote Games",
+      "description": "Tienda en linea de TCG"
+    },
+    "brand": {
+      "name": "Koyote Games"
+    },
+    "pagination": {
+      "label": "Pagina {page} de {total}",
+      "prev": "Anterior",
+      "next": "Siguiente"
+    },
+    "footer": {
+      "label": "Koyote Games Tienda en linea v1"
+    }
+  },
+  "navigation": {
+    "brand": {
+      "name": "Koyote Games"
+    },
+    "items": {
+      "pokemon": "Pokemon",
+      "onePiece": "One Piece",
+      "yugioh": "Yu-Gi-Oh!",
+      "others": "Otros",
+      "preorders": "Preventas",
+      "community": "Comunidad"
+    },
+    "sections": {
+      "products": "Productos",
+      "special": "Especial",
+      "expansions": "Expansiones"
+    },
+    "links": {
+      "sealed": "Productos sellados",
+      "singles": "Cartas sueltas",
+      "accessories": "Accesorios",
+      "newReleases": "Nuevos lanzamientos",
+      "preorders": "Preventas",
+      "bestSellers": "Mas vendidos",
+      "viewAllSets": "Ver todas las expansiones"
+    },
+    "expansions": {
+      "item1": "Expansion reciente 1",
+      "item2": "Expansion reciente 2",
+      "item3": "Expansion reciente 3",
+      "empty": "Aun no hay expansiones"
+    },
+    "others": {
+      "digimon": "Digimon",
+      "magic": "Magic: The Gathering",
+      "gundam": "Gundam",
+      "more": "Mas TCG"
+    },
+    "search": {
+      "placeholder": "Buscar en el catalogo"
+    },
+    "cart": {
+      "label": "Carrito"
+    },
+    "menu": {
+      "status": "Menu principal",
+      "locked": "Menu fijado"
+    },
+    "mobile": {
+      "title": "Menu",
+      "close": "Cerrar",
+      "menu": "Menu",
+      "expand": "Abrir",
+      "collapse": "Cerrar"
+    },
+    "switch": {
+      "es": "ES",
+      "en": "EN"
+    }
+  },
+  "landing": {
+    "hero": {
+      "tagline": "Koyote Games",
+      "headline": "Tienda TCG premium para coleccionistas y jugadores",
+      "body": "Explora sellados, singles y accesorios curados de los TCG mas importantes.",
+      "primaryCta": "Explorar catalogo",
+      "secondaryCta": "Explorar Pokemon",
+      "noteTitle": "Nota de inventario",
+      "noteBody": "La disponibilidad es estimada y puede actualizarse despues de revision."
+    },
+    "featured": {
+      "title": "Productos destacados",
+      "subtitle": "Selecciones curadas de las ultimas actualizaciones",
+      "viewAll": "Ver todo",
+      "empty": "No hay productos destacados disponibles.",
+      "error": "No se pudieron cargar los productos destacados. Intenta mas tarde."
+    },
+    "highlights": {
+      "title": "Compra por juego",
+      "subtitle": "Ve directo a los TCG que mas te interesan.",
+      "pokemon": "Cajas, singles y accesorios.",
+      "onePiece": "Mazos, boosters y coleccionables.",
+      "yugioh": "Sellados, staples y accesorios.",
+      "others": "Descubre mas TCG y juegos.",
+      "cta": "Ver catalogo"
+    },
+    "community": {
+      "title": "Comunidad y noticias",
+      "subtitle": "Mantente cerca de torneos, eventos y novedades.",
+      "news": {
+        "title": "Novedades",
+        "body": "Anuncios, lanzamientos y reposiciones."
+      },
+      "events": {
+        "title": "Eventos",
+        "body": "Reuniones y actividades locales."
+      },
+      "tournaments": {
+        "title": "Torneos",
+        "body": "Competencia y premios."
+      },
+      "cta": "Saber mas"
+    },
+    "cta": {
+      "title": "Listo para explorar el catalogo?",
+      "body": "Descubre nuevos lanzamientos y favoritos de coleccion.",
+      "primaryCta": "Ver catalogo",
+      "secondaryCta": "Ver comunidad"
+    }
+  },
+  "catalog": {
+    "title": "Catalogo",
+    "subtitle": "Explora sellados, singles y accesorios recientes.",
+    "searchPlaceholder": "Buscar por nombre de producto",
+    "categoryPlaceholder": "Categoria (opcional)",
+    "availabilityPlaceholder": "Disponibilidad (opcional)",
+    "applyFilters": "Aplicar filtros",
+    "empty": "No hay productos con los filtros actuales.",
+    "error": "No se pudo cargar el catalogo. Intenta mas tarde."
+  },
+  "product": {
+    "priceLabel": "Precio",
+    "addToCart": "Agregar al carrito",
+    "unavailable": "No disponible",
+    "browseCatalog": "Ver catalogo",
+    "inventoryNote": "La disponibilidad refleja el estado mas reciente y puede cambiar al finalizar la compra.",
+    "error": "No se pudo cargar este producto. Intenta mas tarde.",
+    "contactPrice": "Consultar precio",
+    "view": "Ver"
+  },
+  "availability": {
+    "available": "Disponible",
+    "low": "Pocas unidades",
+    "soldOut": "Agotado",
+    "pending": "Actualizando"
+  }
+}

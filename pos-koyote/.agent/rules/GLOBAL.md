@@ -1,0 +1,12 @@
+Global rules
+- Do not implement new features without an approved SPEC.
+- Do not edit files outside the declared scope.
+- Prefer minimal, mechanical diffs.
+- Validate online store i18n rules on any UI change.
+- Governance docs must be ASCII only and English only.
+- Online-store locale is URL-only (/es,/en) with default locale es; no browser/IP auto-detection.
+- Online Store i18n:
+  - Locale selection is URL-based only (/es, /en)
+  - Default locale is es
+  - No browser or IP auto-detection
+  - All user-visible text must be localized (including metadata)
