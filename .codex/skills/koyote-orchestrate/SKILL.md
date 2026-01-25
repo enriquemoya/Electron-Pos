@@ -1,154 +1,281 @@
 ---
 name: koyote-orchestrate
-description: Orchestrate an end-to-end spec-driven governance flow with dynamic agent discovery, decision gates, and memory bank integration. Use when the user wants to run the full lifecycle.
+description: Orchestrate end-to-end governance flow (spec, audit, implementation, audit) with dynamic agent discovery, discovery matrix, and explicit decision gates.
 ---
 
 # koyote-orchestrate
 
-This skill orchestrates a complete governance flow: spec creation, audit, implementation, implementation audit, and memory update.
+Use this skill to run a **full AI-governed workflow** from specification to implementation,
+with audits, agent discovery, and human confirmation gates.
 
-The orchestrator does **not** hardcode agent names.
-Instead, it dynamically discovers and consults agents based on declared domains and capabilities.
-
-The orchestrator always retains final decision authority.
+This skill does NOT directly implement code or specs.  
+It coordinates other skills and agents and enforces governance.
 
 ---
 
 ## Governing References (MUST READ)
 
 - .agent/ARCHITECTURE.md
+- .agent/AGENT_CONTRACT.md
 - .agent/rules/GLOBAL.md
 - .agent/rules/SPEC_STANDARD.md
 - .agent/rules/DATA_ACCESS.md
 - .agent/rules/MEMORY_BANK.md
-- .agent/rules/AGENT_CONTRACT.md
-- .agent/rules/AGENT_DISCOVERY.md
 
 ---
 
-## Agent Discovery Protocol (CRITICAL)
+## Dynamic Agent Discovery Protocol (MANDATORY)
 
-Before executing **any step**, the orchestrator MUST:
+Before executing any step, this skill MUST perform agent discovery.
 
-1. Identify the current phase:
-   - spec
-   - audit
+### Discovery Steps
+
+1) Identify the task intent based on user input:
+   - spec creation
+   - spec audit
    - implementation
-   - validation
-   - memory
+   - implementation audit
 
-2. Identify required expertise domains from:
-   - the spec scope
-   - the target app (online-store, cloud-api, POS)
-   - the technology involved (Prisma, Next.js, React, i18n, DB, etc.)
+2) Identify affected domains:
+   - online-store (frontend, UX, i18n)
+   - cloud-api (backend, API, performance)
+   - data (Prisma, migrations, schema)
+   - POS / IPC (only if explicitly in scope)
 
-3. Discover relevant agents by scanning `.agent/agents/` conceptually and matching:
-   - Domain
-   - Capabilities
+3) Discover agents by conceptually scanning `.agent/agents/` metadata (frontmatter)
+   and selecting agents that:
+   - Declare `applies_to_skills` including the current step
+   - Match the domain(s) involved
+   - Have compatible authority level
 
-4. Consult zero or more matching agents for guidance.
-   - Agents provide **analysis and recommendations only**
-   - Agents never make final decisions
+4) Categorize discovered agents:
+   - Primary agents (required)
+   - Optional reviewers (advisory or risk-based)
+   - Excluded agents (with explicit reason)
 
-5. Summarize agent input and proceed according to governance rules.
+5) Generate the **Discovery Matrix** (see below)
 
-Absence of a matching agent is allowed and must not block the flow.
+6) List discovered agents BEFORE executing the step
 
----
+Agents provide:
+- Validation signals
+- Risk detection
+- Domain constraints
 
-## Required Questions (ask before start)
-
-1) What is the target spec slug or feature name?
-2) What is the scope and constraints?
-   - apps involved?
-   - data access changes?
-   - UX only or backend too?
-3) Proceed with full governance flow? (yes/no)
-
-Do NOT start until all answers are provided.
+This skill remains the final decision maker.
 
 ---
 
-## End-to-End Flow with Decision Gates
+## Discovery Matrix (MANDATORY OUTPUT)
 
-### Step 1 — Spec Creation
-- Phase: `spec`
-- Discover and consult spec-related agents (e.g. spec-agent, domain experts).
-- Generate a spec compliant with SPEC_STANDARD.md.
-- Output spec files only (no code).
+Before executing any workflow step, the orchestrator MUST generate a **Discovery Matrix**.
+
+The Discovery Matrix explains **why each agent was selected or excluded**.
+
+### Discovery Matrix Table Structure
+
+The matrix MUST be rendered as a table with the following columns:
+
+| Agent | Domains | Applies to Skills | Authority | Match Reason | Status |
+|------|--------|------------------|-----------|--------------|--------|
+
+### Column Definitions
+
+- **Agent**  
+  Agent filename (without `.md`)
+
+- **Domains**  
+  Domains declared by the agent (e.g. `cloud-api`, `data`, `ui`, `security`)
+
+- **Applies to Skills**  
+  Values from `applies_to_skills` frontmatter
+
+- **Authority**  
+  One of:
+  - advisory
+  - reviewer
+  - blocker
+
+- **Match Reason**  
+  Short explanation:
+  - matched by domain
+  - matched by skill
+  - matched by risk category
+  - excluded: no domain overlap
+  - excluded: skill mismatch
+  - excluded: authority conflict
+
+- **Status**  
+  One of:
+  - PRIMARY
+  - OPTIONAL
+  - EXCLUDED
 
 ---
 
-### Step 2 — Spec Audit
-- Phase: `audit`
-- Discover and consult audit-related agents.
-- Validate spec completeness, constraints, and alignment with rules.
-- Output a verdict.
+## Discovery Rules (STRICT)
 
-**Gate 1**
-Proceed to implementation? (yes/no)
+1. **Every agent in `.agent/agents/` MUST appear in the matrix**
+2. No agent may be silently ignored
+3. Excluded agents MUST include a reason
+4. PRIMARY agents:
+   - Must match the current step
+   - Must match at least one active domain
+5. OPTIONAL agents:
+   - Match domain but are not strictly required
+   - Or are risk-based reviewers
+6. EXCLUDED agents:
+   - Do not match skill, domain, or authority
+   - Or are explicitly forbidden by scope
 
----
-
-### Step 3 — Implementation
-- Phase: `implementation`
-- Discover and consult implementation experts as needed:
-  - UI / UX
-  - Database / Prisma
-  - API
-  - i18n
-- Implement **only what is approved in the spec**.
-- No scope expansion allowed.
+Failure to produce the Discovery Matrix BLOCKS execution.
 
 ---
 
-### Step 4 — Implementation Audit
-- Phase: `validation`
-- Discover and consult audit agents.
-- Verify implementation against the approved spec.
-- Output SAFE / SAFE WITH CONDITIONS / NOT SAFE verdict.
+## Required Questions (ask BEFORE starting)
 
-**Gate 2**
-Proceed to memory update suggestion? (yes/no)
+1) Target spec slug (folder name)?
+2) Scope constraints or exclusions?
+3) Which modules are involved?
+   - online-store
+   - cloud-api
+   - POS
+   - multiple
+4) Run full flow or start at a specific step?
+   - spec-create
+   - spec-audit
+   - impl
+   - impl-audit
+5) Proceed with orchestration now? (yes/no)
+
+Do NOT proceed without explicit confirmation.
 
 ---
 
-### Step 5 — Memory Update Suggestion
-- Phase: `memory`
-- Propose memory bank updates based on:
-  - architectural decisions
-  - patterns introduced
-  - constraints clarified
-- Do NOT modify memory directly.
-- Output the recommended command or message.
+## Orchestration Flow With Gates
+
+### Step 0: Agent Discovery Report
+- Print Discovery Matrix
+- Show Primary vs Optional vs Excluded agents
+- Ask for confirmation:
+  > Proceed with these agents? (yes/no)
+
+---
+
+### Step 1: Spec Creation
+Invokes:
+- koyote-spec-create
+
+Primary agents:
+- spec-agent
+- domain-specific advisory agents
+
+Gate:
+- Proceed to spec audit? (yes/no)
+
+---
+
+### Step 2: Spec Audit
+Invokes:
+- koyote-spec-audit
+
+Primary agents:
+- audit-agent
+
+Optional agents:
+- architecture, data, UX, or backend reviewers as discovered
+
+Gate:
+- Verdict must be READY or READY WITH CONDITIONS
+- Proceed to implementation? (yes/no)
+
+---
+
+### Step 3: Implementation
+Invokes:
+- koyote-impl
+
+Primary agents:
+- orchestrator
+- domain architects (frontend, backend, data)
+
+Constraints:
+- Spec must be approved
+- Scope must not expand
+
+Gate:
+- Proceed to implementation audit? (yes/no)
+
+---
+
+### Step 4: Implementation Audit
+Invokes:
+- koyote-impl-audit
+
+Primary agents:
+- audit-agent
+
+Optional agents:
+- security
+- performance
+- data integrity
+- API contract reviewers
+
+Gate:
+- Verdict must be SAFE or SAFE WITH CONDITIONS
+- Proceed to memory update suggestion? (yes/no)
+
+---
+
+### Step 5: Memory Update Suggestion
+Invokes:
+- koyote-memory-update (suggestion only)
+
+Rules:
+- Never auto-write memory
+- Human confirmation required
+
+---
+
+## Forbidden Actions
+
+- Skipping agent discovery
+- Skipping Discovery Matrix
+- Running implementation without approved spec
+- Modifying files directly
+- Auto-updating memory
+- Bypassing audit verdicts
 
 ---
 
 ## Output Format (MANDATORY)
 
-- Current phase status checklist
-- Agents consulted (by role/domain, not filenames)
-- Files created or modified
-- Open risks or notes
-- Next recommended command
+### Discovery Matrix
+- Full table (all agents)
+
+### Execution Log
+- Steps executed
+- Gates passed or blocked
+
+### Files Affected
+- List of files touched by sub-skills
+
+### Final Status
+One of:
+- BLOCKED
+- PARTIALLY COMPLETE
+- COMPLETE
+
+### Next Command
+Exact npm command or instruction.
 
 ---
 
-## Hard Constraints
+## When NOT to Use This Skill
 
-- No POS/Electron coupling unless explicitly approved in spec
-- Online-store remains read-only
-- Prisma is the source of truth for cloud schema
-- URL-based locale only (default: es)
-- One decision gate at a time
-- Orchestrator decides; agents advise
+- For single-file edits
+- For quick experiments
+- To bypass audits
+- To auto-generate code without spec
 
----
-
-## When NOT to use this skill
-
-- For single-step questions
-- For direct code changes without a spec
-- For exploratory discussion without intent to implement
-
-Use this skill when governance and correctness matter.
+This skill exists to **enforce governance, not speed**.

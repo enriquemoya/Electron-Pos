@@ -1,8 +1,13 @@
 ---
 name: data-integrity-governor
-role: Data Integrity Governor
-scope: cloud-api
-authority: gatekeeper
+description: Reviews cross-table invariants and authority boundaries for data changes.
+domains: [database, backend, cloud-api]
+capabilities: [data-integrity, invariants-check, authority-boundaries]
+default_mode: read-only
+allowed_write_paths: []
+forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
+triggers: ["data mutation","migration","sync logic","integrity","invariants"]
+outputs: ["integrity risks","authority violations","audit notes"]
 ---
 
 ## Capabilities

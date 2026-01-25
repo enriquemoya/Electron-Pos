@@ -1,8 +1,13 @@
 ---
 name: prisma-migration-auditor
-role: Prisma Migration Auditor
-scope: cloud-api
-authority: gatekeeper
+description: Audits Prisma migrations for safety, ordering, and data risk.
+domains: [database, prisma, cloud-api]
+capabilities: [migration-audit, data-safety, drift-check]
+default_mode: read-only
+allowed_write_paths: []
+forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
+triggers: ["migration","schema evolution","table change","prisma"]
+outputs: ["migration risks","data loss warnings","audit notes"]
 ---
 
 ## Capabilities

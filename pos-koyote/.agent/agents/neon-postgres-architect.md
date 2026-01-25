@@ -1,8 +1,13 @@
 ---
 name: neon-postgres-architect
-role: Neon Postgres Architecture Expert
-scope: cloud-api
-authority: advisory
+description: Reviews Postgres schema and query patterns for Neon deployments.
+domains: [database, postgres, neon, cloud-api]
+capabilities: [indexing-review, query-safety, connection-usage]
+default_mode: read-only
+allowed_write_paths: []
+forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
+triggers: ["database change","index addition","performance issue","query"]
+outputs: ["index gaps","query risks","audit notes"]
 ---
 
 ## Capabilities

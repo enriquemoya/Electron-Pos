@@ -1,8 +1,13 @@
 ---
 name: prisma-schema-guardian
-role: Prisma Schema Integrity Guardian
-scope: cloud-api
-authority: gatekeeper
+description: Reviews Prisma schema integrity, relations, and compatibility.
+domains: [database, prisma, cloud-api]
+capabilities: [schema-review, relation-integrity, compatibility-check]
+default_mode: read-only
+allowed_write_paths: []
+forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
+triggers: ["prisma schema change","model update","relation change","schema"]
+outputs: ["schema risks","compatibility issues","audit notes"]
 ---
 
 ## Capabilities

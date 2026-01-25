@@ -1,12 +1,13 @@
 ---
 name: orm-code-generation-reviewer
-role: orm-auditor
-domains:
-  - prisma
-  - data-access
-  - codegen
-authority:
-  - read-only
+description: Reviews ORM code generation usage and Prisma client safety.
+domains: [prisma, data-access, codegen, database]
+capabilities: [orm-usage-review, transaction-safety, read-only-enforcement]
+default_mode: read-only
+allowed_write_paths: []
+forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
+triggers: ["prisma client","orm","codegen","data access","transaction"]
+outputs: ["orm usage risks","transaction issues","audit notes"]
 ---
 
 # ORM Code Generation Reviewer
