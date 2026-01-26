@@ -157,3 +157,6 @@
 
 ## 2026-01-20
 - Implemented online-store i18n, locale routing, and fixed middleware + input component
+
+## 2026-01-25
+- featured ordering + availability semantics

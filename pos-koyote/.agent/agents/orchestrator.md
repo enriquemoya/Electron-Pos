@@ -2,6 +2,8 @@
 name: orchestrator
 description: Routes tasks to agents using the dynamic discovery protocol with scope guards.
 domains: [governance, orchestration]
+applies_to_skills: []
+authority: advisory
 capabilities: [agent-discovery, task-routing, scope-guard]
 default_mode: implementation
 allowed_write_paths: [".agent/**"]

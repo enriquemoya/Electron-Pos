@@ -3,6 +3,7 @@ import { json } from "express";
 import { Client } from "pg";
 import dotenv from "dotenv";
 import crypto from "crypto";
+import { PrismaClient } from "@prisma/client";
 
 dotenv.config();
 
@@ -20,6 +21,8 @@ if (!sharedSecret) {
 
 const app = express();
 app.use(json({ limit: "1mb" }));
+const prisma = new PrismaClient();
+const LOW_STOCK_THRESHOLD = 3;
 
 function withClient<T>(fn: (client: Client) => Promise<T>) {
   const client = new Client({ connectionString: databaseUrl });
@@ -299,6 +302,71 @@ app.get("/read/products", async (req, res) => {
       total: result.total,
       hasMore: page * pageSize < result.total
     });
+  } catch (error) {
+    res.status(500).json({ error: "server error" });
+  }
+});
+
+app.get("/api/cloud/catalog/featured", async (_req, res) => {
+  try {
+    const [ordered, fallback, total] = await prisma.$transaction([
+      prisma.readModelInventory.findMany({
+        where: { isFeatured: true, featuredOrder: { not: null } },
+        orderBy: [{ featuredOrder: "asc" }, { updatedAt: "desc" }],
+        take: 12,
+        select: {
+          productId: true,
+          slug: true,
+          displayName: true,
+          imageUrl: true,
+          category: true,
+          available: true,
+          featuredOrder: true,
+          price: true,
+          game: true
+        }
+      }),
+      prisma.readModelInventory.findMany({
+        where: { isFeatured: true, featuredOrder: null },
+        orderBy: { updatedAt: "desc" },
+        take: 12,
+        select: {
+          productId: true,
+          slug: true,
+          displayName: true,
+          imageUrl: true,
+          category: true,
+          available: true,
+          featuredOrder: true,
+          price: true,
+          game: true
+        }
+      }),
+      prisma.readModelInventory.count({ where: { isFeatured: true } })
+    ]);
+
+    const items = [...ordered, ...fallback].slice(0, 12).map((row) => {
+      const availability =
+        row.available <= 0
+          ? "out_of_stock"
+          : row.available <= LOW_STOCK_THRESHOLD
+            ? "low_stock"
+            : "in_stock";
+
+      return {
+        id: row.productId,
+        slug: row.slug ?? null,
+        name: row.displayName ?? null,
+        game: row.game ?? "other",
+        imageUrl: row.imageUrl ?? null,
+        price: row.price ?? null,
+        currency: "MXN",
+        availability,
+        featuredOrder: row.featuredOrder ?? null
+      };
+    });
+
+    res.status(200).json({ items, meta: { total } });
   } catch (error) {
     res.status(500).json({ error: "server error" });
   }

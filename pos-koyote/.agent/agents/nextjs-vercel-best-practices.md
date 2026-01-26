@@ -1,9 +1,12 @@
 ---
 agent: nextjs-vercel-best-practices
+name: nextjs-vercel-best-practices
 version: 1.0
 domain: frontend
+domains: [frontend]
 scope: validation
 authority: advisory
+applies_to_skills: []
 discoverable: true
 capabilities:
   - nextjs app router

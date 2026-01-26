@@ -19,3 +19,17 @@ Dynamic Discovery Protocol
 - Fallback rules:
   - Use spec-agent for spec tasks.
   - Use audit-agent for audits.
+
+  ### authority_level
+One of:
+- advisory        # cannot block
+- reviewer        # can block within its domain
+- blocker         # global veto authority
+
+### veto_priority
+Integer (lower = higher priority)
+Example:
+security: 10
+data-integrity: 20
+schema: 30
+performance: 40

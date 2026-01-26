@@ -1,9 +1,12 @@
 ---
 agent: ui-ux-architect
+name: ui-ux-architect
 version: 1.0
 domain: ui
+domains: [ui]
 scope: validation
 authority: advisory
+applies_to_skills: []
 discoverable: true
 capabilities:
   - layout hierarchy

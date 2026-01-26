@@ -44,14 +44,19 @@ model Order {
 
 model ReadModelInventory {
   productId         String   @id @map("product_id")
+  slug              String?  @map("slug")
   available         Int      @default(0)
   updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
   displayName       String?  @map("display_name")
   shortDescription  String?  @map("short_description")
   imageUrl          String?  @map("image_url")
   category          String?
+  price             Decimal? @map("price") @db.Numeric
+  game              String?
   availabilityState String?  @map("availability_state")
   lastSyncedAt      DateTime? @map("last_synced_at") @db.Timestamptz(6)
+  isFeatured        Boolean  @default(false) @map("is_featured")
+  featuredOrder     Int?     @map("featured_order")
 
   @@map("read_model_inventory")
 }

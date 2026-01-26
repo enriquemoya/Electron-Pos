@@ -1,9 +1,12 @@
 ---
 agent: i18n-accessibility-guardian
+name: i18n-accessibility-guardian
 version: 1.0
 domain: ux
+domains: [ux]
 scope: validation
 authority: advisory
+applies_to_skills: []
 discoverable: true
 capabilities:
   - next-intl validation

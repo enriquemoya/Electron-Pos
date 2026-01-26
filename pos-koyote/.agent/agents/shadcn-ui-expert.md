@@ -1,9 +1,12 @@
 ---
 agent: shadcn-ui-expert
+name: shadcn-ui-expert
 version: 1.0
 domain: ui
+domains: [ui]
 scope: validation
 authority: advisory
+applies_to_skills: []
 discoverable: true
 capabilities:
   - shadcn/ui component selection

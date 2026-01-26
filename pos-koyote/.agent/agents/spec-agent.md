@@ -2,6 +2,8 @@
 name: spec-agent
 description: Creates or updates SPECS only. Never writes runtime code.
 domains: [specs, governance]
+applies_to_skills: []
+authority: advisory
 capabilities: [spec-create, spec-update, spec-structure]
 default_mode: spec-only
 allowed_write_paths: [".specs/**",".agent/**"]

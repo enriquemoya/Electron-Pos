@@ -2,6 +2,8 @@
 name: memory-bank-curator
 description: Updates Memory Bank files only. Never touches specs or runtime code.
 domains: [governance, documentation]
+applies_to_skills: []
+authority: advisory
 capabilities: [memory-bank-update, drift-fix]
 default_mode: implementation
 allowed_write_paths: [".memory-bank/**"]

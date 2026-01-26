@@ -1,149 +1,143 @@
-# Agent Responsibilities & Conflict Resolution
+# AGENT_RESPONSIBILITIES
 
-This document defines how agents participate in governance,
-their authority levels, and how conflicts are resolved.
+This document defines **authority, veto power, and conflict resolution**
+for all discoverable agents.
 
-This file is REQUIRED by the orchestrator.
-Absence or violation BLOCKS execution.
+The orchestrator MUST follow these rules.
+No skill or agent may override them.
 
 ---
 
 ## Authority Levels
 
-Each agent MUST declare one authority level in its frontmatter:
+Each agent declares exactly ONE authority level:
 
-- advisory
-- reviewer
-- blocker
+- advisory  
+  - Can provide guidance, warnings, suggestions
+  - Can NOT block execution
 
-### advisory
-- Provides suggestions and risk notes
-- Cannot block execution
-- Cannot escalate on its own
-- Ignored safely if out of scope
+- reviewer  
+  - Can flag issues
+  - Can require conditions
+  - Can escalate to blocker agents
 
-### reviewer
-- Reviews correctness, structure, or quality
-- Can request clarification
-- Can recommend blocking
-- Cannot block unless escalated by rules
+- blocker  
+  - Can BLOCK the workflow step
+  - Can force verdicts: NOT READY / NOT SAFE
 
-### blocker
-- Has veto power
-- Any BLOCKER finding = execution MUST STOP
-- Used for safety, integrity, and authority boundaries
+Authority is declared in agent frontmatter
+and enforced by the orchestrator.
 
 ---
 
-## Default Authority Mapping
+## Veto Priority Order (GLOBAL)
 
-The following mappings apply unless explicitly overridden
-in an agent contract.
+If multiple blocker agents exist,
+they are evaluated in the following priority order:
 
-### Always BLOCKER
-- audit-agent (during audits)
-- backend-security-guardian (security issues)
-- data-integrity-governor (data corruption risk)
-- prisma-migration-auditor (unsafe migrations)
+| Priority | Agent |
+|--------|------|
+| 10 | backend-security-guardian |
+| 20 | data-integrity-governor |
+| 30 | prisma-migration-auditor |
+| 40 | cloud-api-contract-guardian |
+| 50 | audit-agent |
 
-### Usually REVIEWER
-- node-backend-architect
-- prisma-schema-guardian
-- cloud-api-contract-guardian
-- backend-performance-reviewer
+Lower number = higher priority.
 
-### Always ADVISORY
-- shadcn-ui-expert
-- react-component-architect
-- ui-ux-architect
-- i18n-accessibility-guardian
+If a higher-priority agent blocks,
+lower agents are NOT evaluated.
 
 ---
 
-## Conflict Resolution Rules (MANDATORY)
+## Blocking Rules
 
-### Rule 1 — Blocker Supremacy
-If ANY blocker agent raises a blocking issue:
-- Status = BLOCKED
-- No override is allowed
-- Human intervention required
+A blocker agent MAY block if:
 
----
+- Violates declared scope or authority boundaries
+- Introduces security risk
+- Breaks data integrity or migrations
+- Breaks API contract compatibility
+- Violates SPEC or GLOBAL rules
 
-### Rule 2 — Reviewer Escalation
+A blocker agent MUST provide:
 
-A reviewer MAY escalate to BLOCKER IF:
-- The issue violates GLOBAL.md
-- The issue violates DATA_ACCESS.md
-- The issue introduces irreversible risk
-- The issue contradicts the approved spec
+- Reason
+- File or scope reference
+- Severity
 
-Escalation MUST be explicit and justified.
+Silent blocking is FORBIDDEN.
 
 ---
 
-### Rule 3 — Advisory Non-Blocking
+## Reviewer Escalation Rules
+
+Reviewer agents MAY:
+
+- Request changes
+- Mark SAFE WITH CONDITIONS
+- Escalate to a blocker if:
+  - Risk is systemic
+  - Data loss is possible
+  - Security boundary is crossed
+
+---
+
+## Advisory Agent Rules
 
 Advisory agents:
-- Cannot block
-- Cannot escalate
-- Their input is logged only
+
+- Never block
+- Never escalate directly
+- Only inform the orchestrator
 
 ---
 
-### Rule 4 — Multiple Reviewer Disagreement
-
-If reviewers disagree:
-- Orchestrator MUST summarize differences
-- Ask the human user to choose:
-  - proceed
-  - block
-  - request clarification
-
-Execution pauses until resolved.
-
----
-
-### Rule 5 — Silent Agent Rule
-
-If an agent is discovered but produces no findings:
-- This is treated as an implicit PASS
-- Must still be listed in the Discovery Matrix
-
----
-
-## Escalation Matrix
-
-| Scenario | Result |
-|--------|--------|
-| 1 blocker flags issue | BLOCK |
-| 2+ reviewers flag same risk | ESCALATE to blocker |
-| reviewer + advisory flag same risk | REVIEW required |
-| advisory only | LOG only |
-| no agents flag issues | PROCEED |
-
----
-
-## Orchestrator Obligations
+## Orchestrator Conflict Resolution
 
 The orchestrator MUST:
-- Apply these rules deterministically
-- Never invent authority
-- Never downgrade a blocker
-- Always explain decisions
 
-Violation of these rules INVALIDATES the run.
+1. Apply Discovery Matrix
+2. Identify blocker agents
+3. Evaluate blockers by priority
+4. Stop on first BLOCK
+5. Produce final verdict
+
+The orchestrator CANNOT:
+- Ignore blockers
+- Reorder priorities
+- Downgrade a block
 
 ---
 
-## When This File Is Used
+## Memory Bank Rule
 
-- During Discovery Matrix evaluation
-- During gate decisions
-- During conflict resolution
-- During final verdict computation
+No agent may write to memory.
 
-This file exists to prevent:
-- Silent overrides
-- Authority ambiguity
-- Agent shopping
+Memory updates are:
+- Suggested only
+- Require human confirmation
+- Executed via `koyote-memory-update`
+
+---
+
+## Determinism Guarantee
+
+Given the same:
+- Inputs
+- Agents
+- Contracts
+
+The same verdict MUST be produced.
+
+Non-deterministic behavior is a violation.
+
+---
+
+## Final Rule
+
+If authority, priority, or escalation is unclear:
+
+**BLOCK THE FLOW**
+
+Governance correctness > speed.
