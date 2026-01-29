@@ -8,8 +8,21 @@ description: Orchestrate end-to-end governance flow (spec, audit, implementation
 Use this skill to run a **full AI-governed workflow** from specification to implementation,
 with audits, agent discovery, and human confirmation gates.
 
-This skill does NOT directly implement code or specs.
+This skill does NOT directly implement code or specs.  
 It coordinates other skills and agents and enforces governance.
+
+---
+
+## Repo root resolution
+
+Always operate in the repo root that contains .agent and .specs.
+If the current working directory is not the repo root, change to it
+before running discovery or referencing any spec files.
+If multiple candidates exist, prefer the one that also contains apps/
+and package.json (expected: pos-koyote).
+Never create a new .specs folder. Always use the existing .specs
+folder inside the resolved repo root. If a second .specs is found
+outside the repo root, ignore it and stop to confirm before writing.
 
 ---
 

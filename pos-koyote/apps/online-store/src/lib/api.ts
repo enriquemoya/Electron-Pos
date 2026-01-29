@@ -22,6 +22,23 @@ export type ProductListResponse = {
   total: number;
 };
 
+export type FeaturedProduct = {
+  id: string;
+  slug: string | null;
+  name: string | null;
+  game: "pokemon" | "one-piece" | "yugioh" | "other";
+  imageUrl: string | null;
+  price: number | null;
+  currency: "MXN";
+  availability: "in_stock" | "low_stock" | "out_of_stock";
+  featuredOrder: number | null;
+};
+
+export type FeaturedProductResponse = {
+  items: FeaturedProduct[];
+  meta: { total: number };
+};
+
 function buildQuery(params: Record<string, string | number | undefined>) {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -41,6 +58,8 @@ export async function fetchCatalog(params: {
   category?: string;
   availability?: string;
   gameTypeId?: string;
+  priceMin?: number;
+  priceMax?: number;
   expansionId?: string;
   id?: string;
 }): Promise<ProductListResponse> {
@@ -64,4 +83,44 @@ export async function fetchCatalog(params: {
   }
 
   return response.json();
+}
+
+export async function fetchFeaturedProducts(): Promise<{
+  items: ProductListItem[];
+}> {
+  const baseUrl = process.env.CLOUD_API_URL;
+  const secret = process.env.CLOUD_SHARED_SECRET;
+
+  if (!baseUrl) {
+    throw new Error("CLOUD_API_URL is required.");
+  }
+
+  const url = `${baseUrl}/api/cloud/catalog/featured`;
+  const response = await fetch(url, {
+    headers: {
+      "x-cloud-secret": secret || ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("featured request failed");
+  }
+
+  const data = (await response.json()) as FeaturedProductResponse;
+  const mapped = data.items.map((item) => ({
+    id: item.id,
+    name: item.name ?? "",
+    category: null,
+    price: item.price ? { amount: item.price, currency: item.currency } : null,
+    state:
+      item.availability === "in_stock"
+        ? "AVAILABLE"
+        : item.availability === "low_stock"
+          ? "LOW_STOCK"
+          : "SOLD_OUT",
+    imageUrl: item.imageUrl ?? null
+  }));
+
+  return { items: mapped };
 }

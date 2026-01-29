@@ -7,6 +7,9 @@
     "brand": {
       "name": "Koyote Games"
     },
+    "shopNow": "Comprar ahora",
+    "viewAll": "Ver todo",
+    "learnMore": "Saber mas",
     "pagination": {
       "label": "Pagina {page} de {total}",
       "prev": "Anterior",
@@ -78,50 +81,33 @@
   },
   "landing": {
     "hero": {
-      "tagline": "Koyote Games",
-      "headline": "Tienda TCG premium para coleccionistas y jugadores",
-      "body": "Explora sellados, singles y accesorios curados de los TCG mas importantes.",
+      "title": "Tienda TCG premium para coleccionistas y jugadores",
+      "subtitle": "Explora sellados, singles y accesorios curados de los TCG mas importantes.",
       "primaryCta": "Explorar catalogo",
-      "secondaryCta": "Explorar Pokemon",
-      "noteTitle": "Nota de inventario",
-      "noteBody": "La disponibilidad es estimada y puede actualizarse despues de revision."
+      "secondaryCta": "Explorar Pokemon"
     },
     "featured": {
       "title": "Productos destacados",
       "subtitle": "Selecciones curadas de las ultimas actualizaciones",
-      "viewAll": "Ver todo",
       "empty": "No hay productos destacados disponibles.",
       "error": "No se pudieron cargar los productos destacados. Intenta mas tarde."
     },
-    "highlights": {
+    "games": {
       "title": "Compra por juego",
-      "subtitle": "Ve directo a los TCG que mas te interesan.",
       "pokemon": "Cajas, singles y accesorios.",
       "onePiece": "Mazos, boosters y coleccionables.",
       "yugioh": "Sellados, staples y accesorios.",
-      "others": "Descubre mas TCG y juegos.",
-      "cta": "Ver catalogo"
+      "others": "Descubre mas TCG y juegos."
     },
     "community": {
       "title": "Comunidad y noticias",
-      "subtitle": "Mantente cerca de torneos, eventos y novedades.",
-      "news": {
-        "title": "Novedades",
-        "body": "Anuncios, lanzamientos y reposiciones."
-      },
-      "events": {
-        "title": "Eventos",
-        "body": "Reuniones y actividades locales."
-      },
-      "tournaments": {
-        "title": "Torneos",
-        "body": "Competencia y premios."
-      },
-      "cta": "Saber mas"
+      "newsTitle": "Novedades",
+      "eventsTitle": "Eventos",
+      "communityTitle": "Comunidad",
+      "placeholderLink": "Saber mas"
     },
     "cta": {
       "title": "Listo para explorar el catalogo?",
-      "body": "Descubre nuevos lanzamientos y favoritos de coleccion.",
       "primaryCta": "Ver catalogo",
       "secondaryCta": "Ver comunidad"
     }
@@ -129,6 +115,14 @@
   "catalog": {
     "title": "Catalogo",
     "subtitle": "Explora sellados, singles y accesorios recientes.",
+    "filters": {
+      "title": "Filtros",
+      "game": "Juego (opcional)",
+      "price": "Rango de precio",
+      "priceMin": "Min {value}",
+      "priceMax": "Max {value}",
+      "clear": "Limpiar filtros"
+    },
     "searchPlaceholder": "Buscar por nombre de producto",
     "categoryPlaceholder": "Categoria (opcional)",
     "availabilityPlaceholder": "Disponibilidad (opcional)",
@@ -150,6 +144,9 @@
     "available": "Disponible",
     "low": "Pocas unidades",
     "soldOut": "Agotado",
-    "pending": "Actualizando"
+    "pending": "Actualizando",
+    "inStock": "Disponible",
+    "lowStock": "Pocas unidades",
+    "outOfStock": "Agotado"
   }
 }

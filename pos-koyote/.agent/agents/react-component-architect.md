@@ -3,10 +3,10 @@ agent: react-component-architect
 name: react-component-architect
 version: 1.0
 domain: frontend
-domains: [frontend]
+domains: [frontend, ui]
 scope: validation
-authority: advisory
-applies_to_skills: []
+authority: reviewer
+applies_to_skills: [koyote-impl, koyote-impl-audit, koyote-spec-audit]
 discoverable: true
 capabilities:
   - component decomposition
@@ -18,6 +18,13 @@ constraints:
   - read-only
   - no runtime code changes
   - no spec authoring
+allowed_paths:
+  - apps/online-store/**
+  - .specs/**
+forbidden_paths:
+  - apps/cloud-api/**
+  - apps/desktop/**
+  - packages/**
 tools: []
 ---
 

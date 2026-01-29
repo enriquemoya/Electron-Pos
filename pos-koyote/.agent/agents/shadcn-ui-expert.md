@@ -3,10 +3,10 @@ agent: shadcn-ui-expert
 name: shadcn-ui-expert
 version: 1.0
 domain: ui
-domains: [ui]
+domains: [ui, frontend]
 scope: validation
-authority: advisory
-applies_to_skills: []
+authority: reviewer
+applies_to_skills: [koyote-impl, koyote-impl-audit, koyote-spec-audit]
 discoverable: true
 capabilities:
   - shadcn/ui component selection
@@ -17,6 +17,13 @@ constraints:
   - read-only
   - no runtime code changes
   - no custom component invention
+allowed_paths:
+  - apps/online-store/**
+  - .specs/**
+forbidden_paths:
+  - apps/cloud-api/**
+  - apps/desktop/**
+  - packages/**
 tools:
   - mcp: shadcn
 ---

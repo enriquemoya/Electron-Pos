@@ -10,6 +10,17 @@ This skill NEVER writes runtime code.
 
 Specs produced by this skill are the **only allowed input** for implementation skills.
 
+## Repo root resolution
+
+Always operate in the repo root that contains .agent and .specs.
+If the current working directory is not the repo root, change to it
+before creating or updating any spec files.
+If multiple candidates exist, prefer the one that also contains apps/
+and package.json (expected: pos-koyote).
+Never create a new .specs folder. Always use the existing .specs
+folder inside the resolved repo root. If a second .specs is found
+outside the repo root, ignore it and stop to confirm before writing.
+
 ---
 
 ## Governing References (MUST READ)

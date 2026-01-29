@@ -3,10 +3,10 @@ agent: i18n-accessibility-guardian
 name: i18n-accessibility-guardian
 version: 1.0
 domain: ux
-domains: [ux]
+domains: [ux, i18n, frontend]
 scope: validation
-authority: advisory
-applies_to_skills: []
+authority: reviewer
+applies_to_skills: [koyote-impl, koyote-impl-audit, koyote-spec-audit]
 discoverable: true
 capabilities:
   - next-intl validation
@@ -17,6 +17,13 @@ capabilities:
 constraints:
   - read-only
   - no runtime code changes
+allowed_paths:
+  - apps/online-store/**
+  - .specs/**
+forbidden_paths:
+  - apps/cloud-api/**
+  - apps/desktop/**
+  - packages/**
 tools: []
 ---
 

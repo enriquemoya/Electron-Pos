@@ -3,8 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { fetchCatalog, type InventoryState } from "@/lib/api";
 import { ProductCard } from "@/components/product-card";
 import { Pagination } from "@/components/pagination";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { CatalogFilters } from "@/components/catalog/catalog-filters";
 
 type CatalogPageProps = {
   searchParams: {
@@ -13,12 +12,20 @@ type CatalogPageProps = {
     query?: string;
     category?: string;
     availability?: string;
+    gameTypeId?: string;
+    priceMin?: string;
+    priceMax?: string;
   };
 };
 
 function parseNumber(value: string | undefined, fallback: number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function parseNonNegative(value: string | undefined) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
 }
 
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {
@@ -28,6 +35,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const query = searchParams.query ?? "";
   const category = searchParams.category ?? "";
   const availability = searchParams.availability ?? "";
+  const gameTypeId = searchParams.gameTypeId ?? "";
+  const priceMin = parseNonNegative(searchParams.priceMin);
+  const priceMax = parseNonNegative(searchParams.priceMax);
 
   let data;
   try {
@@ -36,7 +46,10 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       pageSize,
       query,
       category,
-      availability
+      availability,
+      gameTypeId,
+      priceMin: searchParams.priceMin ? priceMin : undefined,
+      priceMax: searchParams.priceMax ? priceMax : undefined
     });
   } catch (error) {
     return (
@@ -65,7 +78,15 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       : true;
     const state = product.state ?? "PENDING_SYNC";
     const matchesAvailability = availability ? state === availability : true;
-    return matchesCategory && matchesAvailability;
+    const matchesGame = gameTypeId ? product.gameTypeId === gameTypeId : true;
+    const priceValue = product.price?.amount ?? null;
+    const hasPriceFilter = searchParams.priceMin || searchParams.priceMax;
+    const matchesPrice = hasPriceFilter
+      ? priceValue !== null &&
+        (searchParams.priceMin ? priceValue >= priceMin : true) &&
+        (searchParams.priceMax ? priceValue <= priceMax : true)
+      : true;
+    return matchesCategory && matchesAvailability && matchesGame && matchesPrice;
   });
 
   return (
@@ -77,26 +98,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
         </div>
       </div>
 
-      <form className="grid gap-3 rounded-xl border border-white/10 bg-base-800/60 p-4 md:grid-cols-4">
-        <Input name="query" placeholder={t("catalog.searchPlaceholder")} defaultValue={query} />
-        <Input name="category" placeholder={t("catalog.categoryPlaceholder")} defaultValue={category} />
-        <select
-          name="availability"
-          defaultValue={availability}
-          className="h-10 w-full rounded-md border border-white/10 bg-base-800 px-3 text-sm text-white/80"
-        >
-          <option value="">{t("catalog.availabilityPlaceholder")}</option>
-          <option value="AVAILABLE">{t("availability.available")}</option>
-          <option value="LOW_STOCK">{t("availability.low")}</option>
-          <option value="SOLD_OUT">{t("availability.soldOut")}</option>
-          <option value="PENDING_SYNC">{t("availability.pending")}</option>
-        </select>
-        <div className="flex gap-2">
-          <Button type="submit" variant="outline" className="w-full">
-            {t("catalog.applyFilters")}
-          </Button>
-        </div>
-      </form>
+      <CatalogFilters />
 
       {filteredItems.length === 0 ? (
         <div className="rounded-xl border border-white/10 bg-base-800 p-6 text-sm text-white/60">
@@ -120,7 +122,15 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
         pageSize={data.pageSize}
         total={data.total}
         basePath="/catalog"
-        query={{ pageSize: data.pageSize, query, category, availability }}
+        query={{
+          pageSize: data.pageSize,
+          query,
+          category,
+          availability,
+          gameTypeId,
+          priceMin: searchParams.priceMin,
+          priceMax: searchParams.priceMax
+        }}
         labels={{
           label: t("common.pagination.label", {
             page: data.page,

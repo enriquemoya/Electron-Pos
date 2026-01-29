@@ -7,6 +7,9 @@
     "brand": {
       "name": "Koyote Games"
     },
+    "shopNow": "Shop now",
+    "viewAll": "View all",
+    "learnMore": "Learn more",
     "pagination": {
       "label": "Page {page} of {total}",
       "prev": "Prev",
@@ -78,50 +81,33 @@
   },
   "landing": {
     "hero": {
-      "tagline": "Koyote Games",
-      "headline": "Premium TCG store for collectors and competitors",
-      "body": "Explore curated sealed products, singles, and accessories across top TCGs.",
+      "title": "Premium TCG store for collectors and competitors",
+      "subtitle": "Explore curated sealed products, singles, and accessories across top TCGs.",
       "primaryCta": "Shop catalog",
-      "secondaryCta": "Explore Pokemon",
-      "noteTitle": "Inventory note",
-      "noteBody": "Availability is best effort and may update after review."
+      "secondaryCta": "Explore Pokemon"
     },
     "featured": {
       "title": "Featured products",
       "subtitle": "Curated picks from the latest updates",
-      "viewAll": "View all",
       "empty": "No featured products available.",
       "error": "Unable to load featured products. Please try again later."
     },
-    "highlights": {
+    "games": {
       "title": "Shop by game",
-      "subtitle": "Jump to the TCGs you care about most.",
       "pokemon": "Booster boxes, singles, and accessories.",
       "onePiece": "Decks, boosters, and collector staples.",
       "yugioh": "Sealed product, staples, and accessories.",
-      "others": "Discover more TCGs and side games.",
-      "cta": "Browse"
+      "others": "Discover more TCGs and side games."
     },
     "community": {
       "title": "Community and news",
-      "subtitle": "Stay close to tournaments, events, and store updates.",
-      "news": {
-        "title": "Store updates",
-        "body": "Announcements, drops, and restocks."
-      },
-      "events": {
-        "title": "Events",
-        "body": "Meetups and local gatherings."
-      },
-      "tournaments": {
-        "title": "Tournaments",
-        "body": "Competitive play and prize events."
-      },
-      "cta": "Learn more"
+      "newsTitle": "Store updates",
+      "eventsTitle": "Events",
+      "communityTitle": "Community",
+      "placeholderLink": "Learn more"
     },
     "cta": {
       "title": "Ready to explore the catalog?",
-      "body": "Discover new releases and collector favorites.",
       "primaryCta": "Browse catalog",
       "secondaryCta": "See community"
     }
@@ -129,6 +115,14 @@
   "catalog": {
     "title": "Catalog",
     "subtitle": "Explore the latest sealed products, singles, and accessories.",
+    "filters": {
+      "title": "Filters",
+      "game": "Game (optional)",
+      "price": "Price range",
+      "priceMin": "Min {value}",
+      "priceMax": "Max {value}",
+      "clear": "Clear filters"
+    },
     "searchPlaceholder": "Search by product name",
     "categoryPlaceholder": "Category (optional)",
     "availabilityPlaceholder": "Availability (optional)",
@@ -150,6 +144,9 @@
     "available": "Available",
     "low": "Limited availability",
     "soldOut": "Out of stock",
-    "pending": "Updating"
+    "pending": "Updating",
+    "inStock": "Available",
+    "lowStock": "Limited availability",
+    "outOfStock": "Out of stock"
   }
 }

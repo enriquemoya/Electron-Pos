@@ -51,7 +51,7 @@ model ReadModelInventory {
   shortDescription  String?  @map("short_description")
   imageUrl          String?  @map("image_url")
   category          String?
-  price             Decimal? @map("price") @db.Numeric
+  price             Decimal? @map("price")
   game              String?
   availabilityState String?  @map("availability_state")
   lastSyncedAt      DateTime? @map("last_synced_at") @db.Timestamptz(6)

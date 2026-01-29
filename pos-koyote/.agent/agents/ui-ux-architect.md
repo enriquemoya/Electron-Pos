@@ -3,10 +3,10 @@ agent: ui-ux-architect
 name: ui-ux-architect
 version: 1.0
 domain: ui
-domains: [ui]
+domains: [ui, ux, frontend]
 scope: validation
-authority: advisory
-applies_to_skills: []
+authority: reviewer
+applies_to_skills: [koyote-impl, koyote-impl-audit, koyote-spec-audit]
 discoverable: true
 capabilities:
   - layout hierarchy
@@ -18,6 +18,13 @@ constraints:
   - read-only
   - no runtime code changes
   - no spec creation
+allowed_paths:
+  - apps/online-store/**
+  - .specs/**
+forbidden_paths:
+  - apps/cloud-api/**
+  - apps/desktop/**
+  - packages/**
 tools: []
 ---
 

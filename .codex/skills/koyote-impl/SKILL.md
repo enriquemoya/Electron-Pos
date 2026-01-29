@@ -10,6 +10,19 @@ This skill MAY modify runtime code but MUST NOT modify spec files unless explici
 
 ---
 
+## Repo root resolution
+
+Always operate in the repo root that contains .agent and .specs.
+If the current working directory is not the repo root, change to it
+before applying implementation changes.
+If multiple candidates exist, prefer the one that also contains apps/
+and package.json (expected: pos-koyote).
+Never create a new .specs folder. Always use the existing .specs
+folder inside the resolved repo root. If a second .specs is found
+outside the repo root, ignore it and stop to confirm before writing.
+
+---
+
 ## Governing References (MUST READ)
 
 - .agent/ARCHITECTURE.md
