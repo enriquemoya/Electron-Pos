@@ -3,14 +3,35 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { ChevronDown, Filter } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_MIN = 0;
 const DEFAULT_MAX = 5000;
+
+const categoryOptions = [
+  "Boosters",
+  "Decks",
+  "Accessories",
+  "Singles",
+  "Bundles"
+];
+
+const gameOptions = ["pokemon", "one piece", "yugioh", "other"];
 
 function parseParam(value: string | null) {
   if (!value) return null;
@@ -32,13 +53,67 @@ type CatalogFiltersProps = {
   className?: string;
 };
 
+type ComboboxProps = {
+  label: string;
+  placeholder: string;
+  value: string;
+  options: string[];
+  emptyLabel: string;
+  onChange: (value: string) => void;
+};
+
+function Combobox({ label, placeholder, value, options, emptyLabel, onChange }: ComboboxProps) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="space-y-2">
+      <div className="text-xs uppercase tracking-wide text-white/60">{label}</div>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button type="button" variant="outline" className="w-full justify-between">
+            <span className={value ? "text-white" : "text-white/50"}>
+              {value || placeholder}
+            </span>
+            <ChevronDown className="h-4 w-4 text-white/60" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="p-0">
+          <Command>
+            <CommandInput
+              placeholder={placeholder}
+              value={value}
+              onValueChange={(next) => onChange(next)}
+            />
+            <CommandList>
+              <CommandEmpty>{emptyLabel}</CommandEmpty>
+              <CommandGroup>
+                {options.map((option) => (
+                  <CommandItem
+                    key={option}
+                    value={option}
+                    onSelect={(selected) => {
+                      onChange(selected);
+                      setOpen(false);
+                    }}
+                  >
+                    {option}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
 export function CatalogFilters({ className }: CatalogFiltersProps) {
   const t = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isDesktopOpen, setIsDesktopOpen] = useState(true);
 
   const initial = useMemo(() => {
     return {
@@ -95,7 +170,6 @@ export function CatalogFilters({ className }: CatalogFiltersProps) {
     });
 
     router.push(`${pathname}${queryString}`);
-    setIsMobileOpen(false);
   };
 
   const clearFilters = () => {
@@ -105,7 +179,6 @@ export function CatalogFilters({ className }: CatalogFiltersProps) {
     setGameTypeId("");
     setRange([DEFAULT_MIN, DEFAULT_MAX]);
     router.push(pathname);
-    setIsMobileOpen(false);
   };
 
   const filterContent = (
@@ -116,17 +189,21 @@ export function CatalogFilters({ className }: CatalogFiltersProps) {
         value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
-      <Input
-        name="category"
+      <Combobox
+        label={t("catalog.filters.category")}
         placeholder={t("catalog.categoryPlaceholder")}
         value={category}
-        onChange={(event) => setCategory(event.target.value)}
+        options={categoryOptions}
+        emptyLabel={t("catalog.filters.empty")}
+        onChange={setCategory}
       />
-      <Input
-        name="gameTypeId"
+      <Combobox
+        label={t("catalog.filters.game")}
         placeholder={t("catalog.filters.game")}
         value={gameTypeId}
-        onChange={(event) => setGameTypeId(event.target.value)}
+        options={gameOptions}
+        emptyLabel={t("catalog.filters.empty")}
+        onChange={setGameTypeId}
       />
       <select
         name="availability"
@@ -177,29 +254,39 @@ export function CatalogFilters({ className }: CatalogFiltersProps) {
     <div className={cn("rounded-xl border border-white/10 bg-base-800/60 p-4", className)}>
       <div className="flex items-center justify-between gap-3 md:hidden">
         <div className="text-sm font-semibold text-white">{t("catalog.filters.title")}</div>
-        <Button type="button" variant="outline" onClick={() => setIsMobileOpen(true)}>
-          {t("catalog.filters.title")}
-        </Button>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button type="button" variant="outline">
+              <Filter className="mr-2 h-4 w-4" />
+              {t("catalog.filters.title")}
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{t("catalog.filters.title")}</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6 space-y-4">
+              {filterContent}
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
-      <div className="hidden md:block">{filterContent}</div>
-
-      {isMobileOpen ? (
-        <div className="fixed inset-0 z-40 flex md:hidden" onClick={() => setIsMobileOpen(false)}>
-          <div
-            className="h-full w-full max-w-sm bg-base-950 p-6"
-            onClick={(event) => event.stopPropagation()}
+      <div className="hidden md:block">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold text-white">{t("catalog.filters.title")}</div>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setIsDesktopOpen((value) => !value)}
           >
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white">{t("catalog.filters.title")}</h2>
-              <Button type="button" variant="ghost" onClick={() => setIsMobileOpen(false)}>
-                {t("navigation.mobile.close")}
-              </Button>
-            </div>
-            <div className="mt-4">{filterContent}</div>
-          </div>
+            <ChevronDown
+              className={cn("h-4 w-4 transition-transform", isDesktopOpen ? "rotate-180" : "")}
+            />
+          </Button>
         </div>
-      ) : null}
+        {isDesktopOpen ? <div className="mt-4">{filterContent}</div> : null}
+      </div>
     </div>
   );
 }

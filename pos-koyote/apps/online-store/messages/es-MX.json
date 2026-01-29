@@ -117,11 +117,13 @@
     "subtitle": "Explora sellados, singles y accesorios recientes.",
     "filters": {
       "title": "Filtros",
+      "category": "Categoria",
       "game": "Juego (opcional)",
       "price": "Rango de precio",
       "priceMin": "Min {value}",
       "priceMax": "Max {value}",
-      "clear": "Limpiar filtros"
+      "clear": "Limpiar filtros",
+      "empty": "Sin resultados"
     },
     "searchPlaceholder": "Buscar por nombre de producto",
     "categoryPlaceholder": "Categoria (opcional)",

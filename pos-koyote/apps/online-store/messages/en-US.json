@@ -117,11 +117,13 @@
     "subtitle": "Explore the latest sealed products, singles, and accessories.",
     "filters": {
       "title": "Filters",
+      "category": "Category",
       "game": "Game (optional)",
       "price": "Price range",
       "priceMin": "Min {value}",
       "priceMax": "Max {value}",
-      "clear": "Clear filters"
+      "clear": "Clear filters",
+      "empty": "No results"
     },
     "searchPlaceholder": "Search by product name",
     "categoryPlaceholder": "Category (optional)",
