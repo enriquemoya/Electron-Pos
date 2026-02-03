@@ -14,6 +14,9 @@ Header and navigation are reused from the existing spec and are not redefined.
 - Optional secondary CTA.
 - Gradient background allowed, no glass effects.
 - Static content.
+- Hero banner image uses a local asset in the online-store app.
+- Image uses next/image for responsive sizing and optimization.
+- Image alt text uses an i18n key.
 
 Loading/empty:
 - Not applicable; static content.
@@ -40,6 +43,9 @@ Loading/empty:
 ### Community/news/events teaser
 - Static teaser cards with optional placeholder links.
 - Links may be placeholders but must not break navigation.
+- Each card uses a local background image asset.
+- Background images use cover/center with a dark overlay for readability.
+- Card image alt text uses i18n keys.
 
 Loading/empty:
 - Not applicable; static content.
@@ -100,6 +106,7 @@ landing.hero:
 - landing.hero.subtitle
 - landing.hero.primaryCta
 - landing.hero.secondaryCta
+- landing.hero.imageAlt
 
 landing.featured:
 - landing.featured.title
@@ -119,6 +126,9 @@ landing.community:
 - landing.community.eventsTitle
 - landing.community.communityTitle
 - landing.community.placeholderLink
+- landing.community.newsImageAlt
+- landing.community.eventsImageAlt
+- landing.community.communityImageAlt
 
 landing.cta:
 - landing.cta.title

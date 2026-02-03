@@ -1,11 +1,11 @@
 {
   "common": {
     "meta": {
-      "title": "Koyote Games",
+      "title": "DanimeZone",
       "description": "TCG shop online store"
     },
     "brand": {
-      "name": "Koyote Games"
+      "name": "DanimeZone"
     },
     "shopNow": "Shop now",
     "viewAll": "View all",
@@ -16,12 +16,12 @@
       "next": "Next"
     },
     "footer": {
-      "label": "Koyote Games Online Store v1"
+      "label": "DanimeZone Online Store v1"
     }
   },
   "navigation": {
     "brand": {
-      "name": "Koyote Games"
+      "name": "DanimeZone"
     },
     "items": {
       "pokemon": "Pokemon",
@@ -84,7 +84,8 @@
       "title": "Premium TCG store for collectors and competitors",
       "subtitle": "Explore curated sealed products, singles, and accessories across top TCGs.",
       "primaryCta": "Shop catalog",
-      "secondaryCta": "Explore Pokemon"
+      "secondaryCta": "Explore Pokemon",
+      "imageAlt": "TCG collectibles banner"
     },
     "featured": {
       "title": "Featured products",
@@ -104,7 +105,10 @@
       "newsTitle": "Store updates",
       "eventsTitle": "Events",
       "communityTitle": "Community",
-      "placeholderLink": "Learn more"
+      "placeholderLink": "Learn more",
+      "newsImageAlt": "News banner",
+      "eventsImageAlt": "Events banner",
+      "communityImageAlt": "Community banner"
     },
     "cta": {
       "title": "Ready to explore the catalog?",
@@ -123,7 +127,15 @@
       "priceMin": "Min {value}",
       "priceMax": "Max {value}",
       "clear": "Clear filters",
-      "empty": "No results"
+      "empty": "No results",
+      "noOptions": "No options",
+      "chips": "Active filters",
+      "chipClear": "Remove filter {value}",
+      "chipQuery": "Search: {value}",
+      "chipCategory": "Category: {value}",
+      "chipGame": "Game: {value}",
+      "chipAvailability": "Availability: {value}",
+      "chipPrice": "Price {min} - {max}"
     },
     "searchPlaceholder": "Search by product name",
     "categoryPlaceholder": "Category (optional)",

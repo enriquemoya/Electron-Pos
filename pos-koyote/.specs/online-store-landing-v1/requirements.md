@@ -9,6 +9,8 @@ and clear CTAs.
 - Surface featured products from the Cloud API read-only endpoint.
 - Keep availability labels non-guaranteed.
 - Ensure all user-visible text is localized via next-intl.
+- Use a local hero banner image asset stored in the online-store app.
+- Use local background images for community/news/events teaser cards.
 
 ## Non-goals
 - No catalog page changes.
@@ -42,6 +44,8 @@ Out of scope:
 - Tailwind + shadcn/ui only.
 - No hardcoded user-visible strings in JSX.
 - Availability semantics are labels only.
+- Hero banner image must be stored as a local asset in online-store and not loaded from a remote URL.
+- Community/news/events background images must be stored as local assets in online-store.
 
 ## Assumptions
 - Featured endpoint exists and is read-only.

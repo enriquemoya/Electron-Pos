@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
 import { fetchCatalog, type InventoryState } from "@/lib/api";
+import { ActiveFilterChips } from "@/components/catalog/active-filter-chips";
 import { ProductCard } from "@/components/product-card";
 import { Pagination } from "@/components/pagination";
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
@@ -35,7 +36,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const query = searchParams.query ?? "";
   const category = searchParams.category ?? "";
   const availability = searchParams.availability ?? "";
-  const gameTypeId = searchParams.gameTypeId ?? "";
+  const game = searchParams.game ?? "";
   const priceMin = parseNonNegative(searchParams.priceMin);
   const priceMax = parseNonNegative(searchParams.priceMax);
 
@@ -47,7 +48,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       query,
       category,
       availability,
-      gameTypeId,
+      game,
       priceMin: searchParams.priceMin ? priceMin : undefined,
       priceMax: searchParams.priceMax ? priceMax : undefined
     });
@@ -78,7 +79,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       : true;
     const state = product.state ?? "PENDING_SYNC";
     const matchesAvailability = availability ? state === availability : true;
-    const matchesGame = gameTypeId ? product.gameTypeId === gameTypeId : true;
+    const matchesGame = game ? product.game === game : true;
     const priceValue = product.price?.amount ?? null;
     const hasPriceFilter = searchParams.priceMin || searchParams.priceMax;
     const matchesPrice = hasPriceFilter
@@ -98,48 +99,55 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
         </div>
       </div>
 
-      <CatalogFilters />
-
-      {filteredItems.length === 0 ? (
-        <div className="rounded-xl border border-white/10 bg-base-800 p-6 text-sm text-white/60">
-          {t("catalog.empty")}
+      <div className="grid gap-8 md:grid-cols-[260px_1fr]">
+        <div className="md:sticky md:top-24 md:self-start">
+          <CatalogFilters />
         </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {filteredItems.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              inventoryLabel={inventoryLabelFor(product.state)}
-              viewLabel={t("product.view")}
-            />
-          ))}
-        </div>
-      )}
 
-      <Pagination
-        page={data.page}
-        pageSize={data.pageSize}
-        total={data.total}
-        basePath="/catalog"
-        query={{
-          pageSize: data.pageSize,
-          query,
-          category,
-          availability,
-          gameTypeId,
-          priceMin: searchParams.priceMin,
-          priceMax: searchParams.priceMax
-        }}
-        labels={{
-          label: t("common.pagination.label", {
-            page: data.page,
-            total: Math.max(1, Math.ceil(data.total / data.pageSize))
-          }),
-          prev: t("common.pagination.prev"),
-          next: t("common.pagination.next")
-        }}
-      />
+        <div className="space-y-6">
+          <ActiveFilterChips />
+          {filteredItems.length === 0 ? (
+            <div className="rounded-xl border border-white/10 bg-base-800 p-6 text-sm text-white/60">
+              {t("catalog.empty")}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {filteredItems.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  inventoryLabel={inventoryLabelFor(product.state)}
+                  viewLabel={t("product.view")}
+                />
+              ))}
+            </div>
+          )}
+
+          <Pagination
+            page={data.page}
+            pageSize={data.pageSize}
+            total={data.total}
+            basePath="/catalog"
+            query={{
+              pageSize: data.pageSize,
+            query,
+            category,
+            availability,
+            game,
+            priceMin: searchParams.priceMin,
+            priceMax: searchParams.priceMax
+          }}
+            labels={{
+              label: t("common.pagination.label", {
+                page: data.page,
+                total: Math.max(1, Math.ceil(data.total / data.pageSize))
+              }),
+              prev: t("common.pagination.prev"),
+              next: t("common.pagination.next")
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

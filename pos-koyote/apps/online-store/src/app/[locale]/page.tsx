@@ -21,6 +21,7 @@ export default async function HomePage() {
         primaryCtaHref="/catalog"
         secondaryCtaLabel={t("landing.hero.secondaryCta")}
         secondaryCtaHref="/catalog?category=pokemon"
+        imageAlt={t("landing.hero.imageAlt")}
       />
 
       <Section className="flex flex-col gap-6">
@@ -85,17 +86,23 @@ export default async function HomePage() {
             {
               id: "news",
               title: t("landing.community.newsTitle"),
-              body: t("landing.community.placeholderLink")
+              body: t("landing.community.placeholderLink"),
+              image: "/assets/landing/news.png",
+              imageAlt: t("landing.community.newsImageAlt")
             },
             {
               id: "events",
               title: t("landing.community.eventsTitle"),
-              body: t("landing.community.placeholderLink")
+              body: t("landing.community.placeholderLink"),
+              image: "/assets/landing/events.png",
+              imageAlt: t("landing.community.eventsImageAlt")
             },
             {
               id: "tournaments",
               title: t("landing.community.communityTitle"),
-              body: t("landing.community.placeholderLink")
+              body: t("landing.community.placeholderLink"),
+              image: "/assets/landing/community.png",
+              imageAlt: t("landing.community.communityImageAlt")
             }
           ].map((item) => (
             <CommunityTeaserCard
@@ -104,6 +111,8 @@ export default async function HomePage() {
               body={item.body}
               href="#"
               linkLabel={t("common.learnMore")}
+              backgroundImage={item.image}
+              imageAlt={item.imageAlt}
             />
           ))}
         </div>

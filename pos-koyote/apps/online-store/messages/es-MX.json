@@ -1,11 +1,11 @@
 {
   "common": {
     "meta": {
-      "title": "Koyote Games",
+      "title": "DanimeZone",
       "description": "Tienda en linea de TCG"
     },
     "brand": {
-      "name": "Koyote Games"
+      "name": "DanimeZone"
     },
     "shopNow": "Comprar ahora",
     "viewAll": "Ver todo",
@@ -16,12 +16,12 @@
       "next": "Siguiente"
     },
     "footer": {
-      "label": "Koyote Games Tienda en linea v1"
+      "label": "DanimeZone Tienda en linea v1"
     }
   },
   "navigation": {
     "brand": {
-      "name": "Koyote Games"
+      "name": "DanimeZone"
     },
     "items": {
       "pokemon": "Pokemon",
@@ -84,7 +84,8 @@
       "title": "Tienda TCG premium para coleccionistas y jugadores",
       "subtitle": "Explora sellados, singles y accesorios curados de los TCG mas importantes.",
       "primaryCta": "Explorar catalogo",
-      "secondaryCta": "Explorar Pokemon"
+      "secondaryCta": "Explorar Pokemon",
+      "imageAlt": "Banner de coleccionables TCG"
     },
     "featured": {
       "title": "Productos destacados",
@@ -104,7 +105,10 @@
       "newsTitle": "Novedades",
       "eventsTitle": "Eventos",
       "communityTitle": "Comunidad",
-      "placeholderLink": "Saber mas"
+      "placeholderLink": "Saber mas",
+      "newsImageAlt": "Banner de novedades",
+      "eventsImageAlt": "Banner de eventos",
+      "communityImageAlt": "Banner de comunidad"
     },
     "cta": {
       "title": "Listo para explorar el catalogo?",
@@ -123,7 +127,15 @@
       "priceMin": "Min {value}",
       "priceMax": "Max {value}",
       "clear": "Limpiar filtros",
-      "empty": "Sin resultados"
+      "empty": "Sin resultados",
+      "noOptions": "Sin opciones",
+      "chips": "Filtros activos",
+      "chipClear": "Eliminar filtro {value}",
+      "chipQuery": "Busqueda: {value}",
+      "chipCategory": "Categoria: {value}",
+      "chipGame": "Juego: {value}",
+      "chipAvailability": "Disponibilidad: {value}",
+      "chipPrice": "Precio {min} - {max}"
     },
     "searchPlaceholder": "Buscar por nombre de producto",
     "categoryPlaceholder": "Categoria (opcional)",

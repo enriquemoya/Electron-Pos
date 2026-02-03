@@ -5,8 +5,8 @@ export type ProductListItem = {
   name: string;
   shortDescription?: string | null;
   category?: string | null;
+  game?: string | null;
   price?: { amount: number; currency: string } | null;
-  gameTypeId?: string | null;
   expansionId?: string | null;
   available?: number | null;
   state?: InventoryState | null;
@@ -57,7 +57,7 @@ export async function fetchCatalog(params: {
   query?: string;
   category?: string;
   availability?: string;
-  gameTypeId?: string;
+  game?: string;
   priceMin?: number;
   priceMax?: number;
   expansionId?: string;

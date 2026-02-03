@@ -23,15 +23,12 @@ import { cn } from "@/lib/utils";
 const DEFAULT_MIN = 0;
 const DEFAULT_MAX = 5000;
 
-const categoryOptions = [
-  "Boosters",
-  "Decks",
-  "Accessories",
-  "Singles",
-  "Bundles"
-];
+type FilterOption = { id: string; label: string };
 
-const gameOptions = ["pokemon", "one piece", "yugioh", "other"];
+type FilterOptionsResponse = {
+  categories: FilterOption[];
+  games: FilterOption[];
+};
 
 function parseParam(value: string | null) {
   if (!value) return null;
@@ -57,19 +54,33 @@ type ComboboxProps = {
   label: string;
   placeholder: string;
   value: string;
-  options: string[];
+  options: FilterOption[];
+  loading: boolean;
   emptyLabel: string;
   onChange: (value: string) => void;
 };
 
-function Combobox({ label, placeholder, value, options, emptyLabel, onChange }: ComboboxProps) {
+function Combobox({ label, placeholder, value, options, loading, emptyLabel, onChange }: ComboboxProps) {
   const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      setSearchValue("");
+    }
+  }, [open]);
+
   return (
     <div className="space-y-2">
       <div className="text-xs uppercase tracking-wide text-white/60">{label}</div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button type="button" variant="outline" className="w-full justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-between"
+            disabled={loading}
+          >
             <span className={value ? "text-white" : "text-white/50"}>
               {value || placeholder}
             </span>
@@ -80,22 +91,23 @@ function Combobox({ label, placeholder, value, options, emptyLabel, onChange }: 
           <Command>
             <CommandInput
               placeholder={placeholder}
-              value={value}
-              onValueChange={(next) => onChange(next)}
+              value={searchValue}
+              onValueChange={setSearchValue}
+              disabled={loading}
             />
             <CommandList>
               <CommandEmpty>{emptyLabel}</CommandEmpty>
               <CommandGroup>
                 {options.map((option) => (
                   <CommandItem
-                    key={option}
-                    value={option}
-                    onSelect={(selected) => {
-                      onChange(selected);
+                    key={option.id}
+                    value={option.label}
+                    onSelect={() => {
+                      onChange(option.id);
                       setOpen(false);
                     }}
                   >
-                    {option}
+                    {option.label}
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -114,13 +126,15 @@ export function CatalogFilters({ className }: CatalogFiltersProps) {
   const searchParams = useSearchParams();
 
   const [isDesktopOpen, setIsDesktopOpen] = useState(true);
+  const [options, setOptions] = useState<FilterOptionsResponse>({ categories: [], games: [] });
+  const [loadingOptions, setLoadingOptions] = useState(true);
 
   const initial = useMemo(() => {
     return {
       query: searchParams.get("query") ?? "",
       category: searchParams.get("category") ?? "",
       availability: searchParams.get("availability") ?? "",
-      gameTypeId: searchParams.get("gameTypeId") ?? "",
+      game: searchParams.get("game") ?? "",
       pageSize: searchParams.get("pageSize") ?? "",
       priceMin: parseParam(searchParams.get("priceMin")),
       priceMax: parseParam(searchParams.get("priceMax"))
@@ -130,7 +144,7 @@ export function CatalogFilters({ className }: CatalogFiltersProps) {
   const [query, setQuery] = useState(initial.query);
   const [category, setCategory] = useState(initial.category);
   const [availability, setAvailability] = useState(initial.availability);
-  const [gameTypeId, setGameTypeId] = useState(initial.gameTypeId);
+  const [game, setGame] = useState(initial.game);
   const [range, setRange] = useState<[number, number]>([
     initial.priceMin ?? DEFAULT_MIN,
     initial.priceMax ?? DEFAULT_MAX
@@ -140,19 +154,45 @@ export function CatalogFilters({ className }: CatalogFiltersProps) {
     setQuery(initial.query);
     setCategory(initial.category);
     setAvailability(initial.availability);
-    setGameTypeId(initial.gameTypeId);
+    setGame(initial.game);
     setRange([
       initial.priceMin ?? DEFAULT_MIN,
       initial.priceMax ?? DEFAULT_MAX
     ]);
   }, [initial]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    const loadOptions = async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_CLOUD_API_URL || "";
+        const endpoint = baseUrl ? `${baseUrl}/api/cloud/catalog/filters` : "/api/cloud/catalog/filters";
+        const response = await fetch(endpoint, { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error("failed to load filters");
+        }
+        const data = (await response.json()) as FilterOptionsResponse;
+        setOptions({
+          categories: data.categories ?? [],
+          games: data.games ?? []
+        });
+      } catch {
+        setOptions({ categories: [], games: [] });
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    loadOptions();
+    return () => controller.abort();
+  }, []);
+
   const applyFilters = (next?: Partial<typeof initial>) => {
     const merged = {
       query,
       category,
       availability,
-      gameTypeId,
+      game,
       priceMin: range[0] !== DEFAULT_MIN ? range[0] : null,
       priceMax: range[1] !== DEFAULT_MAX ? range[1] : null,
       ...next
@@ -162,7 +202,7 @@ export function CatalogFilters({ className }: CatalogFiltersProps) {
       query: merged.query || null,
       category: merged.category || null,
       availability: merged.availability || null,
-      gameTypeId: merged.gameTypeId || null,
+      game: merged.game || null,
       pageSize: initial.pageSize || null,
       priceMin: merged.priceMin !== null ? String(merged.priceMin) : null,
       priceMax: merged.priceMax !== null ? String(merged.priceMax) : null,
@@ -176,7 +216,7 @@ export function CatalogFilters({ className }: CatalogFiltersProps) {
     setQuery("");
     setCategory("");
     setAvailability("");
-    setGameTypeId("");
+    setGame("");
     setRange([DEFAULT_MIN, DEFAULT_MAX]);
     router.push(pathname);
   };
@@ -193,17 +233,19 @@ export function CatalogFilters({ className }: CatalogFiltersProps) {
         label={t("catalog.filters.category")}
         placeholder={t("catalog.categoryPlaceholder")}
         value={category}
-        options={categoryOptions}
-        emptyLabel={t("catalog.filters.empty")}
+        options={options.categories}
+        loading={loadingOptions}
+        emptyLabel={t("catalog.filters.noOptions")}
         onChange={setCategory}
       />
       <Combobox
         label={t("catalog.filters.game")}
         placeholder={t("catalog.filters.game")}
-        value={gameTypeId}
-        options={gameOptions}
-        emptyLabel={t("catalog.filters.empty")}
-        onChange={setGameTypeId}
+        value={game}
+        options={options.games}
+        loading={loadingOptions}
+        emptyLabel={t("catalog.filters.noOptions")}
+        onChange={setGame}
       />
       <select
         name="availability"

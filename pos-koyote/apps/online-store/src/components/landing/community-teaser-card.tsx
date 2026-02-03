@@ -6,15 +6,32 @@ type CommunityTeaserCardProps = {
   body: string;
   href: string;
   linkLabel: string;
+  backgroundImage: string;
+  imageAlt: string;
 };
 
-export function CommunityTeaserCard({ title, body, href, linkLabel }: CommunityTeaserCardProps) {
+export function CommunityTeaserCard({
+  title,
+  body,
+  href,
+  linkLabel,
+  backgroundImage,
+  imageAlt
+}: CommunityTeaserCardProps) {
   return (
-    <Card className="border-white/10 bg-base-900/60">
-      <CardContent className="flex h-full flex-col gap-3">
+    <Card
+      className="relative md:h-[200px] overflow-hidden border-white/10 bg-base-900/60"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center"
+      }}
+      aria-label={imageAlt}
+    >
+      <div className="absolute inset-0 bg-base-900/75" />
+      <CardContent className="relative flex h-full flex-col items-center justify-center">
         <div>
-          <h3 className="text-base font-semibold text-white">{title}</h3>
-          <p className="mt-2 text-sm text-white/60">{body}</p>
+          <h3 className="text-base font-semibold text-white pt-8">{title}</h3>
         </div>
         <Link href={href} className="mt-auto text-xs text-accent-500 hover:text-accent-600">
           {linkLabel}

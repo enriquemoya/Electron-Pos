@@ -41,6 +41,40 @@ function requireSecret(req: express.Request, res: express.Response, next: expres
   next();
 }
 
+app.get("/api/cloud/catalog/filters", async (_req, res) => {
+  try {
+    const [categoryRows, gameRows] = await prisma.$transaction([
+      prisma.readModelInventory.findMany({
+        distinct: ["category"],
+        select: { category: true },
+        where: { category: { not: null } },
+        orderBy: { category: "asc" }
+      }),
+      prisma.readModelInventory.findMany({
+        distinct: ["game"],
+        select: { game: true },
+        where: { game: { not: null } },
+        orderBy: { game: "asc" }
+      })
+    ]);
+
+    const categories = categoryRows
+      .map((row) => row.category)
+      .filter((value): value is string => typeof value === "string" && value.length > 0)
+      .map((value) => ({ id: value, label: value }));
+
+    const games = gameRows
+      .map((row) => row.game)
+      .filter((value): value is string => typeof value === "string" && value.length > 0)
+      .map((value) => ({ id: value, label: value }));
+
+    res.setHeader("Cache-Control", "public, max-age=60");
+    res.status(200).json({ categories, games });
+  } catch (error) {
+    res.status(500).json({ error: "server error" });
+  }
+});
+
 app.use(requireSecret);
 
 function isIsoString(value: unknown) {
@@ -253,6 +287,7 @@ app.get("/read/products", async (req, res) => {
            short_description,
            image_url,
            category,
+           game,
            availability_state,
            last_synced_at
          FROM read_model_inventory
@@ -281,7 +316,7 @@ app.get("/read/products", async (req, res) => {
           name: row.display_name ?? null,
           category: row.category ?? null,
           price: null,
-          gameTypeId: null,
+          game: row.game ?? null,
           expansionId: null,
           imageUrl: row.image_url ?? null,
           available: row.available,
