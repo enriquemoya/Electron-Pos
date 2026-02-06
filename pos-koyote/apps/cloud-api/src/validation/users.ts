@@ -14,6 +14,9 @@ export type UserPayload = {
   status?: unknown;
 };
 
+type UserRole = "CUSTOMER" | "ADMIN";
+type UserStatus = "ACTIVE" | "DISABLED";
+
 export type AddressPayload = {
   street?: unknown;
   externalNumber?: unknown;
@@ -75,6 +78,8 @@ export function validateUserCreate(payload: UserPayload) {
   }
 
   const birthDate = parseBirthDate(payload.birthDate);
+  const parsedRole = role ? (role as UserRole) : null;
+  const parsedStatus = status ? (status as UserStatus) : null;
 
   return {
     email,
@@ -82,8 +87,8 @@ export function validateUserCreate(payload: UserPayload) {
     firstName: toNullableString(payload.firstName),
     lastName: toNullableString(payload.lastName),
     birthDate,
-    role: role ?? undefined,
-    status: status ?? undefined
+    role: parsedRole ?? undefined,
+    status: parsedStatus ?? undefined
   };
 }
 
@@ -110,6 +115,8 @@ export function validateUserUpdate(payload: UserPayload) {
   }
 
   const birthDate = payload.birthDate === undefined ? undefined : parseBirthDate(payload.birthDate);
+  const parsedRole = role ? (role as UserRole) : null;
+  const parsedStatus = status ? (status as UserStatus) : null;
 
   const data = {
     email: payload.email === undefined ? undefined : email,
@@ -117,8 +124,8 @@ export function validateUserUpdate(payload: UserPayload) {
     firstName: payload.firstName === undefined ? undefined : toNullableString(payload.firstName),
     lastName: payload.lastName === undefined ? undefined : toNullableString(payload.lastName),
     birthDate,
-    role: role ?? undefined,
-    status: status ?? undefined
+    role: parsedRole ?? undefined,
+    status: parsedStatus ?? undefined
   };
 
   const hasAny = Object.values(data).some((value) => value !== undefined);

@@ -1,14 +1,13 @@
 # Requirements: Cloud API Clean Architecture Refactor v1
 
 ## Problem statement
-The Cloud API backend is implemented as a single large file. This makes it hard
-to maintain, test, and evolve. We need a modular, clean architecture structure
-with controllers, services, validation, and a standard error model, without
-changing endpoint behavior.
+The Cloud API backend needs a clearer structure to improve readability,
+testability, and long term maintenance. We must apply Clean Architecture
+layers while keeping external behavior identical.
 
 ## Goals
-- Refactor Cloud API into clean, modular architecture (routes, controllers,
-  services, validation, error model, data access).
+- Apply Clean Architecture layers (presentation, application, domain, infrastructure).
+- Refactor Cloud API into modular structure with thin controllers and routes.
 - Preserve existing endpoint behavior, status codes, and response shapes.
 - Preserve current auth boundary behavior (shared secret middleware).
 - Keep Prisma as data access layer and pg client usage where currently used.
@@ -17,6 +16,7 @@ changing endpoint behavior.
 ## Scope
 - Refactor current Cloud API routes and logic without changing behavior.
 - Include existing endpoints only (public filters and protected sync/orders/read endpoints).
+- Create application use cases and domain entities as needed to express current behavior.
 
 ## Non-goals
 - No functional behavior changes to endpoints.
@@ -24,6 +24,8 @@ changing endpoint behavior.
 - No UI, online-store, or POS changes.
 - No schema or migration changes.
 - No auth or security boundary changes.
+- No DTO or response shape changes.
+- No error message changes.
 
 ## Constraints
 - Cloud API only (and shared packages only if strictly necessary).
@@ -32,6 +34,9 @@ changing endpoint behavior.
 - Keep existing pg usage for sync flows.
 - Maintain existing error payload strings and status codes externally.
 - No new dependencies unless explicitly required and approved.
+- Dependencies must point inward (presentation -> application -> domain).
+- Domain layer must not import framework, Prisma, or HTTP dependencies.
+- Application layer must not import Prisma directly.
 
 ## Assumptions
 - Current endpoints live in a single file: src/index.ts.
