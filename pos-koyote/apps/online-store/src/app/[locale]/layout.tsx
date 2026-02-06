@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages, getTranslations } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -24,6 +24,7 @@ export default async function LocaleLayout({
   children: ReactNode;
   params: { locale: string };
 }) {
+  setRequestLocale(params.locale);
   const messages = await getMessages({ locale: params.locale });
 
   return (

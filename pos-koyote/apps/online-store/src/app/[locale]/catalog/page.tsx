@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { fetchCatalog, type InventoryState } from "@/lib/api";
 import { ActiveFilterChips } from "@/components/catalog/active-filter-chips";
@@ -7,13 +7,16 @@ import { Pagination } from "@/components/pagination";
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
 
 type CatalogPageProps = {
+  params: {
+    locale: string;
+  };
   searchParams: {
     page?: string;
     pageSize?: string;
     query?: string;
     category?: string;
     availability?: string;
-    gameTypeId?: string;
+    game?: string;
     priceMin?: string;
     priceMax?: string;
   };
@@ -29,7 +32,8 @@ function parseNonNegative(value: string | undefined) {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
 }
 
-export default async function CatalogPage({ searchParams }: CatalogPageProps) {
+export default async function CatalogPage({ params, searchParams }: CatalogPageProps) {
+  setRequestLocale(params.locale);
   const t = await getTranslations();
   const page = parseNumber(searchParams.page, 1);
   const pageSize = parseNumber(searchParams.pageSize, 12);
@@ -117,7 +121,6 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
                   key={product.id}
                   product={product}
                   inventoryLabel={inventoryLabelFor(product.state)}
-                  viewLabel={t("product.view")}
                 />
               ))}
             </div>
@@ -130,13 +133,13 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             basePath="/catalog"
             query={{
               pageSize: data.pageSize,
-            query,
-            category,
-            availability,
-            game,
-            priceMin: searchParams.priceMin,
-            priceMax: searchParams.priceMax
-          }}
+              query,
+              category,
+              availability,
+              game,
+              priceMin: searchParams.priceMin,
+              priceMax: searchParams.priceMax
+            }}
             labels={{
               label: t("common.pagination.label", {
                 page: data.page,

@@ -110,7 +110,7 @@ export function ActiveFilterChips({ className }: { className?: string }) {
         <Button
           key={chip.key}
           type="button"
-          variant="secondary"
+          variant="ghost"
           className="gap-2 rounded-full bg-white/10 text-xs text-white hover:bg-white/20"
           onClick={() => handleClear(chip.key)}
           aria-label={t("catalog.filters.chipClear", { value: chip.label })}

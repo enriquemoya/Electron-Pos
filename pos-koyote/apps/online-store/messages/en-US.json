@@ -154,11 +154,32 @@
     "contactPrice": "Contact for price",
     "view": "View"
   },
+  "productDetail": {
+    "titleFallback": "Product",
+    "descriptionFallback": "Product information.",
+    "priceLabel": "Price",
+    "priceUnavailable": "Price unavailable",
+    "categoryLabel": "Category",
+    "gameLabel": "Game",
+    "relatedTitle": "You may also like",
+    "relatedEmpty": "No related products available.",
+    "errorTitle": "Unable to load product",
+    "errorBody": "Please try again later.",
+    "backToCatalog": "Back to catalog",
+    "imageAlt": "Image of {name}"
+  },
+  "games": {
+    "pokemon": "Pokemon",
+    "onePiece": "One Piece",
+    "yugioh": "Yu-Gi-Oh!",
+    "other": "Other"
+  },
   "availability": {
     "available": "Available",
     "low": "Limited availability",
     "soldOut": "Out of stock",
     "pending": "Updating",
+    "pendingSync": "Updating",
     "inStock": "Available",
     "lowStock": "Limited availability",
     "outOfStock": "Out of stock"

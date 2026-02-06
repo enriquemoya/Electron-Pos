@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Suspense } from "react";
 import { CTAButton } from "@/components/landing/cta-button";
@@ -9,7 +9,8 @@ import { HeroBlock } from "@/components/landing/hero-block";
 import { Section } from "@/components/landing/section";
 import { SectionHeader } from "@/components/landing/section-header";
 
-export default async function HomePage() {
+export default async function HomePage({ params }: { params: { locale: string } }) {
+  setRequestLocale(params.locale);
   const t = await getTranslations();
 
   return (
@@ -32,7 +33,6 @@ export default async function HomePage() {
         />
         <Suspense fallback={<FeaturedSkeleton />}>
           <FeaturedGrid
-            viewLabel={t("product.view")}
             emptyLabel={t("landing.featured.empty")}
             errorLabel={t("landing.featured.error")}
           />

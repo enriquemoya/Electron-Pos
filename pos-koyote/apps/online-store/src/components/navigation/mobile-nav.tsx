@@ -63,11 +63,11 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 </button>
                 {openSection === item.id ? (
                   <div className="flex flex-col gap-1 px-3 pb-3">
-                    {item.type === "dropdown" && item.panel
+                    {item.type === "dropdown" && item.panel && "items" in item.panel
                       ? item.panel.items.map((link) => (
                           <MenuLink key={link.href} href={link.href} label={t(link.labelKey)} />
                         ))
-                      : item.type === "mega" && item.panel
+                      : item.type === "mega" && item.panel && "sections" in item.panel
                         ? item.panel.sections.flatMap((section) =>
                             section.items.map((link) => (
                               <MenuLink

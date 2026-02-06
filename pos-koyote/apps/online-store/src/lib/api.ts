@@ -2,6 +2,7 @@ export type InventoryState = "AVAILABLE" | "LOW_STOCK" | "SOLD_OUT" | "PENDING_S
 
 export type ProductListItem = {
   id: string;
+  slug?: string | null;
   name: string;
   shortDescription?: string | null;
   category?: string | null;
@@ -82,7 +83,14 @@ export async function fetchCatalog(params: {
     throw new Error("catalog request failed");
   }
 
-  return response.json();
+  const data = (await response.json()) as ProductListResponse;
+  return {
+    ...data,
+    items: (data.items ?? []).map((item) => ({
+      ...item,
+      name: item?.name ?? ""
+    }))
+  };
 }
 
 export async function fetchFeaturedProducts(): Promise<{
@@ -108,19 +116,24 @@ export async function fetchFeaturedProducts(): Promise<{
   }
 
   const data = (await response.json()) as FeaturedProductResponse;
-  const mapped = data.items.map((item) => ({
-    id: item.id,
-    name: item.name ?? "",
-    category: null,
-    price: item.price ? { amount: item.price, currency: item.currency } : null,
-    state:
+  const mapped = data.items.map((item) => {
+    const state: InventoryState =
       item.availability === "in_stock"
         ? "AVAILABLE"
         : item.availability === "low_stock"
           ? "LOW_STOCK"
-          : "SOLD_OUT",
-    imageUrl: item.imageUrl ?? null
-  }));
+          : "SOLD_OUT";
+
+    return {
+      id: item.id,
+      slug: item.slug,
+      name: item.name ?? "",
+      category: null,
+      price: item.price ? { amount: item.price, currency: item.currency } : null,
+      state,
+      imageUrl: item.imageUrl ?? null
+    };
+  });
 
   return { items: mapped };
 }

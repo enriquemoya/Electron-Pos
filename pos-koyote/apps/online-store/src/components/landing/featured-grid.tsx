@@ -5,12 +5,11 @@ import { FeaturedSkeleton } from "@/components/landing/featured-skeleton";
 import { fetchFeaturedProducts } from "@/lib/api";
 
 type FeaturedGridProps = {
-  viewLabel: string;
   emptyLabel: string;
   errorLabel: string;
 };
 
-export async function FeaturedGrid({ viewLabel, emptyLabel, errorLabel }: FeaturedGridProps) {
+export async function FeaturedGrid({ emptyLabel, errorLabel }: FeaturedGridProps) {
   const t = await getTranslations();
   try {
     const data = await fetchFeaturedProducts();
@@ -38,7 +37,6 @@ export async function FeaturedGrid({ viewLabel, emptyLabel, errorLabel }: Featur
             key={product.id}
             product={product}
             inventoryLabel={labelFor(product.state)}
-            viewLabel={viewLabel}
           />
         ))}
       </div>
