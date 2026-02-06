@@ -1,16 +1,21 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
+import { cookies } from "next/headers";
 
 import { Link } from "@/navigation";
 import { MainNav } from "@/components/navigation/main-nav";
 import { Search } from "@/components/navigation/search";
 import { Cart } from "@/components/navigation/cart";
+import { AccountLink } from "@/components/navigation/account-link";
+import { AccountMenu } from "@/components/navigation/account-menu";
 import { LocaleSwitcher } from "@/components/navigation/locale-switcher";
 import { secondaryLinks } from "@/components/navigation/nav-data";
 import { MobileNavToggle } from "@/components/navigation/mobile-nav-shell";
 
-export async function Header() {
+export async function Header({ locale }: { locale: string }) {
   const t = await getTranslations();
+  const token = cookies().get("auth_access")?.value;
+  const accountHref = token ? "/account/profile" : "/auth/login";
   return (
     <header className="sticky top-0 z-50 overflow-visible border-b border-white/5 bg-base-900/95 backdrop-blur">
       <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4">
@@ -47,11 +52,33 @@ export async function Header() {
               </Link>
             ))}
             <Search variant="desktop" />
+            <AccountMenu
+              profileHref="/account/profile"
+              profileLabel={t("navigation.account.menu.profile")}
+              ordersLabel={t("navigation.account.menu.orders")}
+              logoutLabel={t("navigation.account.menu.logout")}
+              menuLabel={t("navigation.account.label")}
+              signInLabel={t("navigation.account.menu.signIn")}
+              signInHref="/auth/login"
+              logoutHref="/auth/logout"
+              isAuthenticated={Boolean(token)}
+            />
             <Cart />
             <LocaleSwitcher />
           </div>
 
           <div className="flex items-center gap-3 lg:hidden">
+            <AccountMenu
+              profileHref="/account/profile"
+              profileLabel={t("navigation.account.menu.profile")}
+              ordersLabel={t("navigation.account.menu.orders")}
+              logoutLabel={t("navigation.account.menu.logout")}
+              menuLabel={t("navigation.account.label")}
+              signInLabel={t("navigation.account.menu.signIn")}
+              signInHref="/auth/login"
+              logoutHref="/auth/logout"
+              isAuthenticated={Boolean(token)}
+            />
             <Cart />
             <LocaleSwitcher />
             <MobileNavToggle />

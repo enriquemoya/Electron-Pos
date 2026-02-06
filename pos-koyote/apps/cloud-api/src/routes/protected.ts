@@ -20,7 +20,13 @@ import {
   readProductsHandler,
   recordEventsHandler
 } from "../controllers/sync-controller";
+import {
+  getProfileHandler,
+  updatePasswordHandler,
+  updateProfileHandler
+} from "../controllers/profile-controller";
 import { requireAdmin } from "../middleware/require-admin";
+import { requireAuth } from "../middleware/require-auth";
 import {
   createAddressHandler,
   createUserHandler,
@@ -41,6 +47,11 @@ router.post("/sync/ack", acknowledgeHandler);
 router.post("/orders", createOrderHandler);
 router.get("/read/products", readProductsHandler);
 router.get("/api/cloud/catalog/featured", getFeaturedCatalogHandler);
+
+router.use("/profile", requireAuth);
+router.get("/profile/me", getProfileHandler);
+router.patch("/profile/me", updateProfileHandler);
+router.patch("/profile/password", updatePasswordHandler);
 
 router.use("/admin", requireAdmin);
 router.get("/admin/dashboard/summary", getAdminSummaryHandler);

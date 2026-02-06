@@ -101,6 +101,8 @@ model User {
   phone      String?     @unique
   firstName  String?     @map("first_name")
   lastName   String?     @map("last_name")
+  passwordHash String?   @map("password_hash")
+  passwordUpdatedAt DateTime? @map("password_updated_at") @db.Timestamptz(6)
   birthDate  DateTime?   @map("birth_date") @db.Date
   role       UserRole    @default(CUSTOMER)
   status     UserStatus  @default(ACTIVE)
@@ -112,6 +114,7 @@ model User {
   magicLinks MagicLinkToken[]
   refreshTokens RefreshToken[]
   inventoryAdjustments InventoryAdjustment[] @relation("InventoryAdjustmentActor")
+  catalogAuditLogs CatalogAuditLog[]
 
   @@map("users")
 }

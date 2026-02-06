@@ -1,6 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { cookies } from "next/headers";
 
 import { Suspense } from "react";
+import { ProfileCompletionDialog } from "@/components/account/profile-completion-dialog";
+import { LogoutReload } from "@/components/auth/logout-reload";
 import { CTAButton } from "@/components/landing/cta-button";
 import { FeaturedGrid, FeaturedSkeleton } from "@/components/landing/featured-grid";
 import { GameHighlightCard } from "@/components/landing/game-highlight-card";
@@ -8,13 +11,33 @@ import { CommunityTeaserCard } from "@/components/landing/community-teaser-card"
 import { HeroBlock } from "@/components/landing/hero-block";
 import { Section } from "@/components/landing/section";
 import { SectionHeader } from "@/components/landing/section-header";
+import { fetchProfile } from "@/lib/profile-api";
 
 export default async function HomePage({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale);
   const t = await getTranslations();
+  const token = cookies().get("auth_access")?.value;
+  let showProfilePrompt = false;
+  if (token) {
+    const profile = await fetchProfile();
+    showProfilePrompt = Boolean(
+      profile?.user && (!profile.user.firstName || !profile.user.lastName)
+    );
+  }
 
   return (
     <div className="flex flex-col gap-16">
+      <LogoutReload />
+      <ProfileCompletionDialog
+        open={showProfilePrompt}
+        href="/account/profile"
+        labels={{
+          title: t("account.profilePrompt.title"),
+          description: t("account.profilePrompt.description"),
+          primary: t("account.profilePrompt.primary"),
+          secondary: t("account.profilePrompt.secondary")
+        }}
+      />
       <HeroBlock
         title={t("landing.hero.title")}
         subtitle={t("landing.hero.subtitle")}

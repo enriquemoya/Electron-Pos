@@ -67,6 +67,15 @@
     "cart": {
       "label": "Cart"
     },
+    "account": {
+      "label": "Account",
+      "menu": {
+        "profile": "Profile",
+        "orders": "Orders",
+        "logout": "Close session",
+        "signIn": "Sign in"
+      }
+    },
     "menu": {
       "status": "Main navigation menu",
       "locked": "Menu locked"
@@ -87,12 +96,70 @@
     "login": {
       "title": "Sign in",
       "subtitle": "Get a magic link by email to access your account.",
+      "magicLinkHint": "Magic link is the default sign-in method for DanimeZone.",
       "emailLabel": "Email",
       "emailPlaceholder": "you@example.com",
       "submit": "Send magic link",
       "success": "Check your inbox for the magic link.",
       "errorInvalid": "Enter a valid email address.",
       "errorServer": "Unable to send the magic link right now."
+    },
+    "password": {
+      "hint": "Prefer using a password? You can sign in that way as well.",
+      "toggleToPassword": "Login with password",
+      "toggleToMagic": "Use magic link instead",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Login with password",
+      "errorInvalid": "Email or password is incorrect.",
+      "errorServer": "Unable to sign in right now."
+    }
+  },
+  "account": {
+    "profilePrompt": {
+      "title": "Complete your profile",
+      "description": "Adding your details helps with orders, shipping, and account security.",
+      "primary": "Complete profile",
+      "secondary": "Later"
+    },
+    "profile": {
+      "title": "Your profile",
+      "subtitle": "Complete your details to prepare for future checkout.",
+      "personal": {
+        "title": "Personal details",
+        "description": "These details help us identify your account and orders.",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "phone": "Phone (optional)",
+        "submit": "Save profile",
+        "success": "Profile updated.",
+        "errorInvalid": "Please complete the required fields.",
+        "errorServer": "Unable to save your profile."
+      },
+      "address": {
+        "title": "Address (optional)",
+        "street": "Street",
+        "externalNumber": "External number",
+        "internalNumber": "Internal number",
+        "postalCode": "Postal code",
+        "neighborhood": "Neighborhood",
+        "city": "City",
+        "state": "State",
+        "country": "Country",
+        "references": "Additional references"
+      },
+      "password": {
+        "title": "Password",
+        "description": "Optional: add a password for faster sign-in. Magic link will still work.",
+        "password": "Password",
+        "confirm": "Confirm password",
+        "submit": "Save password",
+        "success": "Password updated.",
+        "errorInvalid": "Passwords must match.",
+        "errorServer": "Unable to update password."
+      }
     }
   },
   "landing": {

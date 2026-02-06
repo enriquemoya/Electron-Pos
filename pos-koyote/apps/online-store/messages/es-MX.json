@@ -67,6 +67,15 @@
     "cart": {
       "label": "Carrito"
     },
+    "account": {
+      "label": "Cuenta",
+      "menu": {
+        "profile": "Perfil",
+        "orders": "Pedidos",
+        "logout": "Cerrar sesion",
+        "signIn": "Iniciar sesion"
+      }
+    },
     "menu": {
       "status": "Menu principal",
       "locked": "Menu fijado"
@@ -87,12 +96,70 @@
     "login": {
       "title": "Iniciar sesion",
       "subtitle": "Recibe un enlace magico por correo para acceder.",
+      "magicLinkHint": "El enlace magico es el metodo principal para iniciar sesion.",
       "emailLabel": "Correo",
       "emailPlaceholder": "tu@ejemplo.com",
       "submit": "Enviar enlace magico",
       "success": "Revisa tu correo para el enlace magico.",
       "errorInvalid": "Ingresa un correo valido.",
       "errorServer": "No se pudo enviar el enlace magico."
+    },
+    "password": {
+      "hint": "Prefieres usar contrasena? Tambien puedes iniciar sesion asi.",
+      "toggleToPassword": "Iniciar con contrasena",
+      "toggleToMagic": "Usar enlace magico",
+      "emailLabel": "Correo",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "passwordLabel": "Contrasena",
+      "passwordPlaceholder": "Ingresa tu contrasena",
+      "submit": "Iniciar con contrasena",
+      "errorInvalid": "Correo o contrasena incorrectos.",
+      "errorServer": "No se pudo iniciar sesion."
+    }
+  },
+  "account": {
+    "profilePrompt": {
+      "title": "Completa tu perfil",
+      "description": "Agregar tus datos ayuda con pedidos, envios y seguridad.",
+      "primary": "Completar perfil",
+      "secondary": "Despues"
+    },
+    "profile": {
+      "title": "Tu perfil",
+      "subtitle": "Completa tus datos para preparar futuras compras.",
+      "personal": {
+        "title": "Datos personales",
+        "description": "Estos datos ayudan a identificar tu cuenta y pedidos.",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "phone": "Telefono (opcional)",
+        "submit": "Guardar perfil",
+        "success": "Perfil actualizado.",
+        "errorInvalid": "Completa los campos obligatorios.",
+        "errorServer": "No se pudo guardar el perfil."
+      },
+      "address": {
+        "title": "Direccion (opcional)",
+        "street": "Calle",
+        "externalNumber": "Numero exterior",
+        "internalNumber": "Numero interior",
+        "postalCode": "Codigo postal",
+        "neighborhood": "Colonia",
+        "city": "Ciudad",
+        "state": "Estado",
+        "country": "Pais",
+        "references": "Referencias adicionales"
+      },
+      "password": {
+        "title": "Contrasena",
+        "description": "Opcional: agrega una contrasena para entrar mas rapido. El enlace magico sigue disponible.",
+        "password": "Contrasena",
+        "confirm": "Confirmar contrasena",
+        "submit": "Guardar contrasena",
+        "success": "Contrasena actualizada.",
+        "errorInvalid": "Las contrasenas no coinciden.",
+        "errorServer": "No se pudo actualizar la contrasena."
+      }
     }
   },
   "landing": {

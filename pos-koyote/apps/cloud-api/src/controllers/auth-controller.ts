@@ -4,12 +4,18 @@ import { ApiErrors, asApiError } from "../errors/api-error";
 import { sendMagicLinkEmail } from "../services/email-service";
 import {
   buildMagicLink,
+  loginWithPassword,
   requestMagicLink,
   revokeRefreshToken,
   refreshTokens,
   verifyMagicLink
 } from "../services/auth-service";
-import { validateEmailPayload, validateRefreshPayload, validateTokenPayload } from "../validation/auth";
+import {
+  validateEmailPayload,
+  validatePasswordLoginPayload,
+  validateRefreshPayload,
+  validateTokenPayload
+} from "../validation/auth";
 
 export async function requestMagicLinkHandler(req: Request, res: Response) {
   try {
@@ -68,6 +74,21 @@ export async function logoutHandler(req: Request, res: Response) {
     const token = validateRefreshPayload(req.body ?? {});
     await revokeRefreshToken(token);
     res.status(200).json({ status: "ok" });
+  } catch (error) {
+    const apiError = asApiError(error, ApiErrors.invalidRequest);
+    res.status(apiError.status).json({ error: apiError.message });
+  }
+}
+
+export async function passwordLoginHandler(req: Request, res: Response) {
+  try {
+    const payload = validatePasswordLoginPayload(req.body ?? {});
+    const result = await loginWithPassword(payload.email, payload.password);
+    if (!result) {
+      res.status(ApiErrors.unauthorized.status).json({ error: ApiErrors.unauthorized.message });
+      return;
+    }
+    res.status(200).json({ accessToken: result.accessToken, refreshToken: result.refreshToken });
   } catch (error) {
     const apiError = asApiError(error, ApiErrors.invalidRequest);
     res.status(apiError.status).json({ error: apiError.message });

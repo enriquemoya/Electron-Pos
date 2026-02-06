@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 import { prisma } from "../db/prisma";
 import { env } from "../config/env";
@@ -26,6 +27,29 @@ function signAccessToken(user: { id: string; role: string; email: string | null 
     env.jwtSecret,
     { expiresIn: `${ACCESS_TTL_MINUTES}m` }
   );
+}
+
+async function issueTokensForUser(user: { id: string; role: string; email: string | null }) {
+  const now = new Date();
+  const accessToken = signAccessToken({
+    id: user.id,
+    role: user.role,
+    email: user.email
+  });
+
+  const refreshToken = crypto.randomBytes(48).toString("hex");
+  const refreshHash = hashToken(refreshToken);
+  const refreshExpiresAt = addDays(now, REFRESH_TTL_DAYS);
+
+  await prisma.refreshToken.create({
+    data: {
+      userId: user.id,
+      tokenHash: refreshHash,
+      expiresAt: refreshExpiresAt
+    }
+  });
+
+  return { accessToken, refreshToken };
 }
 
 export async function requestMagicLink(email: string) {
@@ -85,25 +109,11 @@ export async function verifyMagicLink(token: string) {
     }
   });
 
-  const accessToken = signAccessToken({
+  return issueTokensForUser({
     id: record.user.id,
     role: record.user.role,
     email: record.user.email
   });
-
-  const refreshToken = crypto.randomBytes(48).toString("hex");
-  const refreshHash = hashToken(refreshToken);
-  const refreshExpiresAt = addDays(now, REFRESH_TTL_DAYS);
-
-  await prisma.refreshToken.create({
-    data: {
-      userId: record.userId,
-      tokenHash: refreshHash,
-      expiresAt: refreshExpiresAt
-    }
-  });
-
-  return { accessToken, refreshToken };
 }
 
 export async function refreshTokens(refreshToken: string) {
@@ -152,6 +162,33 @@ export async function revokeRefreshToken(refreshToken: string) {
   await prisma.refreshToken.updateMany({
     where: { tokenHash, revokedAt: null },
     data: { revokedAt: now, lastUsedAt: now }
+  });
+}
+
+export async function loginWithPassword(email: string, password: string) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || !user.passwordHash || user.status !== "ACTIVE") {
+    return null;
+  }
+
+  const matches = await bcrypt.compare(password, user.passwordHash);
+  if (!matches) {
+    return null;
+  }
+
+  const now = new Date();
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      emailVerifiedAt: user.emailVerifiedAt ?? now,
+      lastLoginAt: now
+    }
+  });
+
+  return issueTokensForUser({
+    id: user.id,
+    role: user.role,
+    email: user.email
   });
 }
 

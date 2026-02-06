@@ -32,7 +32,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <Header />
+      <Header locale={params.locale} />
       <main className="mx-auto w-full max-w-6xl px-4 py-10">{children}</main>
       <Footer />
     </NextIntlClientProvider>

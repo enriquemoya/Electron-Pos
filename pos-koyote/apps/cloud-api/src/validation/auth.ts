@@ -28,3 +28,12 @@ export function validateRefreshPayload(payload: unknown) {
   }
   return refreshToken;
 }
+
+export function validatePasswordLoginPayload(payload: unknown) {
+  const email = validateEmailPayload(payload);
+  const password = String((payload as { password?: string })?.password ?? "").trim();
+  if (!password) {
+    throw ApiErrors.invalidRequest;
+  }
+  return { email, password };
+}
