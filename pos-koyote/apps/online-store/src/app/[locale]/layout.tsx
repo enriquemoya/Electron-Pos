@@ -13,7 +13,10 @@ export async function generateMetadata({ params }: { params: { locale: string } 
   const t = await getTranslations({ locale: params.locale, namespace: "common.meta" });
   return {
     title: t("title"),
-    description: t("description")
+    description: t("description"),
+    icons: {
+      icon: "/assets/hero/store-logo.ico"
+    }
   };
 }
 

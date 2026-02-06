@@ -94,6 +94,8 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
     return matchesCategory && matchesAvailability && matchesGame && matchesPrice;
   });
 
+  const imageFallbackAlt = t("catalog.imageFallbackAlt");
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -121,6 +123,8 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
                   key={product.id}
                   product={product}
                   inventoryLabel={inventoryLabelFor(product.state)}
+                  imageAlt={t("productDetail.imageAlt", { name: product.name ?? t("productDetail.titleFallback") })}
+                  imageFallbackAlt={imageFallbackAlt}
                 />
               ))}
             </div>

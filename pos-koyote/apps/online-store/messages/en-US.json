@@ -5,7 +5,8 @@
       "description": "TCG shop online store"
     },
     "brand": {
-      "name": "DanimeZone"
+      "name": "DanimeZone",
+      "short": "Danime"
     },
     "shopNow": "Shop now",
     "viewAll": "View all",
@@ -21,7 +22,8 @@
   },
   "navigation": {
     "brand": {
-      "name": "DanimeZone"
+      "name": "DanimeZone",
+      "short": "Danime"
     },
     "items": {
       "pokemon": "Pokemon",
@@ -58,7 +60,9 @@
       "more": "More TCGs"
     },
     "search": {
-      "placeholder": "Search catalog"
+      "placeholder": "Search catalog",
+      "open": "Open search",
+      "close": "Close search"
     },
     "cart": {
       "label": "Cart"
@@ -142,7 +146,8 @@
     "availabilityPlaceholder": "Availability (optional)",
     "applyFilters": "Apply filters",
     "empty": "No products match the current filters.",
-    "error": "Unable to load the catalog right now. Please try again later."
+    "error": "Unable to load the catalog right now. Please try again later.",
+    "imageFallbackAlt": "Product image placeholder"
   },
   "product": {
     "priceLabel": "Price",
@@ -166,7 +171,8 @@
     "errorTitle": "Unable to load product",
     "errorBody": "Please try again later.",
     "backToCatalog": "Back to catalog",
-    "imageAlt": "Image of {name}"
+    "imageAlt": "Image of {name}",
+    "imageFallbackAlt": "Product image placeholder"
   },
   "games": {
     "pokemon": "Pokemon",

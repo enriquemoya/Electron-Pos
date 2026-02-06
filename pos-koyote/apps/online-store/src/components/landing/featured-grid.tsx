@@ -17,6 +17,8 @@ export async function FeaturedGrid({ emptyLabel, errorLabel }: FeaturedGridProps
       return <p className="text-sm text-white/60">{emptyLabel}</p>;
     }
 
+    const imageFallbackAlt = t("catalog.imageFallbackAlt");
+
     const labelFor = (state: string | null | undefined) => {
       switch (state) {
         case "AVAILABLE":
@@ -37,6 +39,8 @@ export async function FeaturedGrid({ emptyLabel, errorLabel }: FeaturedGridProps
             key={product.id}
             product={product}
             inventoryLabel={labelFor(product.state)}
+            imageAlt={t("productDetail.imageAlt", { name: product.name ?? t("productDetail.titleFallback") })}
+            imageFallbackAlt={imageFallbackAlt}
           />
         ))}
       </div>

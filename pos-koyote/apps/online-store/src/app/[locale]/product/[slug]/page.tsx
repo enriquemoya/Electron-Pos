@@ -141,11 +141,14 @@ export default async function ProductDetailPage({ params }: { params: { locale: 
     ? formatMoney(product.price.amount, product.price.currency)
     : t("productDetail.priceUnavailable");
 
+  const imageFallbackAlt = t("productDetail.imageFallbackAlt");
+  const imageAlt = t("productDetail.imageAlt", { name: product.name ?? t("productDetail.titleFallback") });
+
   const images = product.imageUrl
     ? [
         {
           src: product.imageUrl,
-          alt: t("productDetail.imageAlt", { name: product.name })
+          alt: imageAlt
         }
       ]
     : [];
@@ -171,15 +174,7 @@ export default async function ProductDetailPage({ params }: { params: { locale: 
     <div className="space-y-12">
       <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
-          {images.length ? (
-            <ProductMedia images={images} />
-          ) : (
-            <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-base-800">
-              <div className="absolute inset-0 grid place-items-center text-xs text-white/50">
-                {t("productDetail.imageAlt", { name: product.name })}
-              </div>
-            </div>
-          )}
+          <ProductMedia images={images} fallbackAlt={imageFallbackAlt} />
         </div>
 
         <div className="space-y-6">
@@ -221,6 +216,8 @@ export default async function ProductDetailPage({ params }: { params: { locale: 
                 key={item.id}
                 product={item}
                 inventoryLabel={labelForCard(item.state)}
+                imageAlt={t("productDetail.imageAlt", { name: item.name ?? t("productDetail.titleFallback") })}
+                imageFallbackAlt={imageFallbackAlt}
               />
             ))}
           </div>

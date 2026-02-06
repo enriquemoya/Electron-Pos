@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { MobileNav } from "@/components/navigation/mobile-nav";
@@ -10,13 +10,14 @@ export function MobileNavToggle() {
   const t = useTranslations();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const lastPathname = useRef(pathname);
 
   useEffect(() => {
-    if (!open) {
-      return;
+    if (lastPathname.current !== pathname) {
+      lastPathname.current = pathname;
+      setOpen(false);
     }
-    setOpen(false);
-  }, [pathname, open]);
+  }, [pathname]);
 
   return (
     <>

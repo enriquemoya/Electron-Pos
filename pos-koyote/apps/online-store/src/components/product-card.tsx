@@ -1,6 +1,8 @@
-import Image from "next/image";
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { InventoryBadge } from "@/components/inventory-badge";
+import { ProductImage } from "@/components/product-image";
 import type { ProductListItem } from "@/lib/api";
 import { Link } from "@/navigation";
 
@@ -14,10 +16,14 @@ function formatMoney(value: number, currency: string) {
 
 export function ProductCard({
   product,
-  inventoryLabel
+  inventoryLabel,
+  imageAlt,
+  imageFallbackAlt
 }: {
   product: ProductListItem;
   inventoryLabel: string;
+  imageAlt: string;
+  imageFallbackAlt: string;
 }) {
   // PDP v1 uses the product id as the route param value (see PDP spec).
   const detailSlug = product.id;
@@ -26,9 +32,12 @@ export function ProductCard({
     <Link href={`/product/${detailSlug}`} className="group block">
       <Card className="overflow-hidden transition hover:border-white/15 hover:bg-base-800/40">
         <div className="relative h-48 w-full bg-base-700">
-          {product.imageUrl ? (
-            <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
-          ) : null}
+          <ProductImage
+            src={product.imageUrl}
+            alt={imageAlt}
+            fallbackAlt={imageFallbackAlt}
+            className="object-cover"
+          />
         </div>
         <CardContent className="flex h-full flex-col gap-3">
           <div className="flex items-start justify-between gap-3">

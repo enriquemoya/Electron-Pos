@@ -1,6 +1,6 @@
 # Active Context
 
-Last updated: 2026-01-25T08:49:59.118Z
+Last updated: 2026-02-06T05:10:58.517Z
 
 Current focus:
-- featured ordering + availability semantics
+- Add logo to header

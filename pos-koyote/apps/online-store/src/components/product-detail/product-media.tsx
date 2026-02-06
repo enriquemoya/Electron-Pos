@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 
 import { cn } from "@/lib/utils";
+import { ProductImage } from "@/components/product-image";
 
 export type ProductMediaImage = {
   src: string;
@@ -12,9 +12,11 @@ export type ProductMediaImage = {
 
 export function ProductMedia({
   images,
+  fallbackAlt,
   className
 }: {
   images: ProductMediaImage[];
+  fallbackAlt: string;
   className?: string;
 }) {
   const safeImages = useMemo(() => images.filter((img) => Boolean(img.src)), [images]);
@@ -25,7 +27,13 @@ export function ProductMedia({
   return (
     <div className={cn("space-y-4", className)}>
       <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-base-800">
-        {active ? <Image src={active.src} alt={active.alt} fill className="object-cover" priority /> : null}
+        <ProductImage
+          src={active?.src}
+          alt={active?.alt ?? fallbackAlt}
+          fallbackAlt={fallbackAlt}
+          className="object-cover"
+          priority
+        />
       </div>
 
       {safeImages.length > 0 ? (
@@ -43,7 +51,7 @@ export function ProductMedia({
                 )}
                 aria-label={img.alt}
               >
-                <Image src={img.src} alt={img.alt} fill className="object-cover" />
+                <ProductImage src={img.src} alt={img.alt} fallbackAlt={fallbackAlt} className="object-cover" />
               </button>
             );
           })}

@@ -160,3 +160,12 @@
 
 ## 2026-01-25
 - featured ordering + availability semantics
+
+## 2026-02-06
+- Add product detail v1
+
+## 2026-02-06
+- add placeholder image for products
+
+## 2026-02-06
+- Add logo to header

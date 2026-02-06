@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
@@ -28,17 +29,26 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         onClick={(event) => event.stopPropagation()}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-base-950 px-6 py-5">
-        <span className="text-sm uppercase tracking-[0.2em] text-white/60">
-          {t("navigation.mobile.title")}
-        </span>
-        <button
-          type="button"
-          className="inline-flex items-center justify-center rounded-full border border-white/10 p-2 text-white/70"
-          onClick={onClose}
-          aria-label={t("navigation.mobile.close")}
-        >
-          <X className="h-4 w-4" />
-        </button>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/assets/hero/store-logo.png"
+              alt={t("navigation.brand.name")}
+              width={28}
+              height={28}
+              className="rounded-full border border-white/10 bg-base-900"
+            />
+            <span className="text-sm uppercase tracking-[0.2em] text-white/60">
+              {t("navigation.mobile.title")}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-full border border-white/10 p-2 text-white/70"
+            onClick={onClose}
+            aria-label={t("navigation.mobile.close")}
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 pb-6 pt-6">
