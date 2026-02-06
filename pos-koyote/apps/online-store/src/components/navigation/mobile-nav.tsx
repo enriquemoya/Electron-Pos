@@ -75,13 +75,17 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                   <div className="flex flex-col gap-1 px-3 pb-3">
                     {item.type === "dropdown" && item.panel && "items" in item.panel
                       ? item.panel.items.map((link) => (
-                          <MenuLink key={link.href} href={link.href} label={t(link.labelKey)} />
+                          <MenuLink
+                            key={`${link.href}-${link.labelKey}`}
+                            href={link.href}
+                            label={t(link.labelKey)}
+                          />
                         ))
                       : item.type === "mega" && item.panel && "sections" in item.panel
                         ? item.panel.sections.flatMap((section) =>
                             section.items.map((link) => (
                               <MenuLink
-                                key={`${section.titleKey}-${link.href}`}
+                                key={`${section.titleKey}-${link.labelKey}`}
                                 href={link.href}
                                 label={t(link.labelKey)}
                               />
@@ -95,7 +99,11 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
 
             <div className="border-t border-white/10 pt-4">
               {secondaryLinks.map((link) => (
-                <MenuLink key={link.href} href={link.href} label={t(link.labelKey)} />
+                <MenuLink
+                  key={`${link.href}-${link.labelKey}`}
+                  href={link.href}
+                  label={t(link.labelKey)}
+                />
               ))}
             </div>
           </div>

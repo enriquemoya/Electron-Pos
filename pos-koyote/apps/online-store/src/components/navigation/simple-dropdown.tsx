@@ -63,7 +63,7 @@ export function SimpleDropdown({ isOpen, items, onClose }: SimpleDropdownProps) 
     >
       <div className="flex flex-col gap-1">
         {items.map((item) => (
-          <MenuLink key={item.href} href={item.href} label={item.label} />
+          <MenuLink key={`${item.href}-${item.label}`} href={item.href} label={item.label} />
         ))}
       </div>
     </div>

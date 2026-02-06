@@ -1,0 +1,62 @@
+import Link from "next/link";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+
+import { requireAdmin } from "@/lib/admin-guard";
+import { fetchAdminSummary } from "@/lib/admin-api";
+
+export default async function AdminHomePage({ params }: { params: { locale: string } }) {
+  setRequestLocale(params.locale);
+  requireAdmin(params.locale);
+
+  const t = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
+  const summary = await fetchAdminSummary();
+
+  const cards = [
+    {
+      label: t("cards.pendingShipments"),
+      value: summary.pendingShipments
+    },
+    {
+      label: t("cards.onlineSales"),
+      value: `${summary.currency} ${summary.onlineSalesTotal.toFixed(2)}`
+    }
+  ];
+
+  const links = [
+    { href: `/${params.locale}/admin/users`, label: t("links.users") },
+    { href: `/${params.locale}/admin/inventory`, label: t("links.inventory") },
+    { href: `/${params.locale}/admin/products`, label: t("links.products") },
+    { href: `/${params.locale}/admin/taxonomies`, label: t("links.taxonomies") }
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
+        <p className="text-sm text-white/60">{t("subtitle")}</p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {cards.map((card) => (
+          <div key={card.label} className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <p className="text-sm text-white/60">{card.label}</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{card.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white transition hover:border-white/30"
+          >
+            <p className="text-sm text-white/70">{t("links.label")}</p>
+            <p className="mt-2 text-base font-semibold">{link.label}</p>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}

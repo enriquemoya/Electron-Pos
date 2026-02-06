@@ -12,7 +12,12 @@ type SearchProps = {
 export function Search({ variant }: SearchProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -39,7 +44,9 @@ export function Search({ variant }: SearchProps) {
     return (
       <div className="w-full">
         <div className="relative">
-          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+          {mounted ? (
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+          ) : null}
           <Input name="search" placeholder={t("navigation.search.placeholder")} className="pl-9" />
         </div>
       </div>
@@ -54,7 +61,7 @@ export function Search({ variant }: SearchProps) {
         aria-label={t("navigation.search.open")}
         onClick={() => setOpen(true)}
       >
-        <SearchIcon className="h-4 w-4" />
+        {mounted ? <SearchIcon className="h-4 w-4" /> : null}
       </button>
 
       {open ? (
@@ -66,7 +73,9 @@ export function Search({ variant }: SearchProps) {
           >
             <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-3 py-4 sm:px-4">
               <div className="relative flex-1">
-                <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                {mounted ? (
+                  <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                ) : null}
                 <Input
                   ref={inputRef}
                   name="search"
@@ -80,7 +89,7 @@ export function Search({ variant }: SearchProps) {
                 aria-label={t("navigation.search.close")}
                 onClick={() => setOpen(false)}
               >
-                <X className="h-4 w-4" />
+                {mounted ? <X className="h-4 w-4" /> : null}
               </button>
             </div>
           </div>

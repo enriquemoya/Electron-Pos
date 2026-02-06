@@ -49,8 +49,14 @@ model ReadModelInventory {
   updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
   displayName       String?  @map("display_name")
   shortDescription  String?  @map("short_description")
+  description       String?  @map("description")
+  rarity            String?  @map("rarity")
+  tags              Json?    @map("tags")
+  isActive          Boolean  @default(true) @map("is_active")
   imageUrl          String?  @map("image_url")
   category          String?
+  categoryId        String?  @map("category_id") @db.Uuid
+  expansionId       String?  @map("expansion_id") @db.Uuid
   price             Decimal? @map("price")
   game              String?
   availabilityState String?  @map("availability_state")
@@ -59,4 +65,149 @@ model ReadModelInventory {
   featuredOrder     Int?     @map("featured_order")
 
   @@map("read_model_inventory")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum CatalogTaxonomyType {
+  CATEGORY
+  GAME
+  EXPANSION
+  OTHER
+}
+
+enum CatalogEntityType {
+  PRODUCT
+  TAXONOMY
+}
+
+enum CatalogAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+model User {
+  id         String      @id @default(uuid()) @db.Uuid
+  email      String?     @unique
+  phone      String?     @unique
+  firstName  String?     @map("first_name")
+  lastName   String?     @map("last_name")
+  birthDate  DateTime?   @map("birth_date") @db.Date
+  role       UserRole    @default(CUSTOMER)
+  status     UserStatus  @default(ACTIVE)
+  emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz(6)
+  lastLoginAt     DateTime? @map("last_login_at") @db.Timestamptz(6)
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  addresses  Address[]
+  magicLinks MagicLinkToken[]
+  refreshTokens RefreshToken[]
+  inventoryAdjustments InventoryAdjustment[] @relation("InventoryAdjustmentActor")
+
+  @@map("users")
+}
+
+model Address {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  street         String
+  externalNumber String   @map("external_number")
+  internalNumber String?  @map("internal_number")
+  postalCode     String   @map("postal_code")
+  neighborhood   String
+  city           String
+  state          String
+  country        String
+  references     String?  @map("address_references")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_user_addresses_user")
+  @@map("user_addresses")
+}
+
+model MagicLinkToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_magic_links_user")
+  @@index([expiresAt], name: "idx_magic_links_expires")
+  @@map("magic_link_tokens")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_refresh_tokens_user")
+  @@index([expiresAt], name: "idx_refresh_tokens_expires")
+  @@map("refresh_tokens")
+}
+
+model CatalogTaxonomy {
+  id          String              @id @default(uuid()) @db.Uuid
+  type        CatalogTaxonomyType
+  name        String
+  slug        String              @unique
+  description String?
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([type], name: "idx_catalog_taxonomies_type")
+  @@map("catalog_taxonomies")
+}
+
+model CatalogAuditLog {
+  id          String            @id @default(uuid()) @db.Uuid
+  entityType  CatalogEntityType @map("entity_type")
+  entityId    String            @map("entity_id")
+  action      CatalogAction
+  actorUserId String            @map("actor_user_id") @db.Uuid
+  reason      String
+  payload     Json?
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  actor       User              @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([entityType, entityId], name: "idx_catalog_audit_entity")
+  @@index([actorUserId], name: "idx_catalog_audit_actor")
+  @@index([createdAt], name: "idx_catalog_audit_created")
+  @@map("catalog_audit_logs")
+}
+
+model InventoryAdjustment {
+  id               String   @id @default(uuid()) @db.Uuid
+  productId        String   @map("product_id")
+  delta            Int
+  reason           String
+  actorUserId      String   @map("actor_user_id") @db.Uuid
+  previousQuantity Int      @map("previous_quantity")
+  newQuantity      Int      @map("new_quantity")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  actor            User     @relation("InventoryAdjustmentActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([productId], name: "idx_inventory_adjustments_product")
+  @@index([actorUserId], name: "idx_inventory_adjustments_actor")
+  @@index([createdAt], name: "idx_inventory_adjustments_created")
+  @@map("inventory_adjustments")
 }

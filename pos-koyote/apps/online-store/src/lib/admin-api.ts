@@ -1,0 +1,411 @@
+import "server-only";
+
+import { cookies } from "next/headers";
+
+type AdminUser = {
+  id: string;
+  email: string | null;
+  phone: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  birthDate: string | null;
+  role: "CUSTOMER" | "ADMIN";
+  status: "ACTIVE" | "DISABLED";
+  createdAt: string;
+  updatedAt: string;
+};
+
+type UsersResponse = {
+  items: AdminUser[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+};
+
+type UserResponse = { user: AdminUser };
+
+type AdminSummary = { pendingShipments: number; onlineSalesTotal: number; currency: string };
+
+type InventoryItem = {
+  productId: string;
+  displayName: string | null;
+  slug: string | null;
+  category: string | null;
+  game: string | null;
+  available: number;
+  price: number | null;
+  imageUrl: string | null;
+};
+
+type InventoryResponse = {
+  items: InventoryItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+};
+
+type CatalogProduct = {
+  productId: string;
+  displayName: string | null;
+  slug: string | null;
+  category: string | null;
+  categoryId?: string | null;
+  expansionId?: string | null;
+  game: string | null;
+  price: number | null;
+  imageUrl: string | null;
+  shortDescription: string | null;
+  description?: string | null;
+  rarity?: string | null;
+  tags?: string[] | null;
+  availabilityState: string | null;
+  isFeatured: boolean;
+  featuredOrder: number | null;
+  isActive?: boolean;
+  available: number;
+};
+
+type CatalogProductsResponse = {
+  items: CatalogProduct[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+};
+
+type Taxonomy = {
+  id: string;
+  type: "CATEGORY" | "GAME" | "EXPANSION" | "OTHER";
+  name: string;
+  slug: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+function getBaseUrl() {
+  const baseUrl = process.env.CLOUD_API_URL;
+  if (!baseUrl) {
+    throw new Error("CLOUD_API_URL is required.");
+  }
+  return baseUrl;
+}
+
+function getSecret() {
+  return process.env.CLOUD_SHARED_SECRET || "";
+}
+
+function getAccessToken() {
+  return cookies().get("auth_access")?.value || "";
+}
+
+function withQuery(url: URL, params: Record<string, string | number | undefined>) {
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === "") {
+      return;
+    }
+    url.searchParams.set(key, String(value));
+  });
+  return url;
+}
+
+export async function fetchAdminUsers(page: number, pageSize: number): Promise<UsersResponse> {
+  const baseUrl = getBaseUrl();
+  const url = new URL(`${baseUrl}/admin/users`);
+  url.searchParams.set("page", String(page));
+  url.searchParams.set("pageSize", String(pageSize));
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("admin users request failed");
+  }
+
+  return response.json();
+}
+
+export async function fetchAdminUser(id: string): Promise<UserResponse> {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/users/${id}`, {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("admin user request failed");
+  }
+
+  return response.json();
+}
+
+export async function updateAdminUser(
+  id: string,
+  data: {
+    role: "CUSTOMER" | "ADMIN";
+    status: "ACTIVE" | "DISABLED";
+  }
+): Promise<UserResponse> {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/users/${id}`, {
+    method: "PATCH",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("admin user update failed");
+  }
+
+  return response.json();
+}
+
+export async function fetchAdminSummary(): Promise<AdminSummary> {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/dashboard/summary`, {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("admin summary request failed");
+  }
+
+  return response.json();
+}
+
+export async function fetchInventory(params: {
+  page: number;
+  pageSize: number;
+  query?: string;
+  sort?: string;
+  direction?: string;
+}): Promise<InventoryResponse> {
+  const baseUrl = getBaseUrl();
+  const url = withQuery(new URL(`${baseUrl}/admin/inventory`), params);
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("inventory request failed");
+  }
+
+  return response.json();
+}
+
+export async function adjustInventory(productId: string, data: { delta: number; reason: string }) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/inventory/${productId}/adjust`, {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("inventory adjust failed");
+  }
+
+  return response.json();
+}
+
+export async function fetchCatalogProducts(params: {
+  page: number;
+  pageSize: number;
+  query?: string;
+  sort?: string;
+  direction?: string;
+}): Promise<CatalogProductsResponse> {
+  const baseUrl = getBaseUrl();
+  const url = withQuery(new URL(`${baseUrl}/admin/catalog/products`), params);
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("catalog products request failed");
+  }
+
+  return response.json();
+}
+
+export async function fetchCatalogProduct(productId: string) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/catalog/products/${productId}`, {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("catalog product request failed");
+  }
+
+  return response.json() as Promise<{ product: CatalogProduct }>;
+}
+
+export async function createCatalogProduct(data: Record<string, unknown>) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/catalog/products`, {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("catalog product create failed");
+  }
+
+  return response.json() as Promise<{ product: CatalogProduct }>;
+}
+
+export async function updateCatalogProduct(productId: string, data: Partial<CatalogProduct> & { reason: string }) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/catalog/products/${productId}`, {
+    method: "PATCH",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("catalog product update failed");
+  }
+
+  return response.json();
+}
+
+export async function fetchTaxonomies(params?: {
+  type?: Taxonomy["type"];
+  page?: number;
+  pageSize?: number;
+  query?: string;
+  sort?: string;
+  direction?: string;
+}) {
+  const baseUrl = getBaseUrl();
+  const url = withQuery(new URL(`${baseUrl}/admin/catalog/taxonomies`), params ?? {});
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("taxonomies request failed");
+  }
+
+  return response.json() as Promise<{ items: Taxonomy[]; total?: number; page?: number; pageSize?: number; hasMore?: boolean }>;
+}
+
+export async function createTaxonomy(data: {
+  type: Taxonomy["type"];
+  name: string;
+  slug: string;
+  description?: string;
+}) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/catalog/taxonomies`, {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("taxonomy create failed");
+  }
+
+  return response.json() as Promise<{ item: Taxonomy }>;
+}
+
+export async function updateTaxonomy(id: string, data: { name?: string; slug?: string; description?: string }) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/catalog/taxonomies/${id}`, {
+    method: "PATCH",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("taxonomy update failed");
+  }
+
+  return response.json() as Promise<{ item: Taxonomy }>;
+}
+
+export async function deleteTaxonomy(id: string) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/catalog/taxonomies/${id}`, {
+    method: "DELETE",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("taxonomy delete failed");
+  }
+
+  return response.json() as Promise<{ status: string }>;
+}
+
+export type { AdminUser, AdminSummary, InventoryItem, CatalogProduct, Taxonomy };

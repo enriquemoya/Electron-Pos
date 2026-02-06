@@ -83,6 +83,18 @@
       "en": "EN"
     }
   },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Get a magic link by email to access your account.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send magic link",
+      "success": "Check your inbox for the magic link.",
+      "errorInvalid": "Enter a valid email address.",
+      "errorServer": "Unable to send the magic link right now."
+    }
+  },
   "landing": {
     "hero": {
       "title": "Premium TCG store for collectors and competitors",
@@ -189,5 +201,193 @@
     "inStock": "Available",
     "lowStock": "Limited availability",
     "outOfStock": "Out of stock"
+  },
+  "adminUsers": {
+    "title": "Users",
+    "subtitle": "Manage roles and status for customers and admins.",
+    "empty": "No users available.",
+    "error": "Unable to load users right now.",
+    "view": "View",
+    "nameFallback": "Unnamed user",
+    "contactFallback": "No contact info",
+    "columns": {
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "action": "Action"
+    },
+    "pagination": {
+      "label": "Page {page} of {total}",
+      "prev": "Prev",
+      "next": "Next"
+    },
+    "detailTitle": "User detail",
+    "detailSubtitle": "Review profile details and update access.",
+    "fields": {
+      "name": "Name",
+      "contact": "Contact",
+      "role": "Role",
+      "status": "Status",
+      "birthDate": "Birth date"
+    },
+    "birthDateEmpty": "Not provided",
+    "updateTitle": "Update access",
+    "updateSubtitle": "Changes apply immediately after confirmation.",
+    "updateAction": "Update",
+    "updateError": "Unable to update this user right now.",
+    "roles": {
+      "CUSTOMER": "Customer",
+      "ADMIN": "Admin"
+    },
+    "statuses": {
+      "ACTIVE": "Active",
+      "DISABLED": "Disabled"
+    },
+    "confirm": {
+      "title": "Confirm changes",
+      "body": "Apply the selected role and status changes?",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    }
+  },
+  "adminDashboard": {
+    "title": "Admin dashboard",
+    "subtitle": "Operational summary and quick actions.",
+    "cards": {
+      "pendingShipments": "Pending shipments",
+      "onlineSales": "Online sales total"
+    },
+    "links": {
+      "label": "Manage",
+      "users": "User management",
+      "inventory": "Inventory management",
+      "products": "Product management",
+      "taxonomies": "Catalog taxonomies"
+    }
+  },
+  "adminInventory": {
+    "title": "Inventory",
+    "subtitle": "Adjust quantities and track stock levels.",
+    "search": "Search inventory",
+    "columns": {
+      "product": "Product",
+      "available": "Available",
+      "adjust": "Adjust"
+    },
+    "labels": {
+      "uncategorized": "Uncategorized"
+    },
+    "pagination": {
+      "prev": "Prev",
+      "next": "Next",
+      "pageSize": "Rows",
+      "sort": "Sort"
+    },
+    "sort": {
+      "updated": "Recently updated",
+      "name": "Name",
+      "available": "Available"
+    },
+    "actions": {
+      "delta": "Delta",
+      "reason": "Reason",
+      "apply": "Apply"
+    }
+  },
+  "adminProducts": {
+    "title": "Products",
+    "subtitle": "Review and update catalog products.",
+    "search": "Search products",
+    "columns": {
+      "product": "Product",
+      "category": "Category",
+      "action": "Action"
+    },
+    "labels": {
+      "uncategorized": "Uncategorized"
+    },
+    "actions": {
+      "edit": "Edit",
+      "save": "Save",
+      "create": "Create product"
+    },
+    "pagination": {
+      "prev": "Prev",
+      "next": "Next",
+      "pageSize": "Rows",
+      "sort": "Sort"
+    },
+    "sort": {
+      "updated": "Recently updated",
+      "name": "Name",
+      "price": "Price"
+    },
+    "detailTitle": "Edit product",
+    "createTitle": "Create product",
+    "createSubtitle": "Add a new product to the catalog.",
+    "fields": {
+      "displayName": "Display name",
+      "slug": "Slug",
+      "category": "Category",
+      "categoryId": "Category ID",
+      "expansion": "Expansion",
+      "expansionNone": "No expansion",
+      "game": "Game",
+      "price": "Price",
+      "imageUrl": "Image URL",
+      "shortDescription": "Short description",
+      "description": "Description",
+      "rarity": "Rarity",
+      "tags": "Tags",
+      "tagsHint": "comma-separated",
+      "availabilityState": "Availability state",
+      "isFeatured": "Featured",
+      "isActive": "Active",
+      "featuredOrder": "Featured order",
+      "reason": "Reason for change"
+    },
+    "games": {
+      "pokemon": "Pokemon",
+      "onePiece": "One Piece",
+      "yugioh": "Yu-Gi-Oh!",
+      "other": "Other"
+    }
+  },
+  "adminTaxonomies": {
+    "title": "Catalog taxonomies",
+    "subtitle": "Manage categories, games, expansions, and other tags.",
+    "search": "Search taxonomies",
+    "columns": {
+      "type": "Type",
+      "name": "Name",
+      "slug": "Slug",
+      "action": "Action"
+    },
+    "fields": {
+      "name": "Name",
+      "slug": "Slug",
+      "description": "Description"
+    },
+    "types": {
+      "category": "Category",
+      "game": "Game",
+      "expansion": "Expansion",
+      "other": "Other"
+    },
+    "pagination": {
+      "prev": "Prev",
+      "next": "Next",
+      "pageSize": "Rows",
+      "sort": "Sort"
+    },
+    "sort": {
+      "name": "Name",
+      "type": "Type"
+    },
+    "actions": {
+      "create": "Create",
+      "save": "Save",
+      "delete": "Delete"
+    }
   }
 }

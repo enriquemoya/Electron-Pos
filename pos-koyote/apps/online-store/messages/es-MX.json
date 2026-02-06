@@ -83,6 +83,18 @@
       "en": "EN"
     }
   },
+  "auth": {
+    "login": {
+      "title": "Iniciar sesion",
+      "subtitle": "Recibe un enlace magico por correo para acceder.",
+      "emailLabel": "Correo",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "submit": "Enviar enlace magico",
+      "success": "Revisa tu correo para el enlace magico.",
+      "errorInvalid": "Ingresa un correo valido.",
+      "errorServer": "No se pudo enviar el enlace magico."
+    }
+  },
   "landing": {
     "hero": {
       "title": "Tienda TCG premium para coleccionistas y jugadores",
@@ -189,5 +201,193 @@
     "inStock": "Disponible",
     "lowStock": "Pocas unidades",
     "outOfStock": "Agotado"
+  },
+  "adminUsers": {
+    "title": "Usuarios",
+    "subtitle": "Administra roles y estado de clientes y administradores.",
+    "empty": "No hay usuarios disponibles.",
+    "error": "No se pueden cargar los usuarios en este momento.",
+    "view": "Ver",
+    "nameFallback": "Usuario sin nombre",
+    "contactFallback": "Sin contacto",
+    "columns": {
+      "name": "Nombre",
+      "role": "Rol",
+      "status": "Estado",
+      "action": "Accion"
+    },
+    "pagination": {
+      "label": "Pagina {page} de {total}",
+      "prev": "Anterior",
+      "next": "Siguiente"
+    },
+    "detailTitle": "Detalle de usuario",
+    "detailSubtitle": "Revisa el perfil y actualiza acceso.",
+    "fields": {
+      "name": "Nombre",
+      "contact": "Contacto",
+      "role": "Rol",
+      "status": "Estado",
+      "birthDate": "Fecha de nacimiento"
+    },
+    "birthDateEmpty": "No proporcionada",
+    "updateTitle": "Actualizar acceso",
+    "updateSubtitle": "Los cambios se aplican despues de confirmar.",
+    "updateAction": "Actualizar",
+    "updateError": "No se pudo actualizar el usuario.",
+    "roles": {
+      "CUSTOMER": "Cliente",
+      "ADMIN": "Admin"
+    },
+    "statuses": {
+      "ACTIVE": "Activo",
+      "DISABLED": "Deshabilitado"
+    },
+    "confirm": {
+      "title": "Confirmar cambios",
+      "body": "Aplicar los cambios de rol y estado?",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
+    }
+  },
+  "adminDashboard": {
+    "title": "Panel de administracion",
+    "subtitle": "Resumen operativo y accesos rapidos.",
+    "cards": {
+      "pendingShipments": "Envios pendientes",
+      "onlineSales": "Ventas online"
+    },
+    "links": {
+      "label": "Administrar",
+      "users": "Gestion de usuarios",
+      "inventory": "Gestion de inventario",
+      "products": "Gestion de productos",
+      "taxonomies": "Taxonomias del catalogo"
+    }
+  },
+  "adminInventory": {
+    "title": "Inventario",
+    "subtitle": "Ajusta cantidades y controla existencias.",
+    "search": "Buscar inventario",
+    "columns": {
+      "product": "Producto",
+      "available": "Disponible",
+      "adjust": "Ajuste"
+    },
+    "labels": {
+      "uncategorized": "Sin categoria"
+    },
+    "pagination": {
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "pageSize": "Filas",
+      "sort": "Ordenar"
+    },
+    "sort": {
+      "updated": "Recientes",
+      "name": "Nombre",
+      "available": "Disponible"
+    },
+    "actions": {
+      "delta": "Delta",
+      "reason": "Motivo",
+      "apply": "Aplicar"
+    }
+  },
+  "adminProducts": {
+    "title": "Productos",
+    "subtitle": "Revisa y actualiza productos del catalogo.",
+    "search": "Buscar productos",
+    "columns": {
+      "product": "Producto",
+      "category": "Categoria",
+      "action": "Accion"
+    },
+    "labels": {
+      "uncategorized": "Sin categoria"
+    },
+    "actions": {
+      "edit": "Editar",
+      "save": "Guardar",
+      "create": "Crear producto"
+    },
+    "pagination": {
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "pageSize": "Filas",
+      "sort": "Ordenar"
+    },
+    "sort": {
+      "updated": "Recientes",
+      "name": "Nombre",
+      "price": "Precio"
+    },
+    "detailTitle": "Editar producto",
+    "createTitle": "Crear producto",
+    "createSubtitle": "Agrega un nuevo producto al catalogo.",
+    "fields": {
+      "displayName": "Nombre visible",
+      "slug": "Slug",
+      "category": "Categoria",
+      "categoryId": "ID de categoria",
+      "expansion": "Expansion",
+      "expansionNone": "Sin expansion",
+      "game": "Juego",
+      "price": "Precio",
+      "imageUrl": "URL de imagen",
+      "shortDescription": "Descripcion corta",
+      "description": "Descripcion",
+      "rarity": "Rareza",
+      "tags": "Etiquetas",
+      "tagsHint": "separadas por comas",
+      "availabilityState": "Estado de disponibilidad",
+      "isFeatured": "Destacado",
+      "isActive": "Activo",
+      "featuredOrder": "Orden destacado",
+      "reason": "Motivo del cambio"
+    },
+    "games": {
+      "pokemon": "Pokemon",
+      "onePiece": "One Piece",
+      "yugioh": "Yu-Gi-Oh!",
+      "other": "Otros"
+    }
+  },
+  "adminTaxonomies": {
+    "title": "Taxonomias del catalogo",
+    "subtitle": "Administra categorias, juegos, expansiones y otros.",
+    "search": "Buscar taxonomias",
+    "columns": {
+      "type": "Tipo",
+      "name": "Nombre",
+      "slug": "Slug",
+      "action": "Accion"
+    },
+    "fields": {
+      "name": "Nombre",
+      "slug": "Slug",
+      "description": "Descripcion"
+    },
+    "types": {
+      "category": "Categoria",
+      "game": "Juego",
+      "expansion": "Expansion",
+      "other": "Otro"
+    },
+    "pagination": {
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "pageSize": "Filas",
+      "sort": "Ordenar"
+    },
+    "sort": {
+      "name": "Nombre",
+      "type": "Tipo"
+    },
+    "actions": {
+      "create": "Crear",
+      "save": "Guardar",
+      "delete": "Eliminar"
+    }
   }
 }

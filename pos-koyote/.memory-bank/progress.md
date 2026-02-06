@@ -169,3 +169,15 @@
 
 ## 2026-02-06
 - Add logo to header
+
+## 2026-02-06
+- clean refactor to cloud-api
+
+## 2026-02-06
+- add user schemas
+
+## 2026-02-06
+- Auth SMTP fallback + online-store JWT secret
+
+## 2026-02-06
+- Inventory admin enhancements: product create + search + pagination
