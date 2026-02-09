@@ -1,6 +1,6 @@
 # Active Context
 
-Last updated: 2026-02-07T03:00:36.148Z
+Last updated: 2026-02-09T20:17:39.651Z
 
 Current focus:
-- add ui for cart
+- taxonomy-core-system-v1 impl-audit strict verdict SAFE (cloud-api/data): added structured warn logging for ignored invalid taxonomy relations; no API contract changes; build passes

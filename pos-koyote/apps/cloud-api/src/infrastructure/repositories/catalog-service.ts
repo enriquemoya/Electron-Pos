@@ -2,6 +2,28 @@ import { prisma } from "../db/prisma";
 
 const LOW_STOCK_THRESHOLD = 3;
 
+function logIgnoredTaxonomyRelation(params: {
+  productId?: string | null;
+  expansionId?: string | null;
+  expectedGameId?: string | null;
+  actualGameId?: string | null;
+  source: string;
+}) {
+  try {
+    console.warn({
+      level: "warn",
+      event: "taxonomy_relation_ignored",
+      productId: params.productId ?? null,
+      expansionId: params.expansionId ?? null,
+      expectedGameId: params.expectedGameId ?? null,
+      actualGameId: params.actualGameId ?? null,
+      source: params.source
+    });
+  } catch {
+    // Logging must never block public reads.
+  }
+}
+
 type TaxonomyLabels = {
   es: string | null;
   en: string | null;
@@ -110,13 +132,40 @@ export async function listExpansions(params: { gameId?: string | null }) {
   const items = await prisma.catalogTaxonomy.findMany({
     where: {
       type: "EXPANSION",
-      ...(params.gameId ? { parentId: params.gameId } : {}),
-      parent: { type: "GAME" }
+      ...(params.gameId ? { parentId: params.gameId } : {})
     },
     orderBy: [{ releaseDate: "desc" }, { name: "asc" }],
-    select: { id: true, slug: true, name: true, labels: true, parentId: true, releaseDate: true }
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      labels: true,
+      parentId: true,
+      releaseDate: true,
+      parent: {
+        select: {
+          id: true,
+          type: true,
+          parentId: true
+        }
+      }
+    }
   });
-  return items.map((item) => ({
+
+  const validItems = items.filter((item) => {
+    const isValid = item.parent?.type === "GAME";
+    if (!isValid) {
+      logIgnoredTaxonomyRelation({
+        expansionId: item.id,
+        expectedGameId: params.gameId ?? null,
+        actualGameId: item.parent?.type === "GAME" ? item.parent.id : item.parent?.parentId ?? null,
+        source: "catalog/taxonomies/expansions"
+      });
+    }
+    return isValid;
+  });
+
+  return validItems.map((item) => ({
     id: item.id,
     slug: item.slug,
     type: "EXPANSION",

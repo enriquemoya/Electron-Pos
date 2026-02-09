@@ -184,3 +184,6 @@
 
 ## 2026-02-07
 - add ui for cart
+
+## 2026-02-09
+- taxonomy-core-system-v1 impl-audit strict verdict SAFE (cloud-api/data): added structured warn logging for ignored invalid taxonomy relations; no API contract changes; build passes
