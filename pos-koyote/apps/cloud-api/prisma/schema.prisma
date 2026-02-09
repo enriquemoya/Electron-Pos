@@ -105,10 +105,14 @@ enum PreorderDraftStatus {
 }
 
 enum OnlineOrderStatus {
+  CREATED
   PENDING_PAYMENT
   PAID
+  READY_FOR_PICKUP
+  SHIPPED
   CANCELED
   CANCELLED_EXPIRED
+  CANCELLED_MANUAL
 }
 
 enum PaymentMethod {
@@ -142,6 +146,8 @@ model User {
   catalogAuditLogs CatalogAuditLog[]
   preorderDrafts PreorderDraft[]
   onlineOrders OnlineOrder[]
+  cancelledOrders OnlineOrder[] @relation("OnlineOrderCancelledBy")
+  orderStatusLogs OnlineOrderStatusLog[] @relation("OnlineOrderStatusLogActor")
 
   @@map("users")
 }
@@ -267,6 +273,9 @@ model OnlineOrder {
   userId         String           @map("user_id") @db.Uuid
   draftId        String           @map("draft_id") @db.Uuid
   status         OnlineOrderStatus @default(PENDING_PAYMENT)
+  statusUpdatedAt DateTime        @default(now()) @map("status_updated_at") @db.Timestamptz(6)
+  cancelReason   String?          @map("cancel_reason")
+  cancelledByUserId String?       @map("cancelled_by_user_id") @db.Uuid
   paymentMethod  PaymentMethod    @map("payment_method")
   pickupBranchId String?          @map("pickup_branch_id") @db.Uuid
   subtotal       Decimal          @map("subtotal")
@@ -277,12 +286,15 @@ model OnlineOrder {
   user           User             @relation(fields: [userId], references: [id], onDelete: Restrict)
   draft          PreorderDraft    @relation("PreorderDraftOrder", fields: [draftId], references: [id], onDelete: Restrict)
   pickupBranch   PickupBranch?    @relation(fields: [pickupBranchId], references: [id], onDelete: SetNull)
+  cancelledBy    User?            @relation("OnlineOrderCancelledBy", fields: [cancelledByUserId], references: [id], onDelete: SetNull)
   items          OnlineOrderItem[]
   reservations   InventoryReservation[]
+  statusLogs     OnlineOrderStatusLog[]
 
   @@index([userId], name: "idx_online_orders_user")
   @@index([status], name: "idx_online_orders_status")
   @@index([expiresAt], name: "idx_online_orders_expires")
+  @@index([cancelledByUserId], name: "idx_online_orders_cancelled_by")
   @@unique([draftId], name: "uniq_online_order_draft")
   @@map("online_orders")
 }
@@ -317,6 +329,22 @@ model InventoryReservation {
   @@index([status], name: "idx_inventory_reservation_status")
   @@index([expiresAt], name: "idx_inventory_reservation_expires")
   @@map("inventory_reservations")
+}
+
+model OnlineOrderStatusLog {
+  id          String           @id @default(uuid()) @db.Uuid
+  orderId     String           @map("order_id") @db.Uuid
+  fromStatus  OnlineOrderStatus? @map("from_status")
+  toStatus    OnlineOrderStatus @map("to_status")
+  reason      String?          @map("reason")
+  actorUserId String?          @map("actor_user_id") @db.Uuid
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  order       OnlineOrder      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actor       User?            @relation("OnlineOrderStatusLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, createdAt], name: "idx_online_order_status_logs_order_created")
+  @@index([actorUserId], name: "idx_online_order_status_logs_actor")
+  @@map("online_order_status_logs")
 }
 
 model CatalogAuditLog {

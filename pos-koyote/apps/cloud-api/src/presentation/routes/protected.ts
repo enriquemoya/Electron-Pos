@@ -5,6 +5,7 @@ import type { CatalogAdminUseCases } from "../../application/use-cases/catalog-a
 import type { CatalogUseCases } from "../../application/use-cases/catalog";
 import type { CheckoutUseCases } from "../../application/use-cases/checkout";
 import type { InventoryUseCases } from "../../application/use-cases/inventory";
+import type { OrderFulfillmentUseCases } from "../../application/use-cases/order-fulfillment";
 import type { ProfileUseCases } from "../../application/use-cases/profile";
 import type { SyncUseCases } from "../../application/use-cases/sync";
 import type { UsersUseCases } from "../../application/use-cases/users";
@@ -20,6 +21,7 @@ import { requireAuth } from "../middleware/require-auth";
 import { createUsersController } from "../controllers/users-controller";
 import { createCheckoutController } from "../controllers/checkout-controller";
 import { createBranchesController } from "../controllers/branches-controller";
+import { createOrderFulfillmentController } from "../controllers/order-fulfillment-controller";
 
 export function createProtectedRoutes(params: {
   adminDashboardUseCases: AdminDashboardUseCases;
@@ -31,6 +33,7 @@ export function createProtectedRoutes(params: {
   usersUseCases: UsersUseCases;
   checkoutUseCases: CheckoutUseCases;
   branchUseCases: BranchUseCases;
+  orderFulfillmentUseCases: OrderFulfillmentUseCases;
 }) {
   const router = Router();
   const catalogController = createCatalogController(params.catalogUseCases);
@@ -42,6 +45,7 @@ export function createProtectedRoutes(params: {
   const usersController = createUsersController(params.usersUseCases);
   const checkoutController = createCheckoutController(params.checkoutUseCases);
   const branchesController = createBranchesController(params.branchUseCases);
+  const orderFulfillmentController = createOrderFulfillmentController(params.orderFulfillmentUseCases);
 
   router.post("/sync/events", syncController.recordEventsHandler);
   router.get("/sync/pending", syncController.getPendingHandler);
@@ -62,6 +66,10 @@ export function createProtectedRoutes(params: {
   router.post("/checkout/orders", checkoutController.createOrderHandler);
   router.get("/checkout/orders/:orderId", checkoutController.getOrderHandler);
 
+  router.use("/orders", requireAuth);
+  router.get("/orders", orderFulfillmentController.listCustomerOrdersHandler);
+  router.get("/orders/:orderId", orderFulfillmentController.getCustomerOrderHandler);
+
   router.use("/admin", requireAdmin);
   router.get("/admin/dashboard/summary", adminDashboardController.getAdminSummaryHandler);
   router.get("/admin/inventory", inventoryController.listInventoryHandler);
@@ -78,6 +86,10 @@ export function createProtectedRoutes(params: {
   router.post("/admin/branches", branchesController.createBranchHandler);
   router.patch("/admin/branches/:id", branchesController.updateBranchHandler);
   router.delete("/admin/branches/:id", branchesController.deleteBranchHandler);
+  router.get("/admin/orders", orderFulfillmentController.listAdminOrdersHandler);
+  router.get("/admin/orders/:orderId", orderFulfillmentController.getAdminOrderHandler);
+  router.post("/admin/orders/:orderId/status", orderFulfillmentController.transitionOrderStatusHandler);
+  router.post("/admin/orders/expire", orderFulfillmentController.runExpirationSweepHandler);
   router.get("/admin/users", usersController.listUsersHandler);
   router.get("/admin/users/:id", usersController.getUserHandler);
   router.post("/admin/users", usersController.createUserHandler);

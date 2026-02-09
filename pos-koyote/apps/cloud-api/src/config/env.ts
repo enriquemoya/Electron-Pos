@@ -12,6 +12,9 @@ const smtpPort = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefin
 const smtpUser = process.env.SMTP_USER;
 const smtpPass = process.env.SMTP_PASS;
 const smtpFrom = process.env.SMTP_FROM;
+const orderExpirationIntervalMs = process.env.ORDER_EXPIRATION_INTERVAL_MS
+  ? Number(process.env.ORDER_EXPIRATION_INTERVAL_MS)
+  : undefined;
 
 if (!databaseUrl) {
   throw new Error("DATABASE_URL is required.");
@@ -59,5 +62,6 @@ export const env = {
   smtpPort,
   smtpUser,
   smtpPass,
-  smtpFrom
+  smtpFrom,
+  orderExpirationIntervalMs
 };

@@ -13,6 +13,7 @@ export type AuthRepository = {
 
 export type EmailService = {
   sendMagicLinkEmail: (params: { to: string; subject: string; html: string; text: string }) => Promise<void>;
+  sendEmail: (params: { to: string; subject: string; html: string; text: string }) => Promise<void>;
 };
 
 export type CatalogRepository = {
@@ -157,8 +158,62 @@ export type CheckoutRepository = {
     draftId: string;
     paymentMethod: "PAY_IN_STORE";
     pickupBranchId: string | null;
-  }) => Promise<{ orderId: string; status: string; expiresAt: string }>;
+  }) => Promise<{
+    orderId: string;
+    status: string;
+    expiresAt: string;
+    customerEmail: string | null;
+    subtotal: number;
+    currency: string;
+    pickupBranchName: string | null;
+  }>;
   getOrder: (params: { userId: string; orderId: string }) => Promise<Record<string, unknown> | null>;
+};
+
+export type OrderFulfillmentRepository = {
+  listAdminOrders: (params: {
+    page: number;
+    pageSize: number;
+    query?: string;
+    status?: string;
+    sort?: "createdAt" | "status" | "expiresAt" | "subtotal";
+    direction?: "asc" | "desc";
+  }) => Promise<{ items: Array<Record<string, unknown>>; total: number }>;
+  getOrderTransitionContext: (params: { orderId: string }) => Promise<{
+    orderId: string;
+    status: string;
+    paymentMethod: string;
+    pickupBranchId: string | null;
+  } | null>;
+  getAdminOrder: (params: { orderId: string }) => Promise<Record<string, unknown> | null>;
+  listCustomerOrders: (params: {
+    userId: string;
+    page: number;
+    pageSize: number;
+  }) => Promise<{ items: Array<Record<string, unknown>>; total: number }>;
+  getCustomerOrder: (params: {
+    userId: string;
+    orderId: string;
+  }) => Promise<Record<string, unknown> | null>;
+  transitionOrderStatus: (params: {
+    orderId: string;
+    fromStatus: string;
+    toStatus: string;
+    actorUserId: string | null;
+    reason: string | null;
+    source: "admin" | "system";
+  }) => Promise<{
+    orderId: string;
+    fromStatus: string | null;
+    toStatus: string;
+    customerEmail: string | null;
+  }>;
+  expirePendingOrders: () => Promise<Array<{
+    orderId: string;
+    fromStatus: string | null;
+    toStatus: string;
+    customerEmail: string | null;
+  }>>;
 };
 
 export type BranchRepository = {

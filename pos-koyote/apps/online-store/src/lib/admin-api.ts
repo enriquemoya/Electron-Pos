@@ -101,6 +101,73 @@ type PickupBranch = {
   updatedAt: string;
 };
 
+type OrderStatus =
+  | "CREATED"
+  | "PENDING_PAYMENT"
+  | "PAID"
+  | "READY_FOR_PICKUP"
+  | "SHIPPED"
+  | "CANCELLED_EXPIRED"
+  | "CANCELLED_MANUAL"
+  | "CANCELED";
+
+type AdminOrderListItem = {
+  id: string;
+  status: OrderStatus;
+  subtotal: number;
+  currency: string;
+  paymentMethod: string;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+  statusUpdatedAt: string;
+  customer: { email: string | null; name: string | null };
+  pickupBranch: { name: string; city: string } | null;
+};
+
+type AdminOrderDetail = {
+  id: string;
+  status: OrderStatus;
+  subtotal: number;
+  currency: string;
+  paymentMethod: string;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+  statusUpdatedAt: string;
+  cancelReason: string | null;
+  customer: {
+    id: string;
+    email: string | null;
+    name: string | null;
+  };
+  pickupBranch: PickupBranch | null;
+  items: Array<{
+    id: string;
+    productId: string;
+    quantity: number;
+    priceSnapshot: number;
+    currency: string;
+    availabilitySnapshot: string;
+  }>;
+  timeline: Array<{
+    id: string;
+    fromStatus: OrderStatus | null;
+    toStatus: OrderStatus;
+    reason: string | null;
+    actor: { id: string; email: string | null; name: string | null } | null;
+    createdAt: string;
+  }>;
+};
+
+type AdminOrdersResponse = {
+  items: AdminOrderListItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+};
+
 function getBaseUrl() {
   const baseUrl = process.env.CLOUD_API_URL;
   if (!baseUrl) {
@@ -532,4 +599,86 @@ export async function deleteTaxonomy(id: string) {
   return response.json() as Promise<{ status: string }>;
 }
 
-export type { AdminUser, AdminSummary, InventoryItem, CatalogProduct, Taxonomy };
+export async function fetchAdminOrders(params: {
+  page: number;
+  pageSize: number;
+  query?: string;
+  status?: string;
+  sort?: "createdAt" | "status" | "expiresAt" | "subtotal";
+  direction?: "asc" | "desc";
+}) {
+  const baseUrl = getBaseUrl();
+  const url = withQuery(new URL(`${baseUrl}/admin/orders`), {
+    page: params.page,
+    pageSize: params.pageSize,
+    q: params.query,
+    status: params.status,
+    sort: params.sort,
+    direction: params.direction
+  });
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`admin orders request failed (${response.status}): ${message}`);
+  }
+
+  return response.json() as Promise<AdminOrdersResponse>;
+}
+
+export async function fetchAdminOrder(orderId: string) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/orders/${orderId}`, {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`admin order request failed (${response.status}): ${message}`);
+  }
+
+  return response.json() as Promise<{ order: AdminOrderDetail }>;
+}
+
+export async function transitionAdminOrderStatus(orderId: string, data: { toStatus: string; reason?: string }) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/orders/${orderId}/status`, {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`order transition failed (${response.status}): ${message}`);
+  }
+
+  return response.json() as Promise<{ orderId: string; fromStatus: string | null; toStatus: string }>;
+}
+
+export type {
+  AdminUser,
+  AdminSummary,
+  InventoryItem,
+  CatalogProduct,
+  Taxonomy,
+  AdminOrderListItem,
+  AdminOrderDetail,
+  OrderStatus
+};

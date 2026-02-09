@@ -2,8 +2,8 @@ import nodemailer from "nodemailer";
 
 import { env } from "../../config/env";
 
-export async function sendMagicLinkEmail(params: { to: string; subject: string; html: string; text: string }) {
-  const transporter = nodemailer.createTransport({
+function createTransporter() {
+  return nodemailer.createTransport({
     host: env.smtpHost,
     port: env.smtpPort,
     secure: env.smtpPort === 465,
@@ -12,7 +12,10 @@ export async function sendMagicLinkEmail(params: { to: string; subject: string; 
       pass: env.smtpPass
     }
   });
+}
 
+export async function sendEmail(params: { to: string; subject: string; html: string; text: string }) {
+  const transporter = createTransporter();
   await transporter.sendMail({
     from: env.smtpFrom,
     to: params.to,
@@ -20,4 +23,8 @@ export async function sendMagicLinkEmail(params: { to: string; subject: string; 
     html: params.html,
     text: params.text
   });
+}
+
+export async function sendMagicLinkEmail(params: { to: string; subject: string; html: string; text: string }) {
+  await sendEmail(params);
 }

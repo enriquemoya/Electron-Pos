@@ -9,10 +9,12 @@ import { createCatalogAdminUseCases } from "./application/use-cases/catalog-admi
 import { createCatalogUseCases } from "./application/use-cases/catalog";
 import { createCheckoutUseCases } from "./application/use-cases/checkout";
 import { createInventoryUseCases } from "./application/use-cases/inventory";
+import { createOrderFulfillmentUseCases } from "./application/use-cases/order-fulfillment";
 import { createProfileUseCases } from "./application/use-cases/profile";
 import { createSyncUseCases } from "./application/use-cases/sync";
 import { createUsersUseCases } from "./application/use-cases/users";
 import { createBranchUseCases } from "./application/use-cases/branches";
+import { env } from "./config/env";
 import * as adminDashboardRepository from "./infrastructure/repositories/admin-dashboard-service";
 import * as authRepository from "./infrastructure/repositories/auth-service";
 import * as catalogAdminRepository from "./infrastructure/repositories/catalog-admin-service";
@@ -24,6 +26,7 @@ import * as syncRepository from "./infrastructure/repositories/sync-service";
 import * as usersRepository from "./infrastructure/repositories/user-service";
 import * as branchRepository from "./infrastructure/repositories/branch-service";
 import * as emailService from "./infrastructure/adapters/email-service";
+import { startOrderExpirationJob } from "./infrastructure/jobs/order-expiration-job";
 
 export function createApp() {
   const app = express();
@@ -37,7 +40,11 @@ export function createApp() {
   const adminDashboardUseCases = createAdminDashboardUseCases({ adminDashboardRepository });
   const inventoryUseCases = createInventoryUseCases({ inventoryRepository });
   const catalogAdminUseCases = createCatalogAdminUseCases({ catalogAdminRepository });
-  const checkoutUseCases = createCheckoutUseCases({ checkoutRepository });
+  const checkoutUseCases = createCheckoutUseCases({ checkoutRepository, emailService });
+  const orderFulfillmentUseCases = createOrderFulfillmentUseCases({
+    orderFulfillmentRepository: checkoutRepository,
+    emailService
+  });
   const branchUseCases = createBranchUseCases({ branchRepository });
 
   app.use(createPublicRoutes({ catalogUseCases, authUseCases, branchUseCases }));
@@ -48,6 +55,7 @@ export function createApp() {
       catalogUseCases,
       catalogAdminUseCases,
       checkoutUseCases,
+      orderFulfillmentUseCases,
       branchUseCases,
       inventoryUseCases,
       syncUseCases,
@@ -55,6 +63,11 @@ export function createApp() {
       usersUseCases
     })
   );
+
+  startOrderExpirationJob({
+    orderFulfillmentUseCases,
+    intervalMs: env.orderExpirationIntervalMs
+  });
 
   return app;
 }

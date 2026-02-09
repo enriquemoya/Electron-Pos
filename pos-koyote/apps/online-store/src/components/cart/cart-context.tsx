@@ -75,6 +75,12 @@ function canIncrement(item: CartItem) {
   return item.availability !== "out_of_stock";
 }
 
+function normalizeAvailability(value: string): CartItem["availability"] {
+  return ["in_stock", "low_stock", "out_of_stock", "pending_sync", "unknown"].includes(value)
+    ? (value as CartItem["availability"])
+    : "unknown";
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const hydrated = useRef(false);
@@ -180,7 +186,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           price: typeof item.priceSnapshot === "number" ? item.priceSnapshot : null,
           currency: item.currency ?? "MXN",
           game: item.game ?? null,
-          availability: item.availabilitySnapshot ?? "unknown",
+          availability: normalizeAvailability(item.availabilitySnapshot ?? "unknown"),
           quantity: item.quantity
         }))
       );

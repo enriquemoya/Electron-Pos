@@ -253,13 +253,13 @@
       "expansions": "Expansiones",
       "misc": "Miscelaneo",
       "miscLabel": "Miscelaneo",
-    "category": "Categoria",
-    "game": "Juego (opcional)",
-    "allGames": "Todos los juegos",
-    "allCategories": "Todas las categorias",
-    "allExpansions": "Todas las expansiones",
-    "allMisc": "Todo miscelaneo",
-    "expansion": "Expansion (opcional)",
+      "category": "Categoria",
+      "game": "Juego (opcional)",
+      "allGames": "Todos los juegos",
+      "allCategories": "Todas las categorias",
+      "allExpansions": "Todas las expansiones",
+      "allMisc": "Todo miscelaneo",
+      "expansion": "Expansion (opcional)",
       "price": "Rango de precio",
       "priceMin": "Min {value}",
       "priceMax": "Max {value}",
@@ -384,7 +384,8 @@
       "inventory": "Gestion de inventario",
       "products": "Gestion de productos",
       "taxonomies": "Taxonomias del catalogo",
-      "branches": "Sucursales"
+      "branches": "Sucursales",
+      "orders": "Gestion de pedidos"
     }
   },
   "adminInventory": {
@@ -610,5 +611,111 @@
       "backHome": "Volver al inicio"
     },
     "imageFallbackAlt": "Imagen de producto"
+  },
+  "adminOrders": {
+    "title": "Pedidos",
+    "subtitle": "Administra estados y seguimiento de pedidos.",
+    "detailTitle": "Detalle de pedido",
+    "empty": "No hay pedidos disponibles.",
+    "customerFallback": "Cliente sin nombre",
+    "emailFallback": "Sin correo",
+    "branch": "Sucursal de retiro",
+    "branchFallback": "Sin sucursal",
+    "itemsTitle": "Items del pedido",
+    "timelineTitle": "Timeline de estado",
+    "qty": "Cantidad: {value}",
+    "columns": {
+      "order": "Pedido",
+      "customer": "Cliente",
+      "status": "Estado",
+      "total": "Total",
+      "expires": "Expira",
+      "action": "Accion"
+    },
+    "actions": {
+      "view": "Ver"
+    },
+    "filters": {
+      "search": "Buscar por correo o ID",
+      "allStatuses": "Todos los estados",
+      "sortCreatedAt": "Mas recientes",
+      "sortStatus": "Estado",
+      "sortExpiresAt": "Expiracion",
+      "sortSubtotal": "Subtotal",
+      "directionDesc": "Descendente",
+      "directionAsc": "Ascendente",
+      "apply": "Aplicar"
+    },
+    "pagination": {
+      "label": "Pagina {page} de {total}",
+      "prev": "Anterior",
+      "next": "Siguiente"
+    },
+    "transition": {
+      "title": "Actualizar estado",
+      "reason": "Motivo (requerido para cancelacion manual)",
+      "submit": "Guardar estado",
+      "confirmTitle": "Confirmar cambio de estado",
+      "confirmBody": "Este cambio actualizara el pedido y registrara el evento en la bitacora.",
+      "confirmAction": "Confirmar",
+      "cancelAction": "Cancelar",
+      "error": "No se pudo actualizar el estado."
+    },
+    "timeline": {
+      "initial": "Inicial"
+    },
+    "statuses": {
+      "CREATED": "Creado",
+      "PENDING_PAYMENT": "Pago pendiente",
+      "PAID": "Pagado",
+      "READY_FOR_PICKUP": "Listo para recoger",
+      "SHIPPED": "Enviado",
+      "CANCELLED_EXPIRED": "Cancelado por expiracion",
+      "CANCELLED_MANUAL": "Cancelado manualmente",
+      "CANCELED": "Cancelado"
+    }
+  },
+  "accountOrders": {
+    "title": "Mis pedidos",
+    "subtitle": "Consulta el historial y detalle de tus pedidos.",
+    "detailTitle": "Detalle de pedido",
+    "error": "No se pudieron cargar los pedidos en este momento.",
+    "errorDetail": "No se pudo cargar el detalle del pedido.",
+    "backToList": "Volver a pedidos",
+    "empty": "Aun no tienes pedidos.",
+    "branch": "Sucursal de retiro",
+    "branchFallback": "Sin sucursal",
+    "itemsTitle": "Items del pedido",
+    "timelineTitle": "Timeline de estado",
+    "qty": "Cantidad: {value}",
+    "columns": {
+      "order": "Pedido",
+      "created": "Creado",
+      "status": "Estado",
+      "total": "Total",
+      "expires": "Expira",
+      "action": "Accion"
+    },
+    "actions": {
+      "view": "Ver"
+    },
+    "pagination": {
+      "label": "Pagina {page} de {total}",
+      "prev": "Anterior",
+      "next": "Siguiente"
+    },
+    "timeline": {
+      "initial": "Inicial"
+    },
+    "statuses": {
+      "CREATED": "Creado",
+      "PENDING_PAYMENT": "Pago pendiente",
+      "PAID": "Pagado",
+      "READY_FOR_PICKUP": "Listo para recoger",
+      "SHIPPED": "Enviado",
+      "CANCELLED_EXPIRED": "Cancelado por expiracion",
+      "CANCELLED_MANUAL": "Cancelado manualmente",
+      "CANCELED": "Cancelado"
+    }
   }
 }

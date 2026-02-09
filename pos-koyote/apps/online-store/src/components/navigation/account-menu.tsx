@@ -14,6 +14,7 @@ import { Link } from "@/navigation";
 
 type AccountMenuProps = {
   profileHref: string;
+  ordersHref: string;
   ordersLabel: string;
   profileLabel: string;
   logoutLabel: string;
@@ -26,6 +27,7 @@ type AccountMenuProps = {
 
 export function AccountMenu({
   profileHref,
+  ordersHref,
   ordersLabel,
   profileLabel,
   logoutLabel,
@@ -52,14 +54,16 @@ export function AccountMenu({
         {isAuthenticated ? (
           <>
             <DropdownMenuItem asChild>
+              <Link href={ordersHref} className="flex items-center gap-2">
+                <Package className="h-4 w-4" aria-hidden="true" />
+                <span>{ordersLabel}</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link href={profileHref} className="flex items-center gap-2">
                 <UserRound className="h-4 w-4" aria-hidden="true" />
                 <span>{profileLabel}</span>
               </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled className="flex items-center gap-2">
-              <Package className="h-4 w-4" aria-hidden="true" />
-              <span>{ordersLabel}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>

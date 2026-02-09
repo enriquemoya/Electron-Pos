@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const ACCESS_MAX_AGE = 0;
 const REFRESH_MAX_AGE = 0;
 
-export async function GET(request: Request, { params }: { params: { locale: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { locale: string } }) {
   const refreshToken = request.cookies.get("auth_refresh")?.value;
   const baseUrl = process.env.CLOUD_API_URL;
 

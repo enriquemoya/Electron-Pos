@@ -176,6 +176,7 @@ export async function Header({ locale }: { locale: string }) {
             <Search variant="desktop" />
             <AccountMenu
               profileHref="/account/profile"
+              ordersHref="/account/orders"
               profileLabel={t("navigation.account.menu.profile")}
               ordersLabel={t("navigation.account.menu.orders")}
               logoutLabel={t("navigation.account.menu.logout")}
@@ -192,6 +193,7 @@ export async function Header({ locale }: { locale: string }) {
           <div className="flex items-center gap-3 lg:hidden">
             <AccountMenu
               profileHref="/account/profile"
+              ordersHref="/account/orders"
               profileLabel={t("navigation.account.menu.profile")}
               ordersLabel={t("navigation.account.menu.orders")}
               logoutLabel={t("navigation.account.menu.logout")}

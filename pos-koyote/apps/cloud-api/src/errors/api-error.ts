@@ -45,6 +45,10 @@ export const ApiErrors = {
   checkoutInventoryInsufficient: new ApiError(400, "CHECKOUT_INVENTORY_INSUFFICIENT", "checkout inventory insufficient"),
   checkoutDraftNotFound: new ApiError(404, "CHECKOUT_DRAFT_NOT_FOUND", "checkout draft not found"),
   checkoutOrderNotFound: new ApiError(404, "CHECKOUT_ORDER_NOT_FOUND", "checkout order not found"),
+  orderStatusInvalid: new ApiError(400, "ORDER_STATUS_INVALID", "order status invalid"),
+  orderTransitionInvalid: new ApiError(400, "ORDER_TRANSITION_INVALID", "order transition invalid"),
+  orderTransitionReasonRequired: new ApiError(400, "ORDER_TRANSITION_REASON_REQUIRED", "order transition reason required"),
+  orderForbidden: new ApiError(403, "ORDER_FORBIDDEN", "order forbidden"),
   branchNotFound: new ApiError(404, "BRANCH_NOT_FOUND", "branch not found")
 };
 

@@ -24,6 +24,7 @@ export default async function AdminHomePage({ params }: { params: { locale: stri
 
   const links = [
     { href: `/${params.locale}/admin/users`, label: t("links.users") },
+    { href: `/${params.locale}/admin/orders`, label: t("links.orders") },
     { href: `/${params.locale}/admin/inventory`, label: t("links.inventory") },
     { href: `/${params.locale}/admin/products`, label: t("links.products") },
     { href: `/${params.locale}/admin/taxonomies`, label: t("links.taxonomies") },
