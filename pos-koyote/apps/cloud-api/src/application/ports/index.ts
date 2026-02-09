@@ -87,6 +87,84 @@ export type InventoryRepository = {
   } | null>;
 };
 
+export type CheckoutRepository = {
+  createOrUpdateDraft: (params: {
+    userId: string;
+    items: Array<{
+      productId: string;
+      quantity: number;
+      priceSnapshot?: number | null;
+      availabilitySnapshot?: string | null;
+    }>;
+  }) => Promise<{
+    draftId: string;
+    items: Array<{
+      productId: string;
+      quantity: number;
+      priceSnapshot: number;
+      currency: string;
+      availabilitySnapshot: string;
+    }>;
+    removedItems: Array<{ productId: string; reason: "insufficient" | "missing" }>;
+  }>;
+  getActiveDraft: (params: {
+    userId: string;
+  }) => Promise<{
+    draftId: string;
+    items: Array<{
+      productId: string;
+      quantity: number;
+      priceSnapshot: number;
+      currency: string;
+      availabilitySnapshot: string;
+      name: string | null;
+      slug: string | null;
+      imageUrl: string | null;
+      game: string | null;
+    }>;
+  } | null>;
+  revalidateItems: (params: {
+    items: Array<{ productId: string; quantity: number }>;
+  }) => Promise<{
+    items: Array<{
+      productId: string;
+      quantity: number;
+      priceSnapshot: number;
+      currency: string;
+      availabilitySnapshot: string;
+    }>;
+    removedItems: Array<{ productId: string; reason: "insufficient" | "missing" }>;
+  }>;
+  createOrder: (params: {
+    userId: string;
+    draftId: string;
+    paymentMethod: "PAY_IN_STORE";
+    pickupBranchId: string | null;
+  }) => Promise<{ orderId: string; status: string; expiresAt: string }>;
+  getOrder: (params: { userId: string; orderId: string }) => Promise<Record<string, unknown> | null>;
+};
+
+export type BranchRepository = {
+  listBranches: () => Promise<Array<Record<string, unknown>>>;
+  createBranch: (data: {
+    name: string;
+    address: string;
+    city: string;
+    latitude: number;
+    longitude: number;
+    imageUrl?: string | null;
+  }) => Promise<Record<string, unknown>>;
+  updateBranch: (id: string, data: {
+    name?: string;
+    address?: string;
+    city?: string;
+    latitude?: number;
+    longitude?: number;
+    imageUrl?: string | null;
+  }) => Promise<Record<string, unknown> | null>;
+  deleteBranch: (id: string) => Promise<Record<string, unknown> | null>;
+};
+
 export type SyncRepository = {
   recordEvents: (events: any[]) => Promise<{ accepted: string[]; duplicates: string[] }>;
   getPendingEvents: (posId: string, since: string | null) => Promise<any[]>;

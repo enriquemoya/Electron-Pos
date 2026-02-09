@@ -3,10 +3,12 @@ import { Router } from "express";
 import type { AdminDashboardUseCases } from "../../application/use-cases/admin-dashboard";
 import type { CatalogAdminUseCases } from "../../application/use-cases/catalog-admin";
 import type { CatalogUseCases } from "../../application/use-cases/catalog";
+import type { CheckoutUseCases } from "../../application/use-cases/checkout";
 import type { InventoryUseCases } from "../../application/use-cases/inventory";
 import type { ProfileUseCases } from "../../application/use-cases/profile";
 import type { SyncUseCases } from "../../application/use-cases/sync";
 import type { UsersUseCases } from "../../application/use-cases/users";
+import type { BranchUseCases } from "../../application/use-cases/branches";
 import { createCatalogController } from "../controllers/catalog-controller";
 import { createAdminDashboardController } from "../controllers/admin-dashboard-controller";
 import { createCatalogAdminController } from "../controllers/catalog-admin-controller";
@@ -16,6 +18,8 @@ import { createProfileController } from "../controllers/profile-controller";
 import { requireAdmin } from "../middleware/require-admin";
 import { requireAuth } from "../middleware/require-auth";
 import { createUsersController } from "../controllers/users-controller";
+import { createCheckoutController } from "../controllers/checkout-controller";
+import { createBranchesController } from "../controllers/branches-controller";
 
 export function createProtectedRoutes(params: {
   adminDashboardUseCases: AdminDashboardUseCases;
@@ -25,6 +29,8 @@ export function createProtectedRoutes(params: {
   syncUseCases: SyncUseCases;
   profileUseCases: ProfileUseCases;
   usersUseCases: UsersUseCases;
+  checkoutUseCases: CheckoutUseCases;
+  branchUseCases: BranchUseCases;
 }) {
   const router = Router();
   const catalogController = createCatalogController(params.catalogUseCases);
@@ -34,6 +40,8 @@ export function createProtectedRoutes(params: {
   const syncController = createSyncController(params.syncUseCases);
   const profileController = createProfileController(params.profileUseCases);
   const usersController = createUsersController(params.usersUseCases);
+  const checkoutController = createCheckoutController(params.checkoutUseCases);
+  const branchesController = createBranchesController(params.branchUseCases);
 
   router.post("/sync/events", syncController.recordEventsHandler);
   router.get("/sync/pending", syncController.getPendingHandler);
@@ -47,6 +55,13 @@ export function createProtectedRoutes(params: {
   router.patch("/profile/me", profileController.updateProfileHandler);
   router.patch("/profile/password", profileController.updatePasswordHandler);
 
+  router.use("/checkout", requireAuth);
+  router.post("/checkout/drafts", checkoutController.createDraftHandler);
+  router.get("/checkout/drafts/active", checkoutController.getActiveDraftHandler);
+  router.post("/checkout/revalidate", checkoutController.revalidateHandler);
+  router.post("/checkout/orders", checkoutController.createOrderHandler);
+  router.get("/checkout/orders/:orderId", checkoutController.getOrderHandler);
+
   router.use("/admin", requireAdmin);
   router.get("/admin/dashboard/summary", adminDashboardController.getAdminSummaryHandler);
   router.get("/admin/inventory", inventoryController.listInventoryHandler);
@@ -59,6 +74,10 @@ export function createProtectedRoutes(params: {
   router.post("/admin/catalog/taxonomies", catalogAdminController.createTaxonomyHandler);
   router.patch("/admin/catalog/taxonomies/:id", catalogAdminController.updateTaxonomyHandler);
   router.delete("/admin/catalog/taxonomies/:id", catalogAdminController.deleteTaxonomyHandler);
+  router.get("/admin/branches", branchesController.listBranchesHandler);
+  router.post("/admin/branches", branchesController.createBranchHandler);
+  router.patch("/admin/branches/:id", branchesController.updateBranchHandler);
+  router.delete("/admin/branches/:id", branchesController.deleteBranchHandler);
   router.get("/admin/users", usersController.listUsersHandler);
   router.get("/admin/users/:id", usersController.getUserHandler);
   router.post("/admin/users", usersController.createUserHandler);

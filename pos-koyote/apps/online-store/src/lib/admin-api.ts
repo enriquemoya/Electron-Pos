@@ -85,6 +85,18 @@ type Taxonomy = {
   updatedAt: string;
 };
 
+type PickupBranch = {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  latitude: number;
+  longitude: number;
+  imageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 function getBaseUrl() {
   const baseUrl = process.env.CLOUD_API_URL;
   if (!baseUrl) {
@@ -257,6 +269,101 @@ export async function fetchCatalogProducts(params: {
 
   if (!response.ok) {
     throw new Error("catalog products request failed");
+  }
+
+  return response.json();
+}
+
+export async function fetchAdminBranches(): Promise<PickupBranch[]> {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/branches`, {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("branches request failed");
+  }
+
+  const data = (await response.json()) as { items: PickupBranch[] };
+  return data.items ?? [];
+}
+
+export async function createAdminBranch(data: {
+  name: string;
+  address: string;
+  city: string;
+  latitude: number;
+  longitude: number;
+  imageUrl?: string;
+}) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/branches`, {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`branch create failed (${response.status}): ${message}`);
+  }
+
+  return response.json();
+}
+
+export async function updateAdminBranch(
+  id: string,
+  data: {
+    name?: string;
+    address?: string;
+    city?: string;
+    latitude?: number;
+    longitude?: number;
+    imageUrl?: string;
+  }
+) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/branches/${id}`, {
+    method: "PATCH",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`branch update failed (${response.status}): ${message}`);
+  }
+
+  return response.json();
+}
+
+export async function deleteAdminBranch(id: string) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/branches/${id}`, {
+    method: "DELETE",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("branch delete failed");
   }
 
   return response.json();

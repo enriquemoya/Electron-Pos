@@ -92,6 +92,44 @@
       "en": "EN"
     }
   },
+  "cart": {
+    "drawer": {
+      "title": "Your cart"
+    },
+    "page": {
+      "title": "Your cart",
+      "subtitle": "Review items and continue to checkout."
+    },
+    "summary": {
+      "title": "Summary",
+      "subtotal": "Subtotal",
+      "note": "Checkout is available with pay in store."
+    },
+    "actions": {
+      "add": "Add to cart",
+      "remove": "Remove",
+      "increment": "Increase quantity",
+      "decrement": "Decrease quantity",
+      "viewCart": "View cart",
+      "continueShopping": "Continue shopping",
+      "clear": "Clear cart",
+      "checkout": "Checkout"
+    },
+    "quantity": {
+      "label": "Quantity"
+    },
+    "priceUnavailable": "Price unavailable",
+    "imageFallbackAlt": "Product image placeholder",
+    "warnings": {
+      "pending": "Availability is updating. Quantity is not guaranteed.",
+      "unknown": "Availability is unknown. Quantity is not guaranteed.",
+      "outOfStock": "Out of stock"
+    },
+    "empty": {
+      "title": "Your cart is empty",
+      "subtitle": "Browse the catalog to add items."
+    }
+  },
   "auth": {
     "login": {
       "title": "Sign in",
@@ -329,7 +367,8 @@
       "users": "User management",
       "inventory": "Inventory management",
       "products": "Product management",
-      "taxonomies": "Catalog taxonomies"
+      "taxonomies": "Catalog taxonomies",
+      "branches": "Pickup branches"
     }
   },
   "adminInventory": {
@@ -456,5 +495,83 @@
       "save": "Save",
       "delete": "Delete"
     }
+  },
+  "adminBranches": {
+    "title": "Pickup branches",
+    "subtitle": "Manage store pickup locations available for checkout.",
+    "fields": {
+      "name": "Branch name",
+      "address": "Address",
+      "city": "City",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "imageUrl": "Image URL"
+    },
+    "actions": {
+      "create": "Create branch",
+      "save": "Save",
+      "delete": "Delete"
+    },
+    "columns": {
+      "name": "Name",
+      "city": "City",
+      "address": "Address",
+      "coords": "Coordinates",
+      "action": "Action"
+    },
+    "errors": {
+      "createFailed": "Branch creation failed.",
+      "details": "Details: {detail}"
+    }
+  },
+  "checkout": {
+    "title": "Checkout",
+    "subtitle": "Confirm pickup details and pay in store.",
+    "status": {
+      "syncing": "Updating cart availability..."
+    },
+    "summary": {
+      "title": "Order summary",
+      "subtitle": "Pay in store. Inventory is reserved for 10 days.",
+      "subtotal": "Subtotal"
+    },
+    "branches": {
+      "title": "Pickup branch",
+      "select": "Select a pickup branch",
+      "empty": "No pickup branches are available right now."
+    },
+    "payment": {
+      "title": "Payment method",
+      "payInStore": "Pay in store",
+      "payInStoreHint": "Pay at the branch to complete your order.",
+      "payNow": "Pay now (coming soon)",
+      "payNowHint": "Online payments will be available soon."
+    },
+    "actions": {
+      "confirmPayInStore": "Confirm pay in store",
+      "submitting": "Placing order..."
+    },
+    "errors": {
+      "server": "Something went wrong. Please try again.",
+      "unauthorized": "Session expired. Please sign in again.",
+      "details": "Details: {detail}"
+    },
+    "revalidation": {
+      "title": "Cart updated",
+      "removed": "Some items were removed due to availability changes."
+    },
+    "empty": {
+      "title": "Your cart is empty",
+      "subtitle": "Add items before starting checkout.",
+      "action": "Browse catalog"
+    },
+    "success": {
+      "title": "Order placed",
+      "subtitle": "Pay in store to complete your order.",
+      "orderId": "Order ID",
+      "expires": "Expires on",
+      "backHome": "Back to home"
+    },
+    "imageFallbackAlt": "Product image placeholder"
   }
 }

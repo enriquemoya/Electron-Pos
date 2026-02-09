@@ -181,3 +181,6 @@
 
 ## 2026-02-06
 - Inventory admin enhancements: product create + search + pagination
+
+## 2026-02-07
+- add ui for cart

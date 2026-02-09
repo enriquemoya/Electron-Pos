@@ -7,9 +7,11 @@ import { fetchCatalog } from "@/lib/api";
 import { InventoryBadge } from "@/components/inventory-badge";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/product-card";
+import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { ProductAttributes } from "@/components/product-detail/product-attributes";
 import { ProductDetailError } from "@/components/product-detail/product-detail-error";
 import { ProductMedia } from "@/components/product-detail/product-media";
+import { mapInventoryStateToAvailability } from "@/lib/cart";
 
 function normalizeInventoryState(state: InventoryState | null | undefined): InventoryState {
   return state ?? "PENDING_SYNC";
@@ -133,6 +135,8 @@ export default async function ProductDetailPage({ params }: { params: { locale: 
 
   const inventoryState = normalizeInventoryState(product.state);
   const inventoryLabel = t(stateLabelKey(inventoryState));
+  const cartAvailability = mapInventoryStateToAvailability(product.state);
+  const isOutOfStock = cartAvailability === "out_of_stock";
 
   const gameKey = mapGameToKey(product.game);
   const gameLabel = t(`games.${gameKey}`);
@@ -194,6 +198,24 @@ export default async function ProductDetailPage({ params }: { params: { locale: 
               <span className="text-2xl font-semibold text-white">{priceLabel}</span>
             </div>
           </section>
+
+          <AddToCartButton
+            item={{
+              id: product.id,
+              slug: product.slug ?? null,
+              name: product.name ?? t("productDetail.titleFallback"),
+              imageUrl: product.imageUrl ?? null,
+              price: product.price?.amount ?? null,
+              currency: product.price?.currency ?? "MXN",
+              game: product.game ?? null,
+              availability: cartAvailability
+            }}
+            disabled={isOutOfStock}
+            className="w-full"
+          />
+          {isOutOfStock ? (
+            <p className="text-xs text-rose-200">{t("cart.warnings.outOfStock")}</p>
+          ) : null}
 
           {product.shortDescription ? (
             <section className="rounded-2xl border border-white/10 bg-base-800/70 p-5">

@@ -37,7 +37,14 @@ export const ApiErrors = {
   taxonomyInvalid: new ApiError(400, "TAXONOMY_INVALID", "taxonomy invalid"),
   productNotFound: new ApiError(404, "PRODUCT_NOT_FOUND", "product not found"),
   productInvalid: new ApiError(400, "PRODUCT_INVALID", "product invalid"),
-  productSlugExists: new ApiError(400, "PRODUCT_SLUG_EXISTS", "product slug exists")
+  productSlugExists: new ApiError(400, "PRODUCT_SLUG_EXISTS", "product slug exists"),
+  checkoutInvalid: new ApiError(400, "CHECKOUT_INVALID", "checkout invalid"),
+  checkoutDraftEmpty: new ApiError(400, "CHECKOUT_DRAFT_EMPTY", "checkout draft empty"),
+  checkoutDraftInactive: new ApiError(400, "CHECKOUT_DRAFT_INACTIVE", "checkout draft inactive"),
+  checkoutInventoryInsufficient: new ApiError(400, "CHECKOUT_INVENTORY_INSUFFICIENT", "checkout inventory insufficient"),
+  checkoutDraftNotFound: new ApiError(404, "CHECKOUT_DRAFT_NOT_FOUND", "checkout draft not found"),
+  checkoutOrderNotFound: new ApiError(404, "CHECKOUT_ORDER_NOT_FOUND", "checkout order not found"),
+  branchNotFound: new ApiError(404, "BRANCH_NOT_FOUND", "branch not found")
 };
 
 export function asApiError(error: unknown, fallback: ApiError): ApiError {

@@ -95,6 +95,28 @@ enum CatalogAction {
   DELETE
 }
 
+enum PreorderDraftStatus {
+  ACTIVE
+  CONVERTED
+  EXPIRED
+}
+
+enum OnlineOrderStatus {
+  PENDING_PAYMENT
+  PAID
+  CANCELED
+  CANCELLED_EXPIRED
+}
+
+enum PaymentMethod {
+  PAY_IN_STORE
+}
+
+enum InventoryReservationStatus {
+  ACTIVE
+  RELEASED
+}
+
 model User {
   id         String      @id @default(uuid()) @db.Uuid
   email      String?     @unique
@@ -115,6 +137,8 @@ model User {
   refreshTokens RefreshToken[]
   inventoryAdjustments InventoryAdjustment[] @relation("InventoryAdjustmentActor")
   catalogAuditLogs CatalogAuditLog[]
+  preorderDrafts PreorderDraft[]
+  onlineOrders OnlineOrder[]
 
   @@map("users")
 }
@@ -179,6 +203,111 @@ model CatalogTaxonomy {
 
   @@index([type], name: "idx_catalog_taxonomies_type")
   @@map("catalog_taxonomies")
+}
+
+model PickupBranch {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  address   String
+  city      String
+  latitude  Decimal  @db.Decimal(10, 6)
+  longitude Decimal  @db.Decimal(10, 6)
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  orders OnlineOrder[]
+
+  @@index([city], name: "idx_pickup_branches_city")
+  @@map("pickup_branches")
+}
+
+model PreorderDraft {
+  id        String             @id @default(uuid()) @db.Uuid
+  userId    String             @map("user_id") @db.Uuid
+  status    PreorderDraftStatus @default(ACTIVE)
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     PreorderDraftItem[]
+  order     OnlineOrder?       @relation("PreorderDraftOrder")
+
+  @@index([userId, status], name: "idx_preorder_drafts_user_status")
+  @@map("preorder_drafts")
+}
+
+model PreorderDraftItem {
+  id                  String   @id @default(uuid()) @db.Uuid
+  draftId             String   @map("draft_id") @db.Uuid
+  productId           String   @map("product_id")
+  quantity            Int
+  priceSnapshot       Decimal  @map("price_snapshot")
+  currency            String   @default("MXN")
+  availabilitySnapshot String  @map("availability_snapshot")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  draft               PreorderDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  @@index([draftId], name: "idx_preorder_items_draft")
+  @@index([productId], name: "idx_preorder_items_product")
+  @@map("preorder_draft_items")
+}
+
+model OnlineOrder {
+  id             String           @id @default(uuid()) @db.Uuid
+  userId         String           @map("user_id") @db.Uuid
+  draftId        String           @map("draft_id") @db.Uuid
+  status         OnlineOrderStatus @default(PENDING_PAYMENT)
+  paymentMethod  PaymentMethod    @map("payment_method")
+  pickupBranchId String?          @map("pickup_branch_id") @db.Uuid
+  subtotal       Decimal          @map("subtotal")
+  currency       String           @default("MXN")
+  expiresAt      DateTime         @map("expires_at") @db.Timestamptz(6)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  draft          PreorderDraft    @relation("PreorderDraftOrder", fields: [draftId], references: [id], onDelete: Restrict)
+  pickupBranch   PickupBranch?    @relation(fields: [pickupBranchId], references: [id], onDelete: SetNull)
+  items          OnlineOrderItem[]
+  reservations   InventoryReservation[]
+
+  @@index([userId], name: "idx_online_orders_user")
+  @@index([status], name: "idx_online_orders_status")
+  @@index([expiresAt], name: "idx_online_orders_expires")
+  @@unique([draftId], name: "uniq_online_order_draft")
+  @@map("online_orders")
+}
+
+model OnlineOrderItem {
+  id                  String   @id @default(uuid()) @db.Uuid
+  orderId             String   @map("order_id") @db.Uuid
+  productId           String   @map("product_id")
+  quantity            Int
+  priceSnapshot       Decimal  @map("price_snapshot")
+  currency            String   @default("MXN")
+  availabilitySnapshot String  @map("availability_snapshot")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  order               OnlineOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId], name: "idx_online_order_items_order")
+  @@map("online_order_items")
+}
+
+model InventoryReservation {
+  id        String                    @id @default(uuid()) @db.Uuid
+  orderId   String                    @map("order_id") @db.Uuid
+  productId String                    @map("product_id")
+  quantity  Int
+  status    InventoryReservationStatus @default(ACTIVE)
+  expiresAt DateTime                  @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  releasedAt DateTime?                @map("released_at") @db.Timestamptz(6)
+  order     OnlineOrder               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId], name: "idx_inventory_reservation_order")
+  @@index([status], name: "idx_inventory_reservation_status")
+  @@index([expiresAt], name: "idx_inventory_reservation_expires")
+  @@map("inventory_reservations")
 }
 
 model CatalogAuditLog {

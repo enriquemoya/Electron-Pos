@@ -2,8 +2,10 @@ import type { ReactNode } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 
+import { CartProvider } from "@/components/cart/cart-context";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { Toaster } from "@/components/ui/toaster";
 
 export function generateStaticParams() {
   return [{ locale: "es" }, { locale: "en" }];
@@ -32,9 +34,12 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <Header locale={params.locale} />
-      <main className="mx-auto w-full max-w-6xl px-4 py-10">{children}</main>
-      <Footer />
+      <CartProvider>
+        <Header locale={params.locale} />
+        <main className="mx-auto w-full max-w-6xl px-4 py-10">{children}</main>
+        <Footer />
+        <Toaster />
+      </CartProvider>
     </NextIntlClientProvider>
   );
 }

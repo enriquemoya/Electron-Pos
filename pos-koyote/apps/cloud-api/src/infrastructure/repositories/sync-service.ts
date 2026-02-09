@@ -118,6 +118,10 @@ export async function createOrder(orderId: string, items: any[]) {
 
 export async function readProducts(page: number, pageSize: number, id: string | null) {
   return withClient(async (client) => {
+    const toNumber = (value: unknown) => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
     const params: (string | number)[] = [];
     let where = "";
     if (id) {
@@ -141,6 +145,7 @@ export async function readProducts(page: number, pageSize: number, id: string | 
          updated_at,
          display_name,
          short_description,
+         price,
          image_url,
          category,
          game,
@@ -171,7 +176,12 @@ export async function readProducts(page: number, pageSize: number, id: string | 
         id: row.product_id,
         name: row.display_name ?? null,
         category: row.category ?? null,
-        price: null,
+        price: row.price === null || row.price === undefined
+          ? null
+          : (() => {
+              const amount = toNumber(row.price);
+              return amount === null ? null : { amount, currency: "MXN" };
+            })(),
         game: row.game ?? null,
         expansionId: null,
         imageUrl: row.image_url ?? null,

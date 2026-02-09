@@ -92,6 +92,44 @@
       "en": "EN"
     }
   },
+  "cart": {
+    "drawer": {
+      "title": "Tu carrito"
+    },
+    "page": {
+      "title": "Tu carrito",
+      "subtitle": "Revisa tus articulos y continua al checkout."
+    },
+    "summary": {
+      "title": "Resumen",
+      "subtotal": "Subtotal",
+      "note": "Checkout disponible con pago en tienda."
+    },
+    "actions": {
+      "add": "Agregar al carrito",
+      "remove": "Quitar",
+      "increment": "Aumentar cantidad",
+      "decrement": "Disminuir cantidad",
+      "viewCart": "Ver carrito",
+      "continueShopping": "Seguir comprando",
+      "clear": "Vaciar carrito",
+      "checkout": "Ir a checkout"
+    },
+    "quantity": {
+      "label": "Cantidad"
+    },
+    "priceUnavailable": "Precio no disponible",
+    "imageFallbackAlt": "Imagen de producto de respaldo",
+    "warnings": {
+      "pending": "La disponibilidad se esta actualizando. La cantidad no esta garantizada.",
+      "unknown": "La disponibilidad es desconocida. La cantidad no esta garantizada.",
+      "outOfStock": "Agotado"
+    },
+    "empty": {
+      "title": "Tu carrito esta vacio",
+      "subtitle": "Explora el catalogo para agregar articulos."
+    }
+  },
   "auth": {
     "login": {
       "title": "Iniciar sesion",
@@ -329,7 +367,8 @@
       "users": "Gestion de usuarios",
       "inventory": "Gestion de inventario",
       "products": "Gestion de productos",
-      "taxonomies": "Taxonomias del catalogo"
+      "taxonomies": "Taxonomias del catalogo",
+      "branches": "Sucursales"
     }
   },
   "adminInventory": {
@@ -456,5 +495,83 @@
       "save": "Guardar",
       "delete": "Eliminar"
     }
+  },
+  "adminBranches": {
+    "title": "Sucursales",
+    "subtitle": "Administra sucursales disponibles para retiro en tienda.",
+    "fields": {
+      "name": "Nombre de sucursal",
+      "address": "Direccion",
+      "city": "Ciudad",
+      "latitude": "Latitud",
+      "longitude": "Longitud",
+      "imageUrl": "URL de imagen"
+    },
+    "actions": {
+      "create": "Crear sucursal",
+      "save": "Guardar",
+      "delete": "Eliminar"
+    },
+    "columns": {
+      "name": "Nombre",
+      "city": "Ciudad",
+      "address": "Direccion",
+      "coords": "Coordenadas",
+      "action": "Accion"
+    },
+    "errors": {
+      "createFailed": "No se pudo crear la sucursal.",
+      "details": "Detalle: {detail}"
+    }
+  },
+  "checkout": {
+    "title": "Checkout",
+    "subtitle": "Confirma retiro y paga en tienda.",
+    "status": {
+      "syncing": "Actualizando disponibilidad del carrito..."
+    },
+    "summary": {
+      "title": "Resumen de pedido",
+      "subtitle": "Pago en tienda. Inventario reservado por 10 dias.",
+      "subtotal": "Subtotal"
+    },
+    "branches": {
+      "title": "Sucursal de retiro",
+      "select": "Selecciona una sucursal",
+      "empty": "No hay sucursales disponibles por ahora."
+    },
+    "payment": {
+      "title": "Metodo de pago",
+      "payInStore": "Pagar en tienda",
+      "payInStoreHint": "Paga en la sucursal para completar tu pedido.",
+      "payNow": "Pagar ahora (proximamente)",
+      "payNowHint": "Pagos en linea estaran disponibles pronto."
+    },
+    "actions": {
+      "confirmPayInStore": "Confirmar pago en tienda",
+      "submitting": "Creando pedido..."
+    },
+    "errors": {
+      "server": "Ocurrio un error. Intenta de nuevo.",
+      "unauthorized": "La sesion expiro. Inicia sesion de nuevo.",
+      "details": "Detalle: {detail}"
+    },
+    "revalidation": {
+      "title": "Carrito actualizado",
+      "removed": "Se removieron articulos por cambios de disponibilidad."
+    },
+    "empty": {
+      "title": "Tu carrito esta vacio",
+      "subtitle": "Agrega articulos antes de iniciar checkout.",
+      "action": "Explorar catalogo"
+    },
+    "success": {
+      "title": "Pedido creado",
+      "subtitle": "Paga en tienda para completar tu pedido.",
+      "orderId": "ID de pedido",
+      "expires": "Expira el",
+      "backHome": "Volver al inicio"
+    },
+    "imageFallbackAlt": "Imagen de producto"
   }
 }
