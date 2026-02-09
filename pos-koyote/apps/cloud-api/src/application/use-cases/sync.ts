@@ -5,7 +5,16 @@ export type SyncUseCases = {
   getPendingEvents: (posId: string, since: string | null) => Promise<any[]>;
   acknowledgeEvents: (posId: string, eventIds: string[]) => Promise<void>;
   createOrder: (orderId: string, items: any[]) => Promise<{ duplicate: boolean }>;
-  readProducts: (page: number, pageSize: number, id: string | null) => Promise<{ items: any[]; total: number }>;
+  readProducts: (params: {
+    page: number;
+    pageSize: number;
+    id: string | null;
+    gameId?: string | "misc" | null;
+    categoryId?: string | null;
+    expansionId?: string | null;
+    priceMin?: number | null;
+    priceMax?: number | null;
+  }) => Promise<{ items: any[]; total: number }>;
 };
 
 export function createSyncUseCases(deps: { syncRepository: SyncRepository }): SyncUseCases {
@@ -14,6 +23,6 @@ export function createSyncUseCases(deps: { syncRepository: SyncRepository }): Sy
     getPendingEvents: (posId, since) => deps.syncRepository.getPendingEvents(posId, since),
     acknowledgeEvents: (posId, eventIds) => deps.syncRepository.acknowledgeEvents(posId, eventIds),
     createOrder: (orderId, items) => deps.syncRepository.createOrder(orderId, items),
-    readProducts: (page, pageSize, id) => deps.syncRepository.readProducts(page, pageSize, id)
+    readProducts: (params) => deps.syncRepository.readProducts(params)
   };
 }

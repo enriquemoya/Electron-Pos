@@ -1,16 +1,57 @@
 import { ApiErrors } from "../errors/api-error";
+import { isUuid } from "./common";
 
 const TAXONOMY_TYPES = ["CATEGORY", "GAME", "EXPANSION", "OTHER"] as const;
-const GAME_OPTIONS = ["pokemon", "one-piece", "yugioh", "other"] as const;
-
 type TaxonomyType = typeof TAXONOMY_TYPES[number];
-type GameOption = typeof GAME_OPTIONS[number];
+type TaxonomyLabels = { es: string | null; en: string | null };
+const AVAILABILITY_STATES = ["AVAILABLE", "LOW_STOCK", "OUT_OF_STOCK", "PENDING_SYNC"] as const;
+type AvailabilityState = typeof AVAILABILITY_STATES[number];
+
+function parseLabels(value: unknown): TaxonomyLabels | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  const candidate = value as Record<string, unknown>;
+  const es = candidate.es === null || candidate.es === undefined ? null : String(candidate.es).trim();
+  const en = candidate.en === null || candidate.en === undefined ? null : String(candidate.en).trim();
+  if (es === null && en === null) {
+    return null;
+  }
+  return {
+    es: es ? es : null,
+    en: en ? en : null
+  };
+}
+
+function parseReleaseDate(value: unknown): Date | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null || value === "") {
+    return null;
+  }
+  const raw = String(value).trim();
+  if (!raw) {
+    return null;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    throw ApiErrors.taxonomyInvalid;
+  }
+  const parsed = new Date(`${raw}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    throw ApiErrors.taxonomyInvalid;
+  }
+  return parsed;
+}
 
 export function validateTaxonomyCreate(payload: unknown) {
   const type = String((payload as { type?: string })?.type ?? "").toUpperCase();
   const name = String((payload as { name?: string })?.name ?? "").trim();
   const slug = String((payload as { slug?: string })?.slug ?? "").trim();
   const description = String((payload as { description?: string })?.description ?? "").trim();
+  const parentId = (payload as { parentId?: unknown })?.parentId;
+  const releaseDate = parseReleaseDate((payload as { releaseDate?: unknown })?.releaseDate);
+  const labels = parseLabels((payload as { labels?: unknown })?.labels);
 
   if (!TAXONOMY_TYPES.includes(type as TaxonomyType)) {
     throw ApiErrors.taxonomyInvalid;
@@ -18,12 +59,33 @@ export function validateTaxonomyCreate(payload: unknown) {
   if (!name || !slug) {
     throw ApiErrors.taxonomyInvalid;
   }
+  const parentValue = parentId === undefined || parentId === null || parentId === ""
+    ? null
+    : String(parentId).trim();
+  if (parentValue && !isUuid(parentValue)) {
+    throw ApiErrors.taxonomyInvalid;
+  }
+  if ((type === "GAME" || type === "OTHER") && parentValue) {
+    throw ApiErrors.taxonomyInvalid;
+  }
+  if (type === "EXPANSION" && !parentValue) {
+    throw ApiErrors.taxonomyInvalid;
+  }
+  if (type === "EXPANSION" && !releaseDate) {
+    throw ApiErrors.taxonomyInvalid;
+  }
+  if (type !== "EXPANSION" && releaseDate) {
+    throw ApiErrors.taxonomyInvalid;
+  }
 
   return {
     type: type as TaxonomyType,
     name,
     slug,
-    description: description || null
+    description: description || null,
+    parentId: parentValue,
+    releaseDate: releaseDate ?? null,
+    labels
   };
 }
 
@@ -31,15 +93,30 @@ export function validateTaxonomyUpdate(payload: unknown) {
   const name = String((payload as { name?: string })?.name ?? "").trim();
   const slug = String((payload as { slug?: string })?.slug ?? "").trim();
   const description = String((payload as { description?: string })?.description ?? "").trim();
+  const parentId = (payload as { parentId?: unknown })?.parentId;
+  const releaseDate = parseReleaseDate((payload as { releaseDate?: unknown })?.releaseDate);
+  const labels = parseLabels((payload as { labels?: unknown })?.labels);
 
-  if (!name && !slug && !description) {
+  if (!name && !slug && !description && parentId === undefined && releaseDate === undefined && labels === null) {
+    throw ApiErrors.taxonomyInvalid;
+  }
+
+  const parentValue = parentId === undefined
+    ? undefined
+    : parentId === null || parentId === ""
+      ? null
+      : String(parentId).trim();
+  if (parentValue !== undefined && parentValue !== null && !isUuid(parentValue)) {
     throw ApiErrors.taxonomyInvalid;
   }
 
   return {
     name: name || undefined,
     slug: slug || undefined,
-    description: description ? description : undefined
+    description: description ? description : undefined,
+    parentId: parentValue,
+    releaseDate,
+    labels
   };
 }
 
@@ -47,7 +124,7 @@ export function validateProductCreate(payload: unknown) {
   const data = payload as Record<string, unknown>;
   const name = String(data.name ?? "").trim();
   const slug = String(data.slug ?? "").trim();
-  const game = String(data.game ?? "").trim().toLowerCase();
+  const gameId = String(data.gameId ?? "").trim();
   const categoryId = String(data.categoryId ?? "").trim();
   const expansionId = String(data.expansionId ?? "").trim();
   const imageUrl = String(data.imageUrl ?? "").trim();
@@ -55,6 +132,12 @@ export function validateProductCreate(payload: unknown) {
   const description = String(data.description ?? "").trim();
   const rarity = String(data.rarity ?? "").trim();
   const tagsRaw = data.tags;
+  const availabilityStateRaw = String(data.availabilityState ?? "").trim().toUpperCase();
+  const normalizedAvailability =
+    availabilityStateRaw === "SOLD_OUT" ? "OUT_OF_STOCK" : availabilityStateRaw;
+  const availabilityState: AvailabilityState = AVAILABILITY_STATES.includes(normalizedAvailability as AvailabilityState)
+    ? (normalizedAvailability as AvailabilityState)
+    : "OUT_OF_STOCK";
 
   const priceValue = data.price;
   const price = typeof priceValue === "number" ? priceValue : Number(priceValue);
@@ -71,8 +154,16 @@ export function validateProductCreate(payload: unknown) {
   if (!name || !slug || !categoryId || !imageUrl || !reason) {
     throw ApiErrors.productInvalid;
   }
-
-  if (!GAME_OPTIONS.includes(game as GameOption)) {
+  if (!isUuid(categoryId)) {
+    throw ApiErrors.productInvalid;
+  }
+  if (gameId && !isUuid(gameId)) {
+    throw ApiErrors.productInvalid;
+  }
+  if (expansionId && !isUuid(expansionId)) {
+    throw ApiErrors.productInvalid;
+  }
+  if (!gameId && expansionId) {
     throw ApiErrors.productInvalid;
   }
 
@@ -88,7 +179,7 @@ export function validateProductCreate(payload: unknown) {
   return {
     name,
     slug,
-    game: game as GameOption,
+    gameId: gameId || null,
     categoryId,
     expansionId: expansionId || null,
     price,
@@ -97,6 +188,7 @@ export function validateProductCreate(payload: unknown) {
     description: description || null,
     rarity: rarity || null,
     tags,
+    availabilityState,
     isActive,
     isFeatured,
     featuredOrder: Number.isFinite(featuredOrderNumber ?? NaN) ? featuredOrderNumber : null
@@ -112,6 +204,7 @@ export function validateProductUpdate(payload: unknown) {
     categoryId?: string | null;
     expansionId?: string | null;
     game?: string | null;
+    gameId?: string | null;
     price?: number | null;
     imageUrl?: string | null;
     shortDescription?: string | null;
@@ -139,13 +232,28 @@ export function validateProductUpdate(payload: unknown) {
     result.category = data.category === null ? null : data.category.trim() || null;
   }
   if (data.categoryId === null || typeof data.categoryId === "string") {
-    result.categoryId = data.categoryId === null ? null : data.categoryId.trim() || null;
+    const value = data.categoryId === null ? null : data.categoryId.trim() || null;
+    if (value && !isUuid(value)) {
+      throw ApiErrors.productInvalid;
+    }
+    result.categoryId = value;
   }
   if (data.expansionId === null || typeof data.expansionId === "string") {
-    result.expansionId = data.expansionId === null ? null : data.expansionId.trim() || null;
+    const value = data.expansionId === null ? null : data.expansionId.trim() || null;
+    if (value && !isUuid(value)) {
+      throw ApiErrors.productInvalid;
+    }
+    result.expansionId = value;
   }
   if (data.game === null || typeof data.game === "string") {
     result.game = data.game === null ? null : data.game.trim() || null;
+  }
+  if (data.gameId === null || typeof data.gameId === "string") {
+    const value = data.gameId === null ? null : data.gameId.trim() || null;
+    if (value && !isUuid(value)) {
+      throw ApiErrors.productInvalid;
+    }
+    result.gameId = value;
   }
   if (data.imageUrl === null || typeof data.imageUrl === "string") {
     result.imageUrl = data.imageUrl === null ? null : data.imageUrl.trim() || null;
@@ -164,8 +272,16 @@ export function validateProductUpdate(payload: unknown) {
     result.tags = data.tags === null ? null : data.tags.map((value) => String(value).trim());
   }
   if (data.availabilityState === null || typeof data.availabilityState === "string") {
-    result.availabilityState =
-      data.availabilityState === null ? null : data.availabilityState.trim() || null;
+    const raw = data.availabilityState === null ? null : data.availabilityState.trim().toUpperCase();
+    if (raw === null || raw === "") {
+      result.availabilityState = null;
+    } else if (raw === "SOLD_OUT") {
+      result.availabilityState = "OUT_OF_STOCK";
+    } else if (AVAILABILITY_STATES.includes(raw as AvailabilityState)) {
+      result.availabilityState = raw;
+    } else {
+      throw ApiErrors.productInvalid;
+    }
   }
   if (typeof data.isFeatured === "boolean") {
     result.isFeatured = data.isFeatured;

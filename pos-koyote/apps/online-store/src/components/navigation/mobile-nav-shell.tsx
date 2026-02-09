@@ -5,8 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { MobileNav } from "@/components/navigation/mobile-nav";
+import type { NavigationGroup } from "@/components/navigation/main-nav";
 
-export function MobileNavToggle() {
+type MobileNavToggleProps = {
+  groups: NavigationGroup[];
+  miscLink: { href: string; label: string };
+};
+
+export function MobileNavToggle({ groups, miscLink }: MobileNavToggleProps) {
   const t = useTranslations();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -29,7 +35,12 @@ export function MobileNavToggle() {
       >
         {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
       </button>
-      <MobileNav isOpen={open} onClose={() => setOpen(false)} />
+      <MobileNav
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        groups={groups}
+        miscLink={miscLink}
+      />
     </>
   );
 }

@@ -1,6 +1,8 @@
 import crypto from "crypto";
+import { Prisma } from "@prisma/client";
 
 import { withClient } from "../db/pg";
+import { prisma } from "../db/prisma";
 import { isIsoString } from "../../validation/common";
 
 export async function recordEvents(events: any[]) {
@@ -116,83 +118,98 @@ export async function createOrder(orderId: string, items: any[]) {
   });
 }
 
-export async function readProducts(page: number, pageSize: number, id: string | null) {
-  return withClient(async (client) => {
-    const toNumber = (value: unknown) => {
-      const parsed = Number(value);
-      return Number.isFinite(parsed) ? parsed : null;
+export async function readProducts(params: {
+  page: number;
+  pageSize: number;
+  id: string | null;
+  gameId?: string | "misc" | null;
+  categoryId?: string | null;
+  expansionId?: string | null;
+  priceMin?: number | null;
+  priceMax?: number | null;
+}) {
+  const where: Prisma.ReadModelInventoryWhereInput = {};
+
+  if (params.id) {
+    where.productId = params.id;
+  }
+  if (params.gameId === "misc") {
+    where.gameId = null;
+  } else if (params.gameId) {
+    where.gameId = params.gameId;
+  }
+  if (params.categoryId) {
+    where.categoryId = params.categoryId;
+  }
+  if (params.expansionId) {
+    where.expansionId = params.expansionId;
+  }
+  if (params.priceMin != null || params.priceMax != null) {
+    where.price = {
+      ...(params.priceMin != null ? { gte: params.priceMin } : {}),
+      ...(params.priceMax != null ? { lte: params.priceMax } : {})
     };
-    const params: (string | number)[] = [];
-    let where = "";
-    if (id) {
-      params.push(id);
-      where = `WHERE product_id = $${params.length}`;
-    }
+  }
 
-    const countResult = await client.query(
-      `SELECT COUNT(*)::int AS total FROM read_model_inventory ${where}`,
-      params
-    );
-    const total = countResult.rows[0]?.total ?? 0;
+  const [items, total] = await prisma.$transaction([
+    prisma.readModelInventory.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+      skip: (params.page - 1) * params.pageSize,
+      take: params.pageSize,
+      select: {
+        productId: true,
+        slug: true,
+        available: true,
+        updatedAt: true,
+        displayName: true,
+        shortDescription: true,
+        price: true,
+        imageUrl: true,
+        category: true,
+        categoryId: true,
+        game: true,
+        gameId: true,
+        expansionId: true,
+        availabilityState: true,
+        lastSyncedAt: true
+      }
+    }),
+    prisma.readModelInventory.count({ where })
+  ]);
 
-    const offset = (page - 1) * pageSize;
-    params.push(pageSize, offset);
+  const result = items.map((row) => {
+    const derivedState = (() => {
+      if (!row.lastSyncedAt) {
+        return "PENDING_SYNC";
+      }
+      if (row.available <= 0) {
+        return "SOLD_OUT";
+      }
+      if (row.available <= 2) {
+        return "LOW_STOCK";
+      }
+      return "AVAILABLE";
+    })();
 
-    const rows = await client.query(
-      `SELECT
-         product_id,
-         available,
-         updated_at,
-         display_name,
-         short_description,
-         price,
-         image_url,
-         category,
-         game,
-         availability_state,
-         last_synced_at
-       FROM read_model_inventory
-       ${where}
-       ORDER BY updated_at DESC
-       LIMIT $${params.length - 1} OFFSET $${params.length}`,
-      params
-    );
-
-    const items = rows.rows.map((row: any) => {
-      const derivedState = (() => {
-        if (!row.last_synced_at) {
-          return "PENDING_SYNC";
-        }
-        if (row.available <= 0) {
-          return "SOLD_OUT";
-        }
-        if (row.available <= 2) {
-          return "LOW_STOCK";
-        }
-        return "AVAILABLE";
-      })();
-
-      return {
-        id: row.product_id,
-        name: row.display_name ?? null,
-        category: row.category ?? null,
-        price: row.price === null || row.price === undefined
-          ? null
-          : (() => {
-              const amount = toNumber(row.price);
-              return amount === null ? null : { amount, currency: "MXN" };
-            })(),
-        game: row.game ?? null,
-        expansionId: null,
-        imageUrl: row.image_url ?? null,
-        available: row.available,
-        state: row.availability_state ?? derivedState,
-        updatedAt: row.updated_at,
-        shortDescription: row.short_description ?? null,
-        lastSyncedAt: row.last_synced_at ?? null
-      };
-    });
-
-    return { items, total };
+    return {
+      id: row.productId,
+      slug: row.slug ?? null,
+      name: row.displayName ?? null,
+      category: row.category ?? null,
+      categoryId: row.categoryId ?? null,
+      price: row.price === null ? null : { amount: Number(row.price), currency: "MXN" },
+      game: row.game ?? null,
+      gameId: row.gameId ?? null,
+      expansionId: row.expansionId ?? null,
+      imageUrl: row.imageUrl ?? null,
+      available: row.available,
+      state: row.availabilityState ?? derivedState,
+      updatedAt: row.updatedAt,
+      shortDescription: row.shortDescription ?? null,
+      lastSyncedAt: row.lastSyncedAt ?? null
+    };
   });
+
+  return { items: result, total };
 }

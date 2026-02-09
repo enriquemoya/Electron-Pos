@@ -8,7 +8,8 @@ const localeMap: Record<string, string> = {
 
 export const locales = Object.keys(localeMap);
 
-export default getRequestConfig(async ({ locale }) => {
+export default getRequestConfig(async ({ requestLocale }) => {
+  const locale = (await requestLocale) ?? "es";
   const resolved = localeMap[locale];
   if (!resolved) {
     notFound();

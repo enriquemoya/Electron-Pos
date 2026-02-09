@@ -14,7 +14,7 @@ export type CatalogAdminUseCases = {
     reason: string;
     name: string;
     slug: string;
-    game: string;
+    gameId: string | null;
     categoryId: string;
     expansionId: string | null;
     price: number;
@@ -22,6 +22,7 @@ export type CatalogAdminUseCases = {
     description: string | null;
     rarity: string | null;
     tags: string[] | null;
+    availabilityState: "AVAILABLE" | "LOW_STOCK" | "OUT_OF_STOCK" | "PENDING_SYNC";
     isActive: boolean;
     isFeatured: boolean;
     featuredOrder: number | null;
@@ -45,8 +46,18 @@ export type CatalogAdminUseCases = {
     name: string;
     slug: string;
     description: string | null;
+    parentId?: string | null;
+    releaseDate?: Date | null;
+    labels?: { es: string | null; en: string | null } | null;
   }) => Promise<Record<string, unknown>>;
-  updateTaxonomy: (id: string, data: { name?: string; slug?: string; description?: string | null }) => Promise<Record<string, unknown>>;
+  updateTaxonomy: (id: string, data: {
+    name?: string;
+    slug?: string;
+    description?: string | null;
+    parentId?: string | null;
+    releaseDate?: Date | null;
+    labels?: { es: string | null; en: string | null } | null;
+  }) => Promise<Record<string, unknown>>;
   deleteTaxonomy: (id: string) => Promise<Record<string, unknown>>;
 };
 

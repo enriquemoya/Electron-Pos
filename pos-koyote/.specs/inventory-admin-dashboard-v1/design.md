@@ -68,11 +68,28 @@ All endpoints are under /admin and require JWT with role=ADMIN.
   - requires reason for audit log
 
 Create payload (required):
-- name, slug, game, categoryId, price, imageUrl
+- name, slug, categoryId, price, imageUrl
 Optional:
-- expansionId, description, rarity, tags, isActive, isFeatured, featuredOrder
+- gameId, expansionId, description, rarity, tags, isActive, isFeatured, featuredOrder
 Derived:
 - availabilityState, available
+
+Taxonomy-dependent product form behavior:
+- gameId is optional (`gameNone` option).
+- expansion selector is disabled until gameId is selected.
+- category selector is always required.
+- category options are loaded dynamically using taxonomy scope:
+  - gameId=null -> categories from misc scope
+  - gameId set, expansionId null -> categories for game scope
+  - gameId set, expansionId set -> categories for expansion scope plus valid game scope
+- invalid dependent values are cleared when parent selection changes.
+
+Availability state:
+- Product create/edit includes explicit availabilityState selector with:
+  - AVAILABLE
+  - LOW_STOCK
+  - OUT_OF_STOCK
+  - PENDING_SYNC
 
 Search and pagination:
 - list endpoints accept query, page, pageSize, sort, direction.
@@ -87,6 +104,10 @@ Search and pagination:
 - DELETE /admin/catalog/taxonomies/:id
   - list supports query, page, pageSize, sort, direction.
   - pageSize options: 20, 50, 100.
+  - create/edit uses modal with dependency-safe selectors:
+    - CATEGORY supports game + optional expansion parent
+    - EXPANSION requires game parent
+    - releaseDate required for expansion
 
 ## Auth and security
 - Admin endpoints require Authorization: Bearer <access token>.

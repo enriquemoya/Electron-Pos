@@ -52,6 +52,7 @@ type CatalogProduct = {
   slug: string | null;
   category: string | null;
   categoryId?: string | null;
+  gameId?: string | null;
   expansionId?: string | null;
   game: string | null;
   price: number | null;
@@ -80,6 +81,9 @@ type Taxonomy = {
   type: "CATEGORY" | "GAME" | "EXPANSION" | "OTHER";
   name: string;
   slug: string;
+  parentId: string | null;
+  releaseDate: string | null;
+  labels: { es: string | null; en: string | null } | null;
   description: string | null;
   createdAt: string;
   updatedAt: string;
@@ -446,7 +450,8 @@ export async function fetchTaxonomies(params?: {
   });
 
   if (!response.ok) {
-    throw new Error("taxonomies request failed");
+    const message = await response.text();
+    throw new Error(`taxonomies request failed (${response.status}): ${message}`);
   }
 
   return response.json() as Promise<{ items: Taxonomy[]; total?: number; page?: number; pageSize?: number; hasMore?: boolean }>;
@@ -457,6 +462,9 @@ export async function createTaxonomy(data: {
   name: string;
   slug: string;
   description?: string;
+  parentId?: string | null;
+  releaseDate?: string | null;
+  labels?: { es: string | null; en: string | null } | null;
 }) {
   const baseUrl = getBaseUrl();
   const response = await fetch(`${baseUrl}/admin/catalog/taxonomies`, {
@@ -471,13 +479,21 @@ export async function createTaxonomy(data: {
   });
 
   if (!response.ok) {
-    throw new Error("taxonomy create failed");
+    const message = await response.text();
+    throw new Error(`taxonomy create failed (${response.status}): ${message}`);
   }
 
-  return response.json() as Promise<{ item: Taxonomy }>;
+  return response.json() as Promise<{ taxonomy: Taxonomy }>;
 }
 
-export async function updateTaxonomy(id: string, data: { name?: string; slug?: string; description?: string }) {
+export async function updateTaxonomy(id: string, data: {
+  name?: string;
+  slug?: string;
+  description?: string;
+  parentId?: string | null;
+  releaseDate?: string | null;
+  labels?: { es: string | null; en: string | null } | null;
+}) {
   const baseUrl = getBaseUrl();
   const response = await fetch(`${baseUrl}/admin/catalog/taxonomies/${id}`, {
     method: "PATCH",
@@ -491,10 +507,11 @@ export async function updateTaxonomy(id: string, data: { name?: string; slug?: s
   });
 
   if (!response.ok) {
-    throw new Error("taxonomy update failed");
+    const message = await response.text();
+    throw new Error(`taxonomy update failed (${response.status}): ${message}`);
   }
 
-  return response.json() as Promise<{ item: Taxonomy }>;
+  return response.json() as Promise<{ taxonomy: Taxonomy }>;
 }
 
 export async function deleteTaxonomy(id: string) {

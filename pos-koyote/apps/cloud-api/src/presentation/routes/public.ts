@@ -17,6 +17,9 @@ export function createPublicRoutes(params: {
   const branchesController = createBranchesController(params.branchUseCases);
 
   router.get("/api/cloud/catalog/filters", catalogController.getCatalogFiltersHandler);
+  router.get("/catalog/taxonomies/games", catalogController.listGamesHandler);
+  router.get("/catalog/taxonomies/categories", catalogController.listCategoriesHandler);
+  router.get("/catalog/taxonomies/expansions", catalogController.listExpansionsHandler);
   router.get("/branches", branchesController.listBranchesHandler);
   router.use(createAuthRoutes(params.authUseCases));
 

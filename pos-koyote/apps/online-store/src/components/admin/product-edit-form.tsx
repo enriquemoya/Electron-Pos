@@ -1,37 +1,57 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type Taxonomy = { id: string; name: string };
 
+type Product = {
+  productId: string;
+  displayName: string | null;
+  slug: string | null;
+  categoryId?: string | null;
+  expansionId?: string | null;
+  gameId?: string | null;
+  price: number | null;
+  imageUrl: string | null;
+  shortDescription: string | null;
+  description?: string | null;
+  rarity?: string | null;
+  tags?: string[] | null;
+  availabilityState: string | null;
+  isFeatured: boolean;
+  isActive?: boolean;
+  featuredOrder: number | null;
+};
+
 type Props = {
   locale: string;
   action: (formData: FormData) => void | Promise<void>;
+  product: Product;
   games: Taxonomy[];
   labels: {
-    name: string;
+    displayName: string;
     slug: string;
     game: string;
+    gameNone: string;
     category: string;
     categoryNone: string;
     expansion: string;
     expansionNone: string;
     price: string;
     imageUrl: string;
+    shortDescription: string;
     description: string;
     rarity: string;
     tags: string;
-    tagsHint: string;
-    isActive: string;
+    availabilityState: string;
     isFeatured: string;
+    isActive: string;
     featuredOrder: string;
     reason: string;
     submit: string;
-    gameNone: string;
-    availabilityState: string;
     availabilityOptions: {
       available: string;
       lowStock: string;
@@ -43,14 +63,6 @@ type Props = {
 
 type TaxonomyItem = { id: string; name: string };
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "");
-}
-
 async function fetchTaxonomies(path: string) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) {
@@ -60,15 +72,12 @@ async function fetchTaxonomies(path: string) {
   return payload.items ?? [];
 }
 
-export function ProductCreateForm({ locale, action, games, labels }: Props) {
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [gameId, setGameId] = useState("");
-  const [expansionId, setExpansionId] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+export function ProductEditForm({ locale, action, product, games, labels }: Props) {
+  const [gameId, setGameId] = useState(product.gameId ?? "");
+  const [expansionId, setExpansionId] = useState(product.expansionId ?? "");
+  const [categoryId, setCategoryId] = useState(product.categoryId ?? "");
   const [categories, setCategories] = useState<TaxonomyItem[]>([]);
   const [expansions, setExpansions] = useState<TaxonomyItem[]>([]);
-  const slugEdited = useRef(false);
 
   useEffect(() => {
     let ignore = false;
@@ -118,34 +127,19 @@ export function ProductCreateForm({ locale, action, games, labels }: Props) {
     };
   }, [gameId, expansionId]);
 
-  function handleNameChange(value: string) {
-    setName(value);
-    if (!slugEdited.current) {
-      setSlug(slugify(value));
-    }
-  }
-
-  function handleSlugChange(value: string) {
-    slugEdited.current = true;
-    setSlug(value);
-  }
-
-  function handleGameChange(nextGameId: string) {
-    setGameId(nextGameId);
-    setExpansionId("");
-    setCategoryId("");
-  }
+  const initialTags = (product.tags ?? []).join(", ");
 
   return (
-    <form action={action} className="grid gap-4">
+    <form action={action} className="space-y-4">
+      <input type="hidden" name="productId" value={product.productId} />
       <input type="hidden" name="locale" value={locale} />
       <label className="block text-sm text-white/70">
-        {labels.name}
-        <Input name="name" className="mt-1" value={name} onChange={(event) => handleNameChange(event.target.value)} required />
+        {labels.displayName}
+        <Input name="displayName" defaultValue={product.displayName ?? ""} className="mt-1" />
       </label>
       <label className="block text-sm text-white/70">
         {labels.slug}
-        <Input name="slug" className="mt-1" value={slug} onChange={(event) => handleSlugChange(event.target.value)} required />
+        <Input name="slug" defaultValue={product.slug ?? ""} className="mt-1" />
       </label>
       <label className="block text-sm text-white/70">
         {labels.game}
@@ -153,7 +147,11 @@ export function ProductCreateForm({ locale, action, games, labels }: Props) {
           name="gameId"
           className="mt-1 h-10 w-full rounded-md border border-white/10 bg-transparent px-3 text-sm text-white"
           value={gameId}
-          onChange={(event) => handleGameChange(event.target.value)}
+          onChange={(event) => {
+            setGameId(event.target.value);
+            setExpansionId("");
+            setCategoryId("");
+          }}
         >
           <option value="">{labels.gameNone}</option>
           {games.map((option) => (
@@ -201,30 +199,34 @@ export function ProductCreateForm({ locale, action, games, labels }: Props) {
       </label>
       <label className="block text-sm text-white/70">
         {labels.price}
-        <Input name="price" type="number" step="0.01" className="mt-1" required />
+        <Input name="price" type="number" step="0.01" defaultValue={product.price ?? ""} className="mt-1" />
       </label>
       <label className="block text-sm text-white/70">
         {labels.imageUrl}
-        <Input name="imageUrl" className="mt-1" required />
+        <Input name="imageUrl" defaultValue={product.imageUrl ?? ""} className="mt-1" />
+      </label>
+      <label className="block text-sm text-white/70">
+        {labels.shortDescription}
+        <Input name="shortDescription" defaultValue={product.shortDescription ?? ""} className="mt-1" />
       </label>
       <label className="block text-sm text-white/70">
         {labels.description}
-        <Input name="description" className="mt-1" />
+        <Input name="description" defaultValue={product.description ?? ""} className="mt-1" />
       </label>
       <label className="block text-sm text-white/70">
         {labels.rarity}
-        <Input name="rarity" className="mt-1" />
+        <Input name="rarity" defaultValue={product.rarity ?? ""} className="mt-1" />
       </label>
       <label className="block text-sm text-white/70">
         {labels.tags}
-        <Input name="tags" className="mt-1" placeholder={labels.tagsHint} />
+        <Input name="tags" defaultValue={initialTags} className="mt-1" />
       </label>
       <label className="block text-sm text-white/70">
         {labels.availabilityState}
         <select
           name="availabilityState"
           className="mt-1 h-10 w-full rounded-md border border-white/10 bg-transparent px-3 text-sm text-white"
-          defaultValue="OUT_OF_STOCK"
+          defaultValue={product.availabilityState ?? "OUT_OF_STOCK"}
         >
           <option value="AVAILABLE">{labels.availabilityOptions.available}</option>
           <option value="LOW_STOCK">{labels.availabilityOptions.lowStock}</option>
@@ -233,24 +235,22 @@ export function ProductCreateForm({ locale, action, games, labels }: Props) {
         </select>
       </label>
       <label className="flex items-center gap-2 text-sm text-white/70">
-        <input type="checkbox" name="isActive" defaultChecked />
-        {labels.isActive}
+        <input type="checkbox" name="isFeatured" defaultChecked={product.isFeatured} />
+        {labels.isFeatured}
       </label>
       <label className="flex items-center gap-2 text-sm text-white/70">
-        <input type="checkbox" name="isFeatured" />
-        {labels.isFeatured}
+        <input type="checkbox" name="isActive" defaultChecked={product.isActive ?? true} />
+        {labels.isActive}
       </label>
       <label className="block text-sm text-white/70">
         {labels.featuredOrder}
-        <Input name="featuredOrder" type="number" step="1" className="mt-1" />
+        <Input name="featuredOrder" type="number" step="1" defaultValue={product.featuredOrder ?? ""} className="mt-1" />
       </label>
       <label className="block text-sm text-white/70">
         {labels.reason}
         <Input name="reason" className="mt-1" required />
       </label>
-      <Button type="submit" className="w-fit">
-        {labels.submit}
-      </Button>
+      <Button type="submit">{labels.submit}</Button>
     </form>
   );
 }

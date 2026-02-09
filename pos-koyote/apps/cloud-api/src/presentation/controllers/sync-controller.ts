@@ -2,7 +2,15 @@ import type { Request, Response } from "express";
 
 import { ApiErrors, asApiError } from "../../errors/api-error";
 import type { SyncUseCases } from "../../application/use-cases/sync";
-import { isPositiveNumber, parsePage } from "../../validation/common";
+import { isPositiveNumber, isUuid, parsePage } from "../../validation/common";
+
+function parseNullableNumber(value: unknown) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
 
 export function createSyncController(useCases: SyncUseCases) {
   return {
@@ -77,14 +85,52 @@ export function createSyncController(useCases: SyncUseCases) {
       const page = parsePage(req.query.page, 1);
       const pageSize = parsePage(req.query.pageSize, 24);
       const id = req.query.id ? String(req.query.id) : null;
+      const gameId = req.query.gameId ? String(req.query.gameId) : null;
+      const categoryId = req.query.categoryId ? String(req.query.categoryId) : null;
+      const expansionId = req.query.expansionId ? String(req.query.expansionId) : null;
+      const priceMin = parseNullableNumber(req.query.priceMin);
+      const priceMax = parseNullableNumber(req.query.priceMax);
 
       if (!isPositiveNumber(page) || !isPositiveNumber(pageSize)) {
         res.status(400).json({ error: ApiErrors.invalidPagination.message });
         return;
       }
+      if (id && !isUuid(id)) {
+        res.status(ApiErrors.catalogFiltersInvalid.status).json({ error: ApiErrors.catalogFiltersInvalid.message });
+        return;
+      }
+      if (gameId && gameId !== "misc" && !isUuid(gameId)) {
+        res.status(ApiErrors.catalogFiltersInvalid.status).json({ error: ApiErrors.catalogFiltersInvalid.message });
+        return;
+      }
+      if (categoryId && !isUuid(categoryId)) {
+        res.status(ApiErrors.catalogFiltersInvalid.status).json({ error: ApiErrors.catalogFiltersInvalid.message });
+        return;
+      }
+      if (expansionId && !isUuid(expansionId)) {
+        res.status(ApiErrors.catalogFiltersInvalid.status).json({ error: ApiErrors.catalogFiltersInvalid.message });
+        return;
+      }
+      if ((priceMin !== null && (!Number.isFinite(priceMin) || priceMin < 0)) || (priceMax !== null && (!Number.isFinite(priceMax) || priceMax < 0))) {
+        res.status(ApiErrors.catalogFiltersInvalid.status).json({ error: ApiErrors.catalogFiltersInvalid.message });
+        return;
+      }
+      if (priceMin !== null && priceMax !== null && priceMin > priceMax) {
+        res.status(ApiErrors.catalogFiltersInvalid.status).json({ error: ApiErrors.catalogFiltersInvalid.message });
+        return;
+      }
 
       try {
-        const result = await useCases.readProducts(page, pageSize, id);
+        const result = await useCases.readProducts({
+          page,
+          pageSize,
+          id,
+          gameId,
+          categoryId,
+          expansionId,
+          priceMin,
+          priceMax
+        });
         res.status(200).json({
           items: result.items,
           page,

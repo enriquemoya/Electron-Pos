@@ -94,7 +94,7 @@ export function createCatalogAdminController(useCases: CatalogAdminUseCases) {
           reason: payload.reason,
           name: payload.name,
           slug: payload.slug,
-          game: payload.game,
+          gameId: payload.gameId,
           categoryId: payload.categoryId,
           expansionId: payload.expansionId,
           price: payload.price,
@@ -102,6 +102,7 @@ export function createCatalogAdminController(useCases: CatalogAdminUseCases) {
           description: payload.description,
           rarity: payload.rarity,
           tags: payload.tags,
+          availabilityState: payload.availabilityState,
           isActive: payload.isActive,
           isFeatured: payload.isFeatured,
           featuredOrder: payload.featuredOrder

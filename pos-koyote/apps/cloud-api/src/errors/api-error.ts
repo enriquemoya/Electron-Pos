@@ -13,6 +13,7 @@ export const ApiErrors = {
   unauthorized: new ApiError(401, "UNAUTHORIZED", "unauthorized"),
   serverError: new ApiError(500, "SERVER_ERROR", "server error"),
   invalidRequest: new ApiError(400, "INVALID_REQUEST", "invalid request"),
+  catalogFiltersInvalid: new ApiError(400, "CATALOG_FILTERS_INVALID", "catalog filters invalid"),
   eventsRequired: new ApiError(400, "EVENTS_REQUIRED", "events required"),
   posIdRequired: new ApiError(400, "POS_ID_REQUIRED", "posId required"),
   posAckRequired: new ApiError(400, "POS_ACK_REQUIRED", "posId and eventIds required"),

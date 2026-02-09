@@ -5,18 +5,16 @@ import { ActiveFilterChips } from "@/components/catalog/active-filter-chips";
 import { ProductCard } from "@/components/product-card";
 import { Pagination } from "@/components/pagination";
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
+import { fetchTaxonomyBundle, resolveCatalogRoute, taxonomyLabel } from "@/lib/taxonomies";
 
 type CatalogPageProps = {
   params: {
     locale: string;
+    segments?: string[];
   };
   searchParams: {
     page?: string;
     pageSize?: string;
-    query?: string;
-    category?: string;
-    availability?: string;
-    game?: string;
     priceMin?: string;
     priceMax?: string;
   };
@@ -37,32 +35,104 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
   const t = await getTranslations();
   const page = parseNumber(searchParams.page, 1);
   const pageSize = parseNumber(searchParams.pageSize, 12);
-  const query = searchParams.query ?? "";
-  const category = searchParams.category ?? "";
-  const availability = searchParams.availability ?? "";
-  const game = searchParams.game ?? "";
   const priceMin = parseNonNegative(searchParams.priceMin);
   const priceMax = parseNonNegative(searchParams.priceMax);
+
+  const taxonomy = await fetchTaxonomyBundle();
+  const selection = resolveCatalogRoute(params.segments, taxonomy);
+  const basePath = `/catalog${params.segments?.length ? `/${params.segments.join("/")}` : ""}`;
+
+  if (!selection) {
+    return (
+      <div className="rounded-xl border border-white/10 bg-base-800 p-6 text-sm text-white/70">
+        {t("catalog.empty")}
+      </div>
+    );
+  }
 
   let data;
   try {
     data = await fetchCatalog({
       page,
       pageSize,
-      query,
-      category,
-      availability,
-      game,
+      misc: selection.mode === "misc",
+      gameId: selection.game?.id,
+      categoryId: selection.category?.id,
+      expansionId: selection.expansion?.id,
       priceMin: searchParams.priceMin ? priceMin : undefined,
       priceMax: searchParams.priceMax ? priceMax : undefined
     });
-  } catch (error) {
+  } catch {
     return (
       <div className="rounded-xl border border-white/10 bg-base-800 p-6 text-sm text-white/70">
         {t("catalog.error")}
       </div>
     );
   }
+
+  const sections = [
+    {
+      title: t("catalog.filters.games"),
+      clearHref: "/catalog",
+      clearLabel: t("catalog.filters.allGames"),
+      items: taxonomy.games.map((game) => ({
+        href: `/catalog/${game.slug}`,
+        label: taxonomyLabel(game, params.locale),
+        active: selection.game?.id === game.id
+      }))
+    },
+    {
+      title: t("catalog.filters.categories"),
+      clearHref: selection.game ? `/catalog/${selection.game.slug}` : "/catalog",
+      clearLabel: t("catalog.filters.allCategories"),
+      items: taxonomy.categories.map((category) => ({
+        href: selection.game
+          ? `/catalog/${selection.game.slug}/${category.slug}`
+          : `/catalog/${category.slug}`,
+        label: taxonomyLabel(category, params.locale),
+        active: selection.category?.id === category.id
+      }))
+    },
+    {
+      title: t("catalog.filters.expansions"),
+      clearHref: selection.game
+        ? (selection.category
+            ? `/catalog/${selection.game.slug}/${selection.category.slug}`
+            : `/catalog/${selection.game.slug}`)
+        : "/catalog",
+      clearLabel: t("catalog.filters.allExpansions"),
+      items: taxonomy.expansions
+        .filter((expansion) => (selection.game ? expansion.parentId === selection.game.id : true))
+        .map((expansion) => {
+          const parentGame = taxonomy.games.find((game) => game.id === expansion.parentId);
+          const scopedHref = selection.game
+            ? (selection.category
+                ? `/catalog/${selection.game.slug}/${selection.category.slug}/${expansion.slug}`
+                : `/catalog/${selection.game.slug}/${expansion.slug}`)
+            : parentGame
+              ? `/catalog/${parentGame.slug}/${expansion.slug}`
+              : "/catalog";
+
+          return {
+            href: scopedHref,
+            label: taxonomyLabel(expansion, params.locale),
+            active: selection.expansion?.id === expansion.id
+          };
+        })
+    },
+    {
+      title: t("catalog.filters.misc"),
+      clearHref: "/catalog",
+      clearLabel: t("catalog.filters.allMisc"),
+      items: [
+        {
+          href: "/catalog/misc",
+          label: t("catalog.filters.miscLabel"),
+          active: selection.mode === "misc"
+        }
+      ]
+    }
+  ];
 
   const inventoryLabelFor = (state: InventoryState | null | undefined) => {
     switch (state) {
@@ -77,23 +147,6 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
     }
   };
 
-  const filteredItems = data.items.filter((product) => {
-    const matchesCategory = category
-      ? (product.category ?? "").toLowerCase().includes(category.toLowerCase())
-      : true;
-    const state = product.state ?? "PENDING_SYNC";
-    const matchesAvailability = availability ? state === availability : true;
-    const matchesGame = game ? product.game === game : true;
-    const priceValue = product.price?.amount ?? null;
-    const hasPriceFilter = searchParams.priceMin || searchParams.priceMax;
-    const matchesPrice = hasPriceFilter
-      ? priceValue !== null &&
-        (searchParams.priceMin ? priceValue >= priceMin : true) &&
-        (searchParams.priceMax ? priceValue <= priceMax : true)
-      : true;
-    return matchesCategory && matchesAvailability && matchesGame && matchesPrice;
-  });
-
   const imageFallbackAlt = t("catalog.imageFallbackAlt");
 
   return (
@@ -107,18 +160,18 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
 
       <div className="grid gap-8 md:grid-cols-[260px_1fr]">
         <div className="md:sticky md:top-24 md:self-start">
-          <CatalogFilters />
+          <CatalogFilters sections={sections} baseCatalogPath="/catalog" />
         </div>
 
         <div className="space-y-6">
           <ActiveFilterChips />
-          {filteredItems.length === 0 ? (
+          {data.items.length === 0 ? (
             <div className="rounded-xl border border-white/10 bg-base-800 p-6 text-sm text-white/60">
               {t("catalog.empty")}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
-              {filteredItems.map((product) => (
+              {data.items.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -134,13 +187,9 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
             page={data.page}
             pageSize={data.pageSize}
             total={data.total}
-            basePath="/catalog"
+            basePath={basePath}
             query={{
               pageSize: data.pageSize,
-              query,
-              category,
-              availability,
-              game,
               priceMin: searchParams.priceMin,
               priceMax: searchParams.priceMax
             }}

@@ -30,6 +30,8 @@
       "onePiece": "One Piece",
       "yugioh": "Yu-Gi-Oh!",
       "others": "Otros",
+      "categories": "Categorias",
+      "misc": "Miscelaneo",
       "preorders": "Preventas",
       "community": "Comunidad"
     },
@@ -90,6 +92,10 @@
     "switch": {
       "es": "ES",
       "en": "EN"
+    },
+    "taxonomy": {
+      "categories": "Categorias",
+      "misc": "Miscelaneo"
     }
   },
   "cart": {
@@ -242,8 +248,18 @@
     "subtitle": "Explora sellados, singles y accesorios recientes.",
     "filters": {
       "title": "Filtros",
-      "category": "Categoria",
-      "game": "Juego (opcional)",
+      "games": "Juegos",
+      "categories": "Categorias",
+      "expansions": "Expansiones",
+      "misc": "Miscelaneo",
+      "miscLabel": "Miscelaneo",
+    "category": "Categoria",
+    "game": "Juego (opcional)",
+    "allGames": "Todos los juegos",
+    "allCategories": "Todas las categorias",
+    "allExpansions": "Todas las expansiones",
+    "allMisc": "Todo miscelaneo",
+    "expansion": "Expansion (opcional)",
       "price": "Rango de precio",
       "priceMin": "Min {value}",
       "priceMax": "Max {value}",
@@ -435,10 +451,12 @@
       "displayName": "Nombre visible",
       "slug": "Slug",
       "category": "Categoria",
+      "categoryNone": "Selecciona una categoria",
       "categoryId": "ID de categoria",
       "expansion": "Expansion",
       "expansionNone": "Sin expansion",
       "game": "Juego",
+      "gameNone": "Miscelaneo (sin juego)",
       "price": "Precio",
       "imageUrl": "URL de imagen",
       "shortDescription": "Descripcion corta",
@@ -467,12 +485,26 @@
       "type": "Tipo",
       "name": "Nombre",
       "slug": "Slug",
+      "parent": "Padre",
       "action": "Accion"
     },
     "fields": {
+      "type": "Tipo",
       "name": "Nombre",
       "slug": "Slug",
-      "description": "Descripcion"
+      "description": "Descripcion",
+      "parentId": "Dependencia",
+      "gameDependency": "Juego",
+      "expansionDependency": "Expansion",
+      "releaseYear": "Ano de lanzamiento",
+      "releaseMonth": "Mes de lanzamiento",
+      "releaseEmpty": "Seleccionar",
+      "parentSelect": "Buscar juego padre",
+      "parentEmpty": "Sin asignar",
+      "noGamesFound": "No se encontraron juegos",
+      "noExpansionsFound": "No se encontraron expansiones",
+      "labelEs": "Etiqueta ES",
+      "labelEn": "Etiqueta EN"
     },
     "types": {
       "category": "Categoria",
@@ -492,8 +524,13 @@
     },
     "actions": {
       "create": "Crear",
+      "edit": "Editar",
       "save": "Guardar",
       "delete": "Eliminar"
+    },
+    "modal": {
+      "createDescription": "Crea una taxonomia y asigna juego padre cuando el tipo sea expansion.",
+      "editDescription": "Edita los datos de la taxonomia y actualiza etiquetas localizadas."
     }
   },
   "adminBranches": {

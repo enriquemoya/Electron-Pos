@@ -31,6 +31,43 @@ function createCatalogAuditLog(params: {
   });
 }
 
+async function resolveGameTaxonomy(params: { gameId?: string | null; game?: string | null }) {
+  const gameId = params.gameId ?? null;
+  if (gameId) {
+    const game = await prisma.catalogTaxonomy.findFirst({
+      where: { id: gameId, type: CatalogTaxonomyType.GAME }
+    });
+    if (!game) {
+      throw ApiErrors.taxonomyNotFound;
+    }
+    return game;
+  }
+
+  const gameValue = (params.game ?? "").trim();
+  if (!gameValue) {
+    return null;
+  }
+
+  const slugCandidate = gameValue.toLowerCase();
+  if (slugCandidate === "misc") {
+    return null;
+  }
+  const game = await prisma.catalogTaxonomy.findFirst({
+    where: {
+      type: CatalogTaxonomyType.GAME,
+      OR: [
+        { slug: slugCandidate },
+        { name: { equals: gameValue, mode: Prisma.QueryMode.insensitive } }
+      ]
+    }
+  });
+  if (!game) {
+    throw ApiErrors.taxonomyNotFound;
+  }
+
+  return game;
+}
+
 export async function listCatalogProducts(params: {
   page: number;
   pageSize: number;
@@ -70,7 +107,10 @@ export async function listCatalogProducts(params: {
         displayName: true,
         slug: true,
         category: true,
+        categoryId: true,
         game: true,
+        gameId: true,
+        expansionId: true,
         price: true,
         imageUrl: true,
         shortDescription: true,
@@ -97,7 +137,8 @@ export async function createCatalogProduct(params: {
   reason: string;
   name: string;
   slug: string;
-  game: string;
+  game?: string | null;
+  gameId: string | null;
   categoryId: string;
   expansionId: string | null;
   price: number;
@@ -105,6 +146,7 @@ export async function createCatalogProduct(params: {
   description: string | null;
   rarity: string | null;
   tags: string[] | null;
+  availabilityState: "AVAILABLE" | "LOW_STOCK" | "OUT_OF_STOCK" | "PENDING_SYNC";
   isActive: boolean;
   isFeatured: boolean;
   featuredOrder: number | null;
@@ -123,14 +165,25 @@ export async function createCatalogProduct(params: {
     throw ApiErrors.taxonomyNotFound;
   }
 
+  const game = await resolveGameTaxonomy({ gameId: params.gameId ?? null, game: params.game ?? null });
+
   const expansion = params.expansionId
     ? await prisma.catalogTaxonomy.findFirst({
         where: { id: params.expansionId, type: CatalogTaxonomyType.EXPANSION }
       })
     : null;
+  if (params.expansionId && !expansion) {
+    throw ApiErrors.taxonomyNotFound;
+  }
+  if (expansion && !game) {
+    throw ApiErrors.productInvalid;
+  }
+  if (expansion && expansion.parentId !== game?.id) {
+    throw ApiErrors.productInvalid;
+  }
 
   const productId = crypto.randomUUID();
-  const availabilityState = "OUT_OF_STOCK";
+  const availabilityState = params.availabilityState;
 
   const [product] = await prisma.$transaction([
     prisma.readModelInventory.create({
@@ -140,8 +193,9 @@ export async function createCatalogProduct(params: {
         slug: params.slug,
         category: category.name,
         categoryId: category.id,
+        gameId: game?.id ?? null,
         expansionId: expansion?.id ?? null,
-        game: params.game,
+        game: game?.slug ?? "misc",
         price: params.price,
         imageUrl: params.imageUrl,
         shortDescription: params.description,
@@ -165,8 +219,9 @@ export async function createCatalogProduct(params: {
         name: params.name,
         slug: params.slug,
         categoryId: params.categoryId,
+        gameId: params.gameId,
         expansionId: params.expansionId,
-        game: params.game
+        game: game?.slug ?? "misc"
       }
     })
   ]);
@@ -180,38 +235,89 @@ export async function updateCatalogProduct(params: {
   actorUserId: string;
   reason: string;
 }) {
-  if (typeof params.data.slug === "string") {
+  const updateData = { ...params.data };
+  const current = await prisma.readModelInventory.findUnique({
+    where: { productId: params.productId },
+    select: { gameId: true, expansionId: true, categoryId: true }
+  });
+  if (!current) {
+    throw ApiErrors.productNotFound;
+  }
+
+  if (typeof updateData.slug === "string") {
     const existingSlug = await prisma.readModelInventory.findFirst({
-      where: { slug: params.data.slug, NOT: { productId: params.productId } }
+      where: { slug: updateData.slug, NOT: { productId: params.productId } }
     });
     if (existingSlug) {
       throw ApiErrors.productSlugExists;
     }
   }
 
-  if (typeof params.data.categoryId === "string") {
+  if (typeof updateData.categoryId === "string") {
     const category = await prisma.catalogTaxonomy.findFirst({
-      where: { id: params.data.categoryId, type: CatalogTaxonomyType.CATEGORY }
+      where: { id: updateData.categoryId, type: CatalogTaxonomyType.CATEGORY }
     });
     if (!category) {
       throw ApiErrors.taxonomyNotFound;
     }
-    params.data.category = category.name;
+    updateData.category = category.name;
   }
 
-  if (typeof params.data.expansionId === "string") {
+  let gameId: string | null = current.gameId ?? null;
+  if (Object.prototype.hasOwnProperty.call(updateData, "gameId")) {
+    if (typeof updateData.gameId === "string") {
+      const game = await resolveGameTaxonomy({ gameId: updateData.gameId, game: null });
+      gameId = game?.id ?? null;
+      updateData.game = game?.slug ?? "misc";
+      updateData.gameId = game?.id ?? null;
+    } else if (updateData.gameId === null) {
+      gameId = null;
+      updateData.game = "misc";
+    }
+  } else if (Object.prototype.hasOwnProperty.call(updateData, "game")) {
+    if (updateData.game === null) {
+      gameId = null;
+      updateData.game = "misc";
+      updateData.gameId = null;
+    } else if (typeof updateData.game === "string") {
+      const gameValue = updateData.game.trim();
+      if (!gameValue) {
+        gameId = null;
+        updateData.game = "misc";
+        updateData.gameId = null;
+      } else {
+        const game = await resolveGameTaxonomy({ game: gameValue, gameId: null });
+        gameId = game?.id ?? null;
+        updateData.game = game?.slug ?? "misc";
+        updateData.gameId = game?.id ?? null;
+      }
+    }
+  }
+
+  let expansionId: string | null = current.expansionId ?? null;
+  if (typeof updateData.expansionId === "string") {
     const expansion = await prisma.catalogTaxonomy.findFirst({
-      where: { id: params.data.expansionId, type: CatalogTaxonomyType.EXPANSION }
+      where: { id: updateData.expansionId, type: CatalogTaxonomyType.EXPANSION }
     });
     if (!expansion) {
       throw ApiErrors.taxonomyNotFound;
     }
+    expansionId = expansion.id;
+    if (!gameId || expansion.parentId !== gameId) {
+      throw ApiErrors.productInvalid;
+    }
+  } else if (updateData.expansionId === null) {
+    expansionId = null;
+  }
+
+  if (!gameId && expansionId) {
+    throw ApiErrors.productInvalid;
   }
 
   const [product] = await prisma.$transaction([
     prisma.readModelInventory.update({
       where: { productId: params.productId },
-      data: params.data
+      data: updateData
     }),
     createCatalogAuditLog({
       entityType: CatalogEntityType.PRODUCT,
@@ -219,7 +325,7 @@ export async function updateCatalogProduct(params: {
       action: CatalogAction.UPDATE,
       actorUserId: params.actorUserId,
       reason: params.reason,
-      payload: params.data
+      payload: updateData
     })
   ]);
 
@@ -269,16 +375,125 @@ export async function createTaxonomy(data: {
   name: string;
   slug: string;
   description: string | null;
+  parentId?: string | null;
+  releaseDate?: Date | null;
+  labels?: { es: string | null; en: string | null } | null;
 }) {
-  return prisma.catalogTaxonomy.create({ data });
+  if (data.type === CatalogTaxonomyType.EXPANSION) {
+    if (!data.parentId) {
+      throw ApiErrors.taxonomyInvalid;
+    }
+    const parent = await prisma.catalogTaxonomy.findFirst({
+      where: { id: data.parentId, type: CatalogTaxonomyType.GAME }
+    });
+    if (!parent) {
+      throw ApiErrors.taxonomyInvalid;
+    }
+    if (!data.releaseDate) {
+      throw ApiErrors.taxonomyInvalid;
+    }
+  } else if (data.type === CatalogTaxonomyType.CATEGORY) {
+    if (data.parentId) {
+      const parent = await prisma.catalogTaxonomy.findFirst({
+        where: {
+          id: data.parentId,
+          type: { in: [CatalogTaxonomyType.GAME, CatalogTaxonomyType.EXPANSION] }
+        }
+      });
+      if (!parent) {
+        throw ApiErrors.taxonomyInvalid;
+      }
+    }
+  } else if (data.parentId) {
+    throw ApiErrors.taxonomyInvalid;
+  }
+
+  return prisma.catalogTaxonomy.create({
+    data: {
+      type: data.type,
+      name: data.name,
+      slug: data.slug,
+      description: data.description,
+      parentId: data.parentId ?? null,
+      releaseDate: data.releaseDate ?? null,
+      labels: (data.labels ?? null) as Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput
+    }
+  });
 }
 
 export async function updateTaxonomy(id: string, data: {
   name?: string;
   slug?: string;
   description?: string | null;
+  parentId?: string | null;
+  releaseDate?: Date | null;
+  labels?: { es: string | null; en: string | null } | null;
 }) {
-  return prisma.catalogTaxonomy.update({ where: { id }, data });
+  const current = await prisma.catalogTaxonomy.findUnique({
+    where: { id },
+    select: { type: true, releaseDate: true }
+  });
+  if (!current) {
+    throw ApiErrors.taxonomyNotFound;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(data, "parentId")) {
+    if (
+      (current.type === CatalogTaxonomyType.GAME || current.type === CatalogTaxonomyType.OTHER) &&
+      data.parentId
+    ) {
+      throw ApiErrors.taxonomyInvalid;
+    }
+    if (current.type === CatalogTaxonomyType.EXPANSION) {
+      if (!data.parentId) {
+        throw ApiErrors.taxonomyInvalid;
+      }
+      const parent = await prisma.catalogTaxonomy.findFirst({
+        where: { id: data.parentId, type: CatalogTaxonomyType.GAME }
+      });
+      if (!parent) {
+        throw ApiErrors.taxonomyInvalid;
+      }
+      if (Object.prototype.hasOwnProperty.call(data, "releaseDate") && !data.releaseDate) {
+        throw ApiErrors.taxonomyInvalid;
+      }
+    } else if (current.type === CatalogTaxonomyType.CATEGORY && data.parentId) {
+      const parent = await prisma.catalogTaxonomy.findFirst({
+        where: {
+          id: data.parentId,
+          type: { in: [CatalogTaxonomyType.GAME, CatalogTaxonomyType.EXPANSION] }
+        }
+      });
+      if (!parent) {
+        throw ApiErrors.taxonomyInvalid;
+      }
+    }
+  }
+  if (
+    current.type !== CatalogTaxonomyType.EXPANSION &&
+    Object.prototype.hasOwnProperty.call(data, "releaseDate") &&
+    data.releaseDate
+  ) {
+    throw ApiErrors.taxonomyInvalid;
+  }
+
+  return prisma.catalogTaxonomy.update({
+    where: { id },
+    data: {
+      name: data.name,
+      slug: data.slug,
+      description: data.description,
+      parentId: Object.prototype.hasOwnProperty.call(data, "parentId")
+        ? data.parentId ?? null
+        : undefined,
+      releaseDate: Object.prototype.hasOwnProperty.call(data, "releaseDate")
+        ? data.releaseDate ?? null
+        : undefined,
+      labels: Object.prototype.hasOwnProperty.call(data, "labels")
+        ? ((data.labels ?? null) as Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput)
+        : undefined
+    }
+  });
 }
 
 export async function deleteTaxonomy(id: string) {

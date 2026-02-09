@@ -28,48 +28,10 @@ export function ActiveFilterChips({ className }: { className?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const query = searchParams.get("query");
-  const category = searchParams.get("category");
-  const game = searchParams.get("game");
-  const availability = searchParams.get("availability");
   const priceMin = searchParams.get("priceMin");
   const priceMax = searchParams.get("priceMax");
 
-  const availabilityLabel = availability
-    ? availability === "AVAILABLE"
-      ? t("availability.available")
-      : availability === "LOW_STOCK"
-        ? t("availability.low")
-        : availability === "SOLD_OUT"
-          ? t("availability.soldOut")
-          : t("availability.pending")
-    : null;
-
   const chips: Chip[] = [];
-  if (query) {
-    chips.push({
-      key: "query",
-      label: t("catalog.filters.chipQuery", { value: query })
-    });
-  }
-  if (category) {
-    chips.push({
-      key: "category",
-      label: t("catalog.filters.chipCategory", { value: category })
-    });
-  }
-  if (game) {
-    chips.push({
-      key: "game",
-      label: t("catalog.filters.chipGame", { value: game })
-    });
-  }
-  if (availability && availabilityLabel) {
-    chips.push({
-      key: "availability",
-      label: t("catalog.filters.chipAvailability", { value: availabilityLabel })
-    });
-  }
   if (priceMin || priceMax) {
     chips.push({
       key: "price",
@@ -84,10 +46,6 @@ export function ActiveFilterChips({ className }: { className?: string }) {
 
   const handleClear = (key: string) => {
     const next = {
-      query,
-      category,
-      game,
-      availability,
       priceMin,
       priceMax,
       page: null,
@@ -97,8 +55,6 @@ export function ActiveFilterChips({ className }: { className?: string }) {
     if (key === "price") {
       next.priceMin = null;
       next.priceMax = null;
-    } else {
-      next[key] = null;
     }
 
     router.push(`${pathname}${buildQuery(next)}`);

@@ -1,10 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 
-import { fetchCatalogProduct, updateCatalogProduct } from "@/lib/admin-api";
+import { fetchCatalogProduct, fetchTaxonomies, updateCatalogProduct } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ProductEditForm } from "@/components/admin/product-edit-form";
 
 async function updateProductAction(formData: FormData) {
   "use server";
@@ -22,10 +21,9 @@ async function updateProductAction(formData: FormData) {
   const payload = {
     displayName: String(formData.get("displayName") ?? "").trim(),
     slug: String(formData.get("slug") ?? "").trim() || null,
-    category: String(formData.get("category") ?? "").trim() || null,
     categoryId: String(formData.get("categoryId") ?? "").trim() || null,
+    gameId: String(formData.get("gameId") ?? "").trim() || null,
     expansionId: String(formData.get("expansionId") ?? "").trim() || null,
-    game: String(formData.get("game") ?? "").trim() || null,
     price: formData.get("price") ? Number(formData.get("price")) : null,
     imageUrl: String(formData.get("imageUrl") ?? "").trim() || null,
     shortDescription: String(formData.get("shortDescription") ?? "").trim() || null,
@@ -52,6 +50,8 @@ export default async function ProductDetailPage({
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminProducts" });
+  const commonT = await getTranslations({ locale: params.locale });
+  const games = await fetchTaxonomies({ type: "GAME", page: 1, pageSize: 100 });
   const result = await fetchCatalogProduct(params.id);
   const product = result.product;
 
@@ -62,93 +62,40 @@ export default async function ProductDetailPage({
         <p className="text-sm text-white/60">{product.displayName ?? product.productId}</p>
       </div>
 
-      <form action={updateProductAction} className="space-y-4">
-        <input type="hidden" name="productId" value={product.productId} />
-        <input type="hidden" name="locale" value={params.locale} />
-        <label className="block text-sm text-white/70">
-          {t("fields.displayName")}
-          <Input name="displayName" defaultValue={product.displayName ?? ""} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.slug")}
-          <Input name="slug" defaultValue={product.slug ?? ""} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.category")}
-          <Input name="category" defaultValue={product.category ?? ""} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.categoryId")}
-          <Input name="categoryId" defaultValue={product.categoryId ?? ""} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.expansion")}
-          <Input name="expansionId" defaultValue={product.expansionId ?? ""} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.game")}
-          <Input name="game" defaultValue={product.game ?? ""} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.price")}
-          <Input name="price" type="number" step="0.01" defaultValue={product.price ?? ""} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.imageUrl")}
-          <Input name="imageUrl" defaultValue={product.imageUrl ?? ""} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.shortDescription")}
-          <Input
-            name="shortDescription"
-            defaultValue={product.shortDescription ?? ""}
-            className="mt-1"
-          />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.description")}
-          <Input name="description" defaultValue={product.description ?? ""} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.rarity")}
-          <Input name="rarity" defaultValue={product.rarity ?? ""} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.tags")}
-          <Input name="tags" defaultValue={(product.tags ?? []).join(", ")} className="mt-1" />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.availabilityState")}
-          <Input
-            name="availabilityState"
-            defaultValue={product.availabilityState ?? ""}
-            className="mt-1"
-          />
-        </label>
-        <label className="flex items-center gap-2 text-sm text-white/70">
-          <input type="checkbox" name="isFeatured" defaultChecked={product.isFeatured} />
-          {t("fields.isFeatured")}
-        </label>
-        <label className="flex items-center gap-2 text-sm text-white/70">
-          <input type="checkbox" name="isActive" defaultChecked={product.isActive ?? true} />
-          {t("fields.isActive")}
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.featuredOrder")}
-          <Input
-            name="featuredOrder"
-            type="number"
-            step="1"
-            defaultValue={product.featuredOrder ?? ""}
-            className="mt-1"
-          />
-        </label>
-        <label className="block text-sm text-white/70">
-          {t("fields.reason")}
-          <Input name="reason" className="mt-1" required />
-        </label>
-        <Button type="submit">{t("actions.save")}</Button>
-      </form>
+      <ProductEditForm
+        locale={params.locale}
+        action={updateProductAction}
+        product={product}
+        games={games.items}
+        labels={{
+          displayName: t("fields.displayName"),
+          slug: t("fields.slug"),
+          game: t("fields.game"),
+          gameNone: t("fields.gameNone"),
+          category: t("fields.category"),
+          categoryNone: t("fields.categoryNone"),
+          expansion: t("fields.expansion"),
+          expansionNone: t("fields.expansionNone"),
+          price: t("fields.price"),
+          imageUrl: t("fields.imageUrl"),
+          shortDescription: t("fields.shortDescription"),
+          description: t("fields.description"),
+          rarity: t("fields.rarity"),
+          tags: t("fields.tags"),
+          availabilityState: t("fields.availabilityState"),
+          isFeatured: t("fields.isFeatured"),
+          isActive: t("fields.isActive"),
+          featuredOrder: t("fields.featuredOrder"),
+          reason: t("fields.reason"),
+          submit: t("actions.save"),
+          availabilityOptions: {
+            available: commonT("availability.inStock"),
+            lowStock: commonT("availability.lowStock"),
+            outOfStock: commonT("availability.outOfStock"),
+            pendingSync: commonT("availability.pendingSync")
+          }
+        }}
+      />
     </div>
   );
 }

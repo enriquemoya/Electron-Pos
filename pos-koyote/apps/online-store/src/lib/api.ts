@@ -6,7 +6,9 @@ export type ProductListItem = {
   name: string;
   shortDescription?: string | null;
   category?: string | null;
+  categoryId?: string | null;
   game?: string | null;
+  gameId?: string | null;
   price?: { amount: number; currency: string } | null;
   expansionId?: string | null;
   available?: number | null;
@@ -21,6 +23,16 @@ export type ProductListResponse = {
   page: number;
   pageSize: number;
   total: number;
+};
+
+export type TaxonomyItem = {
+  id: string;
+  slug: string;
+  type: "GAME" | "CATEGORY" | "EXPANSION";
+  name: string;
+  labels: { es: string | null; en: string | null };
+  parentId: string | null;
+  releaseDate?: string | null;
 };
 
 export type FeaturedProduct = {
@@ -55,13 +67,12 @@ function buildQuery(params: Record<string, string | number | undefined>) {
 export async function fetchCatalog(params: {
   page?: number;
   pageSize?: number;
-  query?: string;
-  category?: string;
-  availability?: string;
-  game?: string;
+  gameId?: string;
+  categoryId?: string;
+  expansionId?: string;
+  misc?: boolean;
   priceMin?: number;
   priceMax?: number;
-  expansionId?: string;
   id?: string;
 }): Promise<ProductListResponse> {
   const baseUrl = process.env.CLOUD_API_URL;
@@ -71,7 +82,18 @@ export async function fetchCatalog(params: {
     throw new Error("CLOUD_API_URL is required.");
   }
 
-  const url = `${baseUrl}/read/products${buildQuery(params)}`;
+  const queryParams: Record<string, string | number | undefined> = {
+    page: params.page,
+    pageSize: params.pageSize,
+    id: params.id,
+    gameId: params.misc ? "misc" : params.gameId,
+    categoryId: params.categoryId,
+    expansionId: params.expansionId,
+    priceMin: params.priceMin,
+    priceMax: params.priceMax
+  };
+
+  const url = `${baseUrl}/read/products${buildQuery(queryParams)}`;
   const response = await fetch(url, {
     headers: {
       "x-cloud-secret": secret || ""
@@ -136,4 +158,63 @@ export async function fetchFeaturedProducts(): Promise<{
   });
 
   return { items: mapped };
+}
+
+async function fetchTaxonomyEndpoint(path: string): Promise<TaxonomyItem[]> {
+  const baseUrl = process.env.CLOUD_API_URL;
+  const secret = process.env.CLOUD_SHARED_SECRET;
+  if (!baseUrl) {
+    throw new Error("CLOUD_API_URL is required.");
+  }
+
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        cache: "no-store",
+        headers: secret ? { "x-cloud-secret": secret } : undefined
+      });
+
+      if (response.ok) {
+        const payload = (await response.json()) as { items?: TaxonomyItem[] };
+        return payload.items ?? [];
+      }
+
+      const detail = await response.text();
+      if (response.status >= 500 && attempt === 0) {
+        continue;
+      }
+      throw new Error(
+        `taxonomy request failed (${response.status})${detail ? `: ${detail}` : ""}`
+      );
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) {
+        continue;
+      }
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
+  throw new Error("taxonomy request failed");
+}
+
+export async function fetchTaxonomyGames() {
+  return fetchTaxonomyEndpoint("/catalog/taxonomies/games");
+}
+
+export async function fetchTaxonomyCategories() {
+  return fetchTaxonomyEndpoint("/catalog/taxonomies/categories");
+}
+
+export async function fetchTaxonomyCategoriesByGame(gameId?: string) {
+  const query = gameId ? `?gameId=${encodeURIComponent(gameId)}` : "";
+  return fetchTaxonomyEndpoint(`/catalog/taxonomies/categories${query}`);
+}
+
+export async function fetchTaxonomyExpansions(gameId?: string) {
+  const query = gameId ? `?gameId=${encodeURIComponent(gameId)}` : "";
+  return fetchTaxonomyEndpoint(`/catalog/taxonomies/expansions${query}`);
 }

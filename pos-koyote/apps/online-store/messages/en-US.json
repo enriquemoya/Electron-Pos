@@ -30,6 +30,8 @@
       "onePiece": "One Piece",
       "yugioh": "Yu-Gi-Oh!",
       "others": "Others",
+      "categories": "Categories",
+      "misc": "Misc",
       "preorders": "Preorders",
       "community": "Community"
     },
@@ -90,6 +92,10 @@
     "switch": {
       "es": "ES",
       "en": "EN"
+    },
+    "taxonomy": {
+      "categories": "Categories",
+      "misc": "Misc"
     }
   },
   "cart": {
@@ -242,8 +248,18 @@
     "subtitle": "Explore the latest sealed products, singles, and accessories.",
     "filters": {
       "title": "Filters",
-      "category": "Category",
-      "game": "Game (optional)",
+      "games": "Games",
+      "categories": "Categories",
+      "expansions": "Expansions",
+      "misc": "Miscellaneous",
+      "miscLabel": "Misc",
+    "category": "Category",
+    "game": "Game (optional)",
+    "allGames": "All games",
+    "allCategories": "All categories",
+    "allExpansions": "All expansions",
+    "allMisc": "All miscellaneous",
+    "expansion": "Expansion (optional)",
       "price": "Price range",
       "priceMin": "Min {value}",
       "priceMax": "Max {value}",
@@ -435,10 +451,12 @@
       "displayName": "Display name",
       "slug": "Slug",
       "category": "Category",
+      "categoryNone": "Select a category",
       "categoryId": "Category ID",
       "expansion": "Expansion",
       "expansionNone": "No expansion",
       "game": "Game",
+      "gameNone": "Misc (no game)",
       "price": "Price",
       "imageUrl": "Image URL",
       "shortDescription": "Short description",
@@ -467,12 +485,26 @@
       "type": "Type",
       "name": "Name",
       "slug": "Slug",
+      "parent": "Parent",
       "action": "Action"
     },
     "fields": {
+      "type": "Type",
       "name": "Name",
       "slug": "Slug",
-      "description": "Description"
+      "description": "Description",
+      "parentId": "Dependency",
+      "gameDependency": "Game",
+      "expansionDependency": "Expansion",
+      "releaseYear": "Release year",
+      "releaseMonth": "Release month",
+      "releaseEmpty": "Select",
+      "parentSelect": "Search parent game",
+      "parentEmpty": "Unassigned",
+      "noGamesFound": "No games found",
+      "noExpansionsFound": "No expansions found",
+      "labelEs": "Label ES",
+      "labelEn": "Label EN"
     },
     "types": {
       "category": "Category",
@@ -492,8 +524,13 @@
     },
     "actions": {
       "create": "Create",
+      "edit": "Edit",
       "save": "Save",
       "delete": "Delete"
+    },
+    "modal": {
+      "createDescription": "Create a taxonomy and assign a parent game when type is expansion.",
+      "editDescription": "Edit taxonomy data and update localized labels."
     }
   },
   "adminBranches": {

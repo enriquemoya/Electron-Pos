@@ -56,6 +56,7 @@ model ReadModelInventory {
   imageUrl          String?  @map("image_url")
   category          String?
   categoryId        String?  @map("category_id") @db.Uuid
+  gameId            String?  @map("game_id") @db.Uuid
   expansionId       String?  @map("expansion_id") @db.Uuid
   price             Decimal? @map("price")
   game              String?
@@ -64,6 +65,8 @@ model ReadModelInventory {
   isFeatured        Boolean  @default(false) @map("is_featured")
   featuredOrder     Int?     @map("featured_order")
 
+  @@index([categoryId], name: "idx_read_model_category_id")
+  @@index([gameId], name: "idx_read_model_game_id")
   @@map("read_model_inventory")
 }
 
@@ -197,11 +200,17 @@ model CatalogTaxonomy {
   type        CatalogTaxonomyType
   name        String
   slug        String              @unique
+  parentId    String?             @map("parent_id") @db.Uuid
+  releaseDate DateTime?           @map("release_date") @db.Date
   description String?
+  labels      Json?               @map("labels")
   createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  parent      CatalogTaxonomy?    @relation("CatalogTaxonomyParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children    CatalogTaxonomy[]   @relation("CatalogTaxonomyParent")
 
   @@index([type], name: "idx_catalog_taxonomies_type")
+  @@index([parentId], name: "idx_catalog_taxonomies_parent")
   @@map("catalog_taxonomies")
 }
 

@@ -21,6 +21,12 @@ export type CatalogRepository = {
     games: Array<{ id: string; label: string }>;
   }>;
   getFeaturedCatalog: () => Promise<{ items: Array<Record<string, unknown>>; meta: { total: number } }>;
+  listGames: () => Promise<Array<Record<string, unknown>>>;
+  listCategories: (params: {
+    gameId?: string | "misc" | null;
+    expansionId?: string | null;
+  }) => Promise<Array<Record<string, unknown>>>;
+  listExpansions: (params: { gameId?: string | null }) => Promise<Array<Record<string, unknown>>>;
 };
 
 export type CatalogAdminRepository = {
@@ -37,7 +43,7 @@ export type CatalogAdminRepository = {
     reason: string;
     name: string;
     slug: string;
-    game: string;
+    gameId: string | null;
     categoryId: string;
     expansionId: string | null;
     price: number;
@@ -45,6 +51,7 @@ export type CatalogAdminRepository = {
     description: string | null;
     rarity: string | null;
     tags: string[] | null;
+    availabilityState: "AVAILABLE" | "LOW_STOCK" | "OUT_OF_STOCK" | "PENDING_SYNC";
     isActive: boolean;
     isFeatured: boolean;
     featuredOrder: number | null;
@@ -68,8 +75,18 @@ export type CatalogAdminRepository = {
     name: string;
     slug: string;
     description: string | null;
+    parentId?: string | null;
+    releaseDate?: Date | null;
+    labels?: { es: string | null; en: string | null } | null;
   }) => Promise<Record<string, unknown>>;
-  updateTaxonomy: (id: string, data: { name?: string; slug?: string; description?: string | null }) => Promise<Record<string, unknown>>;
+  updateTaxonomy: (id: string, data: {
+    name?: string;
+    slug?: string;
+    description?: string | null;
+    parentId?: string | null;
+    releaseDate?: Date | null;
+    labels?: { es: string | null; en: string | null } | null;
+  }) => Promise<Record<string, unknown>>;
   deleteTaxonomy: (id: string) => Promise<Record<string, unknown>>;
 };
 
@@ -170,7 +187,16 @@ export type SyncRepository = {
   getPendingEvents: (posId: string, since: string | null) => Promise<any[]>;
   acknowledgeEvents: (posId: string, eventIds: string[]) => Promise<void>;
   createOrder: (orderId: string, items: any[]) => Promise<{ duplicate: boolean }>;
-  readProducts: (page: number, pageSize: number, id: string | null) => Promise<{ items: any[]; total: number }>;
+  readProducts: (params: {
+    page: number;
+    pageSize: number;
+    id: string | null;
+    gameId?: string | "misc" | null;
+    categoryId?: string | null;
+    expansionId?: string | null;
+    priceMin?: number | null;
+    priceMax?: number | null;
+  }) => Promise<{ items: any[]; total: number }>;
 };
 
 export type AdminDashboardRepository = {

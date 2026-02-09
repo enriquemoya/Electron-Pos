@@ -13,6 +13,11 @@ remains read only and non authoritative.
 - Enable admin management of catalog entities (products, categories, games,
   expansions, and other taxonomies).
 - Allow admin product creation with validated slug and required fields.
+- Enforce taxonomy dependency-safe product editing:
+  - game optional
+  - expansion depends on selected game
+  - category options depend on game/expansion selection context
+- Expose explicit availability state selection on admin product create/edit forms.
 - Provide search and pagination for admin lists (inventory, products, taxonomies).
 - Keep public catalog read only and expose semantic availability only.
 
@@ -33,6 +38,10 @@ remains read only and non authoritative.
 - All inventory and product mutations must write an audit log (reason, actor, timestamp).
 - Prisma is the only data access layer.
 - Schema changes must be additive and forward only.
+- Product taxonomy constraints:
+  - if game is not selected, expansion must be null
+  - category must always be selected
+  - category options must be filtered by selected game/expansion context
 
 ## i18n
 - All admin UI strings must be localized with next-intl.

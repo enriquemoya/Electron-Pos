@@ -4,16 +4,19 @@ import Image from "next/image";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { navItems, secondaryLinks } from "@/components/navigation/nav-data";
+
 import { MenuLink } from "@/components/navigation/menu-link";
 import { Search } from "@/components/navigation/search";
+import type { NavigationGroup } from "@/components/navigation/main-nav";
 
 type MobileNavProps = {
   isOpen: boolean;
   onClose: () => void;
+  groups: NavigationGroup[];
+  miscLink: { href: string; label: string };
 };
 
-export function MobileNav({ isOpen, onClose }: MobileNavProps) {
+export function MobileNav({ isOpen, onClose, groups, miscLink }: MobileNavProps) {
   const t = useTranslations();
   const [openSection, setOpenSection] = useState<string | null>(null);
 
@@ -55,56 +58,63 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
           <div className="flex flex-col gap-4">
             <Search variant="mobile" />
 
-            {navItems.map((item) => (
-              <div key={item.id} className="rounded-xl border border-white/10 bg-base-800/60">
+            {groups.map((group) => (
+              <div key={group.id} className="rounded-xl border border-white/10 bg-base-800/60">
                 <button
                   type="button"
                   className="flex w-full items-center justify-between px-4 py-3 text-left text-sm"
                   onClick={() =>
-                    setOpenSection((current) => (current === item.id ? null : item.id))
+                    setOpenSection((current) => (current === group.id ? null : group.id))
                   }
                 >
-                  <span>{t(item.labelKey)}</span>
-                  {openSection === item.id ? (
+                  <span>{group.label}</span>
+                  {openSection === group.id ? (
                     <ChevronUp className="h-4 w-4 text-white/60" aria-hidden="true" />
                   ) : (
                     <ChevronDown className="h-4 w-4 text-white/60" aria-hidden="true" />
                   )}
                 </button>
-                {openSection === item.id ? (
+                {openSection === group.id ? (
                   <div className="flex flex-col gap-1 px-3 pb-3">
-                    {item.type === "dropdown" && item.panel && "items" in item.panel
-                      ? item.panel.items.map((link) => (
-                          <MenuLink
-                            key={`${link.href}-${link.labelKey}`}
-                            href={link.href}
-                            label={t(link.labelKey)}
-                          />
-                        ))
-                      : item.type === "mega" && item.panel && "sections" in item.panel
-                        ? item.panel.sections.flatMap((section) =>
-                            section.items.map((link) => (
-                              <MenuLink
-                                key={`${section.titleKey}-${link.labelKey}`}
-                                href={link.href}
-                                label={t(link.labelKey)}
-                              />
-                            ))
-                          )
-                        : null}
+                    {group.sections && group.sections.length > 0 ? (
+                      <div className="flex flex-col gap-3">
+                        {group.sections.map((section) => (
+                          <div key={section.id} className="space-y-1">
+                            {section.href ? (
+                              <MenuLink href={section.href} label={section.title} />
+                            ) : (
+                              <p className="px-2 text-xs uppercase tracking-wide text-white/50">
+                                {section.title}
+                              </p>
+                            )}
+                            <div className="ml-3 flex flex-col gap-1 border-l border-white/10 pl-3">
+                              {section.items.map((link) => (
+                                <MenuLink
+                                  key={`${group.id}-${section.id}-${link.href}-${link.label}`}
+                                  href={link.href}
+                                  label={link.label}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      group.items.map((link) => (
+                        <MenuLink
+                          key={`${group.id}-${link.href}-${link.label}`}
+                          href={link.href}
+                          label={link.label}
+                        />
+                      ))
+                    )}
                   </div>
                 ) : null}
               </div>
             ))}
 
             <div className="border-t border-white/10 pt-4">
-              {secondaryLinks.map((link) => (
-                <MenuLink
-                  key={`${link.href}-${link.labelKey}`}
-                  href={link.href}
-                  label={t(link.labelKey)}
-                />
-              ))}
+              <MenuLink href={miscLink.href} label={miscLink.label} />
             </div>
           </div>
         </div>
