@@ -1,5 +1,36 @@
 {
+  "name": "pos-koyote",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "postinstall": "npm run prisma:generate -w apps/cloud-api",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:desktop": "npm run dev -w apps/desktop",
+    "dev:online-store": "npm run dev -w apps/online-store",
+    "dev:cloud-api": "npm run dev -w apps/cloud-api",
+    "dev": "npm run dev:web",
+    "build:web": "npm run build -w apps/web",
+    "build:desktop": "npm run build -w apps/desktop",
+    "build:online-store": "npm run build -w apps/online-store",
+    "build:cloud-api": "npm run build -w apps/cloud-api",
+    "build": "npm run build:web && npm run build:desktop",
+    "lint:web": "npm run lint -w apps/web",
+    "gov:spec:create": "node ./scripts/governance/spec-create.js",
+    "gov:spec:audit": "node ./scripts/governance/spec-audit.js",
+    "gov:impl": "node ./scripts/governance/impl.js",
+    "gov:impl:audit": "node ./scripts/governance/impl-audit.js",
+    "gov:memory:update": "node ./scripts/governance/memory-update.js",
+    "gov:orchestrate": "node ./scripts/governance/orchestrate.js",
+    "memory:update": "node ./scripts/memory-update.js",
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3 -v 30.0.9 --module-dir ."
+  },
+  "volta": {
+    "node": "22.21.1"
+  },
   "devDependencies": {
-    "shadcn": "^3.7.0"
+    "electron-rebuild": "^3.2.9"
   }
 }

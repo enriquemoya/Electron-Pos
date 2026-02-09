@@ -97,7 +97,7 @@ const summary = await window.api.dashboard.getSummary(new Date().toLocaleDateStr
 ## Project structure
 
 ```
-/pos-koyote
+/
   /apps
     /web        Next.js UI
     /desktop    Electron shell
