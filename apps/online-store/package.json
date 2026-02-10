@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node -e \"require('child_process').spawn('npx',['next','start','-H','0.0.0.0','-p',String(process.env.PORT||3000)],{stdio:'inherit',shell:false})\"",
     "lint": "next lint"
   },
   "dependencies": {
@@ -21,7 +21,7 @@
     "cmdk": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.470.0",
-    "next": "14.2.5",
+    "next": "14.2.35",
     "next-intl": "^3.12.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

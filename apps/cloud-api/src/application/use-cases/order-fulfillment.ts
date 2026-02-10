@@ -1,4 +1,4 @@
-import { renderOrderStatusUpdatedEmail } from "@pos/email-templates";
+import { renderOrderStatusUpdatedEmail } from "../../email-templates";
 
 import type { EmailService, OrderFulfillmentRepository } from "../ports";
 import { ApiErrors } from "../../errors/api-error";

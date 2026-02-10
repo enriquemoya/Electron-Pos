@@ -16,6 +16,8 @@
     "build:desktop": "npm run build -w apps/desktop",
     "build:online-store": "npm run build -w apps/online-store",
     "build:cloud-api": "npm run build -w apps/cloud-api",
+    "bundle:cloud-api": "node ./scripts/bundle-cloud-api.js",
+    "bundle:cloud-api:source": "node ./scripts/bundle-cloud-api-source.js",
     "build": "npm run build:web && npm run build:desktop",
     "lint:web": "npm run lint -w apps/web",
     "gov:spec:create": "node ./scripts/governance/spec-create.js",
@@ -25,7 +27,12 @@
     "gov:memory:update": "node ./scripts/governance/memory-update.js",
     "gov:orchestrate": "node ./scripts/governance/orchestrate.js",
     "memory:update": "node ./scripts/memory-update.js",
-    "rebuild:electron": "electron-rebuild -f -w better-sqlite3 -v 30.0.9 --module-dir ."
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3 -v 30.0.9 --module-dir .",
+    "bundle:online-store": "node ./scripts/bundle-online-store.js",
+    "bundle:online-store:source": "node ./scripts/bundle-online-store-source.js",
+    "bundle:hostinger": "npm run bundle:cloud-api && npm run bundle:online-store",
+    "bundle:hostinger:source": "npm run bundle:cloud-api:source && npm run bundle:online-store:source",
+    "email-templates:export": "node ./scripts/export-email-templates.js"
   },
   "volta": {
     "node": "22.21.1"

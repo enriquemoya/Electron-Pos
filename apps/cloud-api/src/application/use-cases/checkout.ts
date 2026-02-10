@@ -1,6 +1,6 @@
 import type { CheckoutRepository } from "../ports";
 import type { EmailService } from "../ports";
-import { renderOrderCreatedEmail } from "@pos/email-templates";
+import { renderOrderCreatedEmail } from "../../email-templates";
 
 export type CheckoutUseCases = {
   createDraft: (params: {

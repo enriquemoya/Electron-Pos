@@ -32,3 +32,6 @@ backups/
 
 # Misc
 *.log
+
+
+.env.development.bak

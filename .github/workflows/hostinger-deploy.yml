@@ -1,0 +1,109 @@
+name: Hostinger VPS Deploy (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Deployment target (online-store or cloud-api or both)"
+        type: choice
+        required: true
+        default: both
+        options:
+          - online-store
+          - cloud-api
+          - both
+      ref:
+        description: "Git ref to deploy (branch, tag, or SHA)"
+        required: false
+        default: ""
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install deps (workspace)
+        run: npm ci --workspaces --include-workspace-root
+
+      - name: Build cloud-api
+        if: ${{ inputs.target == 'cloud-api' || inputs.target == 'both' }}
+        run: |
+          npm run prisma:generate -w apps/cloud-api
+          npm run build -w apps/cloud-api
+
+      - name: Build online-store
+        if: ${{ inputs.target == 'online-store' || inputs.target == 'both' }}
+        run: npm run build -w apps/online-store
+
+      - name: Package cloud-api
+        if: ${{ inputs.target == 'cloud-api' || inputs.target == 'both' }}
+        run: |
+          tar -czf cloud-api.tgz \
+            apps/cloud-api/dist \
+            apps/cloud-api/package.json \
+            apps/cloud-api/package-lock.json \
+            apps/cloud-api/prisma \
+            node_modules/@prisma/client \
+            node_modules/.prisma
+
+      - name: Package online-store
+        if: ${{ inputs.target == 'online-store' || inputs.target == 'both' }}
+        run: |
+          tar -czf online-store.tgz \
+            apps/online-store/.next \
+            apps/online-store/package.json \
+            apps/online-store/package-lock.json \
+            apps/online-store/public \
+            apps/online-store/next.config.js
+
+      - name: Upload bundles to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USER }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_SSH_PORT }}
+          source: "*.tgz"
+          target: ${{ secrets.HOSTINGER_DEPLOY_PATH }}
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USER }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_SSH_PORT }}
+          script: |
+            set -e
+            DEPLOY_PATH="${{ secrets.HOSTINGER_DEPLOY_PATH }}"
+            ONLINE_STORE_PORT="${{ secrets.ONLINE_STORE_PORT }}"
+            cd "${DEPLOY_PATH}"
+
+            if [ "${{ inputs.target }}" = "cloud-api" ] || [ "${{ inputs.target }}" = "both" ]; then
+              mkdir -p cloud-api
+              tar -xzf cloud-api.tgz -C cloud-api
+              cd cloud-api
+              npm ci --omit=dev
+              npx prisma migrate deploy
+              pm2 restart cloud-api || pm2 start dist/index.js --name cloud-api
+              cd ..
+            fi
+
+            if [ "${{ inputs.target }}" = "online-store" ] || [ "${{ inputs.target }}" = "both" ]; then
+              mkdir -p online-store
+              tar -xzf online-store.tgz -C online-store
+              cd online-store
+              npm ci --omit=dev
+              pm2 restart online-store || pm2 start node_modules/next/dist/bin/next --name online-store -- start -p "${ONLINE_STORE_PORT:-3000}"
+              cd ..
+            fi
