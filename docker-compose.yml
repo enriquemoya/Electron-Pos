@@ -30,8 +30,6 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_CLOUD_SHARED_SECRET: ${NEXT_PUBLIC_CLOUD_SHARED_SECRET}
-        NEXT_PUBLIC_JWT_SECRET: ${NEXT_PUBLIC_JWT_SECRET}
         NEXT_TELEMETRY_DISABLED: ${NEXT_TELEMETRY_DISABLED}
     environment:
       - NODE_ENV=production

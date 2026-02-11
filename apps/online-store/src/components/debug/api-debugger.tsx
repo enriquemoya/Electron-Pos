@@ -43,16 +43,8 @@
          }
 
          const target = `${apiUrl.replace(/\/$/, "")}/api/cloud/catalog/featured`;
-         const headers: Record<string, string> = {};
-         const publicSecret = (process.env.NEXT_PUBLIC_CLOUD_SHARED_SECRET || "").trim();
-         if (publicSecret) {
-           headers["x-cloud-secret"] = publicSecret;
-         }
 
-         const res = await fetch(target, {
-           method: "GET",
-           headers
-         });
+         const res = await fetch(target, { method: "GET" });
          const body = await safeReadBody(res);
          console.error("[api-debug] api response", {
            url: target,
