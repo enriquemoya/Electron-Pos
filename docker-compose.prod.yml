@@ -25,14 +25,8 @@ services:
       - web
 
   danimezone-site:
-    build:
-      context: ./apps/online-store
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_CLOUD_SHARED_SECRET: ${NEXT_PUBLIC_CLOUD_SHARED_SECRET}
-        NEXT_PUBLIC_JWT_SECRET: ${NEXT_PUBLIC_JWT_SECRET}
-        NEXT_TELEMETRY_DISABLED: ${NEXT_TELEMETRY_DISABLED}
+    image: ghcr.io/${GHCR_OWNER}/danimezone-site:latest
+    pull_policy: always
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -50,9 +44,8 @@ services:
       - web
 
   danimezone-api:
-    build:
-      context: ./apps/cloud-api
-      dockerfile: Dockerfile
+    image: ghcr.io/${GHCR_OWNER}/danimezone-api:latest
+    pull_policy: always
     environment:
       - NODE_ENV=production
       - PORT=4000

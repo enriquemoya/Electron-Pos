@@ -32,6 +32,7 @@ Minimal required values:
 
 ```bash
 TRAEFIK_EMAIL=you@domain.com
+GHCR_OWNER=github-username-or-org
 
 NEXT_PUBLIC_API_URL=https://api.danimezone.com
 NEXT_PUBLIC_CLOUD_SHARED_SECRET=...
@@ -54,7 +55,8 @@ ENVIROMENT=production
 
 ```bash
 cd /opt/danimezone
-docker compose --env-file deploy/.env up -d --build
+docker compose -f docker-compose.prod.yml --env-file deploy/.env pull
+docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d
 ```
 
 ## Logs
@@ -80,8 +82,10 @@ Add secrets:
 - `VPS_SSH_KEY`
 - `DEPLOY_PATH`
 - `DANIMEZONE_ENV`
+- `GHCR_TOKEN`
 
 On every push to `main`, GitHub Actions will:
-1. Sync repo to VPS
-2. Write `deploy/.env` from `DANIMEZONE_ENV`
-3. Run `docker compose up -d --build`
+1. Build + push images to GHCR
+2. Sync repo to VPS
+3. Write `deploy/.env` from `DANIMEZONE_ENV`
+4. Pull images + restart with `docker-compose.prod.yml`
