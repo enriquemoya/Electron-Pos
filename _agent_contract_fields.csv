@@ -1,20 +1,0 @@
-name,domains,capabilities,default_mode,allowed_write_paths,forbidden_write_paths,triggers,outputs
-audit-agent,[audits, governance],[spec-audit, impl-audit, compliance-check],read-only,[],[".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"],["audit","review","validate","compliance","check spec","check implementation"],["audit report","verdict","blocking issues"]
-backend-error-modeling-expert,[backend, cloud-api],[error-modeling, api-error-contract, status-codes],read-only,[],[".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"],["endpoint","api","error handling","status code","validation"],["error model gaps","risk severity","audit notes"]
-backend-performance-reviewer,[backend, cloud-api, database],[performance-review, query-efficiency, pagination-review],read-only,[],[".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"],["endpoint","list","pagination","aggregation","query"],["performance risks","query issues","audit notes"]
-backend-security-guardian,[backend, cloud-api, security],[security-review, auth-boundaries, data-exposure],read-only,[],[".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"],["endpoint","auth","secret","security","data exposure"],["security risks","severity rating","audit notes"]
-cloud-api-contract-guardian,[backend, cloud-api],[api-contract-review, compatibility-check, boundary-review],read-only,[],[".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"],["endpoint","contract","response shape","dto","compatibility"],["contract issues","breaking change risks","audit notes"]
-data-integrity-governor,,,,,,,
-,,,,,,,
-memory-bank-curator,[governance, documentation],[memory-bank-update, drift-fix],implementation,[".memory-bank/**"],[".specs/**","apps/**","packages/**",".codex/**"],["memory bank","memory update","update progress","active context"],["files changed","summary message","next command"]
-neon-postgres-architect,,,,,,,
-,,,,,,,
-node-backend-architect,[backend, cloud-api],[architecture-review, layering-check, request-lifecycle],read-only,[],[".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"],["endpoint","controller","service","refactor","architecture"],["architecture risks","layering issues","audit notes"]
-orchestrator,[governance, orchestration],[agent-discovery, task-routing, scope-guard],implementation,[".agent/**"],[".specs/**","apps/**","packages/**",".codex/**",".memory-bank/**"],["orchestrate","route task","governance flow","decide agent"],["selected agents","routing decision","next steps"]
-orm-code-generation-reviewer,,,,,,,
-prisma-migration-auditor,,,,,,,
-prisma-schema-guardian,,,,,,,
-,,,,,,,
-,,,,,,,
-spec-agent,[specs, governance],[spec-create, spec-update, spec-structure],spec-only,[".specs/**",".agent/**"],["apps/**","packages/**",".memory-bank/**",".codex/**"],["spec","requirements","design","tasks","create spec","update spec"],["files changed","next command","notes"]
-,,,,,,,
