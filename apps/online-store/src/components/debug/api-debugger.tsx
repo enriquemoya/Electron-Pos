@@ -21,6 +21,7 @@
    useEffect(() => {
      const run = async () => {
        try {
+         console.log("[deploy-test] ApiDebugger boot", new Date().toISOString());
          const envRes = await fetch("/api/env-check", { cache: "no-store" });
          const envText = await safeReadBody(envRes);
          let env: EnvCheckPayload | null = null;
