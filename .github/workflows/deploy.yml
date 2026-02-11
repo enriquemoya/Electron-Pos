@@ -48,7 +48,6 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
-            git pull
             echo "${{ secrets.DANIMEZONE_ENV }}" > deploy/.env
             chmod 600 deploy/.env
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
