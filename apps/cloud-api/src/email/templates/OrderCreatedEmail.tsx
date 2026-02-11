@@ -64,8 +64,13 @@ const statusLabels = {
   }
 } satisfies Record<LocaleString, Record<string, string>>;
 
+type OrderStatusKey = keyof typeof statusLabels[LOCALE.ES_MX];
+
 function humanizeStatus(locale: LocaleString, status: string) {
-  return statusLabels[locale][status] ?? status;
+  if (status in statusLabels[locale]) {
+    return statusLabels[locale][status as OrderStatusKey];
+  }
+  return status;
 }
 
 function formatMoney(amount: number, currency: string, locale: LocaleString) {
