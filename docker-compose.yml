@@ -1,0 +1,90 @@
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: danimezone-traefik
+    user: "0:0"
+    command:
+      - --providers.docker=true
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.watch=true
+      - --log.level=DEBUG
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./deploy/letsencrypt:/letsencrypt
+    networks:
+      - web
+
+  danimezone-site:
+    build:
+      context: ./apps/online-store
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_CLOUD_SHARED_SECRET: ${NEXT_PUBLIC_CLOUD_SHARED_SECRET}
+        NEXT_PUBLIC_JWT_SECRET: ${NEXT_PUBLIC_JWT_SECRET}
+        NEXT_TELEMETRY_DISABLED: ${NEXT_TELEMETRY_DISABLED}
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.danimezone-site.rule=Host(`danimezone.com`) || Host(`www.danimezone.com`)
+      - traefik.http.routers.danimezone-site.entrypoints=websecure
+      - traefik.http.routers.danimezone-site.tls.certresolver=letsencrypt
+      - traefik.http.services.danimezone-site.loadbalancer.server.port=3000
+      - traefik.http.routers.danimezone-site-http.rule=Host(`danimezone.com`) || Host(`www.danimezone.com`)
+      - traefik.http.routers.danimezone-site-http.entrypoints=web
+      - traefik.http.routers.danimezone-site-http.middlewares=redirect-to-https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.routers.danimezone-site-local.rule=Host(`danimezone.local`)
+      - traefik.http.routers.danimezone-site-local.entrypoints=web
+      - traefik.http.routers.danimezone-site-local.service=danimezone-site
+    networks:
+      - web
+
+  danimezone-api:
+    build:
+      context: ./apps/cloud-api
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - DATABASE_URL=${DATABASE_URL}
+      - CLOUD_SHARED_SECRET=${CLOUD_SHARED_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - ONLINE_STORE_BASE_URL=${ONLINE_STORE_BASE_URL}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
+      - ENVIROMENT=${ENVIROMENT}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.danimezone-api.rule=Host(`api.danimezone.com`)
+      - traefik.http.routers.danimezone-api.entrypoints=websecure
+      - traefik.http.routers.danimezone-api.tls.certresolver=letsencrypt
+      - traefik.http.services.danimezone-api.loadbalancer.server.port=4000
+      - traefik.http.routers.danimezone-api-http.rule=Host(`api.danimezone.com`)
+      - traefik.http.routers.danimezone-api-http.entrypoints=web
+      - traefik.http.routers.danimezone-api-http.middlewares=redirect-to-https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.routers.danimezone-api-local.rule=Host(`api.danimezone.local`)
+      - traefik.http.routers.danimezone-api-local.entrypoints=web
+      - traefik.http.routers.danimezone-api-local.service=danimezone-api
+    networks:
+      - web
+
+networks:
+  web:
+    name: danimezone-web

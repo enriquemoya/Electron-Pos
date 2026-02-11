@@ -2,7 +2,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const port = Number(process.env.PORT || 4000);
+const portRaw = process.env.PORT;
+const port = Number(portRaw || 4000);
 const databaseUrl = process.env.DATABASE_URL;
 const sharedSecret = process.env.CLOUD_SHARED_SECRET;
 const jwtSecret = process.env.JWT_SECRET;
@@ -16,41 +17,18 @@ const orderExpirationIntervalMs = process.env.ORDER_EXPIRATION_INTERVAL_MS
   ? Number(process.env.ORDER_EXPIRATION_INTERVAL_MS)
   : undefined;
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required.");
-}
-
-if (!sharedSecret) {
-  throw new Error("CLOUD_SHARED_SECRET is required.");
-}
-
-if (!jwtSecret) {
-  throw new Error("JWT_SECRET is required.");
-}
-
-if (!onlineStoreBaseUrl) {
-  throw new Error("ONLINE_STORE_BASE_URL is required.");
-}
-
-if (!smtpHost) {
-  throw new Error("SMTP_HOST is required.");
-}
-
-if (!smtpPort || Number.isNaN(smtpPort)) {
-  throw new Error("SMTP_PORT is required.");
-}
-
-if (!smtpUser) {
-  throw new Error("SMTP_USER is required.");
-}
-
-if (!smtpPass) {
-  throw new Error("SMTP_PASS is required.");
-}
-
-if (!smtpFrom) {
-  throw new Error("SMTP_FROM is required.");
-}
+const envStatus = {
+  port: Boolean(portRaw),
+  databaseUrl: Boolean(databaseUrl),
+  sharedSecret: Boolean(sharedSecret),
+  jwtSecret: Boolean(jwtSecret),
+  onlineStoreBaseUrl: Boolean(onlineStoreBaseUrl),
+  smtpHost: Boolean(smtpHost),
+  smtpPort: Boolean(smtpPort && !Number.isNaN(smtpPort)),
+  smtpUser: Boolean(smtpUser),
+  smtpPass: Boolean(smtpPass),
+  smtpFrom: Boolean(smtpFrom)
+};
 
 export const env = {
   port,
@@ -65,3 +43,5 @@ export const env = {
   smtpFrom,
   orderExpirationIntervalMs
 };
+
+export const envChecks = envStatus;

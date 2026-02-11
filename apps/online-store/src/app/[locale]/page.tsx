@@ -12,6 +12,7 @@ import { HeroBlock } from "@/components/landing/hero-block";
 import { Section } from "@/components/landing/section";
 import { SectionHeader } from "@/components/landing/section-header";
 import { fetchProfile } from "@/lib/profile-api";
+import { ApiDebugger } from "@/components/debug/api-debugger";
 
 export default async function HomePage({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale);
@@ -27,6 +28,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
 
   return (
     <div className="flex flex-col gap-16">
+      <ApiDebugger />
       <LogoutReload />
       <ProfileCompletionDialog
         open={showProfilePrompt}

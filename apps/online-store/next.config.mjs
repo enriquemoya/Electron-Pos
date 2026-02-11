@@ -5,6 +5,7 @@ const imageHost = process.env.NEXT_PUBLIC_IMAGE_HOST || "example.com";
 
 const nextConfig = {
   reactStrictMode: true,
+  output: "standalone",
   images: {
     remotePatterns: [
       {

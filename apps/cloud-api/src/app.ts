@@ -1,5 +1,7 @@
 import express, { json } from "express";
 
+import { corsMiddleware, logCorsConfig } from "./config/cors";
+import { attachRuntimeLogging, logStartup } from "./config/runtime-logger";
 import { requireSecret } from "./presentation/middleware/require-secret";
 import { createPublicRoutes } from "./presentation/routes/public";
 import { createProtectedRoutes } from "./presentation/routes/protected";
@@ -14,7 +16,7 @@ import { createProfileUseCases } from "./application/use-cases/profile";
 import { createSyncUseCases } from "./application/use-cases/sync";
 import { createUsersUseCases } from "./application/use-cases/users";
 import { createBranchUseCases } from "./application/use-cases/branches";
-import { env } from "./config/env";
+import { env, envChecks } from "./config/env";
 import * as adminDashboardRepository from "./infrastructure/repositories/admin-dashboard-service";
 import * as authRepository from "./infrastructure/repositories/auth-service";
 import * as catalogAdminRepository from "./infrastructure/repositories/catalog-admin-service";
@@ -30,7 +32,24 @@ import { startOrderExpirationJob } from "./infrastructure/jobs/order-expiration-
 
 export function createApp() {
   const app = express();
+  logStartup();
+  logCorsConfig();
+  app.use(corsMiddleware);
+  attachRuntimeLogging(app);
   app.use(json({ limit: "1mb" }));
+
+  app.get("/health", (_req, res) => {
+    res.status(200).json({ ok: true });
+  });
+
+  app.get("/__health", (_req, res) => {
+    res.status(200).json({
+      ok: true,
+      env: Object.fromEntries(
+        Object.entries(envChecks).map(([key, value]) => [key, value ? "SET" : "MISSING"])
+      )
+    });
+  });
 
   const authUseCases = createAuthUseCases({ authRepository, emailService });
   const catalogUseCases = createCatalogUseCases({ catalogRepository });

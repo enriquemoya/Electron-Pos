@@ -15,9 +15,19 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
     return;
   }
 
+  if (!env.jwtSecret) {
+    res.status(500).json({ error: "server" });
+    return;
+  }
+
   const token = header.slice(7).trim();
   try {
-    const payload = jwt.verify(token, env.jwtSecret) as JwtPayload;
+    const decoded = jwt.verify(token, env.jwtSecret);
+    if (typeof decoded === "string" || !decoded) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+    const payload = decoded as JwtPayload;
     if (payload.role !== "ADMIN") {
       res.status(403).json({ error: "unauthorized" });
       return;

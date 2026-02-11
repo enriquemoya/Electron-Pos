@@ -30,8 +30,6 @@
     "rebuild:electron": "electron-rebuild -f -w better-sqlite3 -v 30.0.9 --module-dir .",
     "bundle:online-store": "node ./scripts/bundle-online-store.js",
     "bundle:online-store:source": "node ./scripts/bundle-online-store-source.js",
-    "bundle:hostinger": "npm run bundle:cloud-api && npm run bundle:online-store",
-    "bundle:hostinger:source": "npm run bundle:cloud-api:source && npm run bundle:online-store:source",
     "email-templates:export": "node ./scripts/export-email-templates.js"
   },
   "volta": {

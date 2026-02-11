@@ -22,6 +22,9 @@ function addDays(date: Date, days: number) {
 }
 
 function signAccessToken(user: { id: string; role: string; email: string | null }) {
+  if (!env.jwtSecret) {
+    throw new Error("JWT_SECRET is not configured");
+  }
   return jwt.sign(
     { sub: user.id, role: user.role, email: user.email },
     env.jwtSecret,
