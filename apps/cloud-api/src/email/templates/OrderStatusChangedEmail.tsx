@@ -37,7 +37,20 @@ const content = {
   }
 } satisfies Record<LocaleString, Record<string, string>>;
 
-const statusLabels = {
+const ORDER_STATUS_KEYS = [
+  "CREATED",
+  "PENDING_PAYMENT",
+  "PAID",
+  "READY_FOR_PICKUP",
+  "SHIPPED",
+  "CANCELLED_EXPIRED",
+  "CANCELLED_MANUAL",
+  "CANCELED"
+] as const;
+
+type OrderStatusKey = (typeof ORDER_STATUS_KEYS)[number];
+
+const statusLabels: Record<LocaleString, Record<OrderStatusKey, string>> = {
   [LOCALE.ES_MX]: {
     CREATED: "Creado",
     PENDING_PAYMENT: "Pago pendiente",
@@ -58,15 +71,13 @@ const statusLabels = {
     CANCELLED_MANUAL: "Cancelled",
     CANCELED: "Cancelled"
   }
-} satisfies Record<LocaleString, Record<string, string>>;
-
-type OrderStatusKey = keyof typeof statusLabels[LOCALE.ES_MX];
+};
 
 function humanizeStatus(locale: LocaleString, status: string | null) {
   if (!status) {
     return null;
   }
-  if (status in statusLabels[locale]) {
+  if (ORDER_STATUS_KEYS.includes(status as OrderStatusKey)) {
     return statusLabels[locale][status as OrderStatusKey];
   }
   return status;
