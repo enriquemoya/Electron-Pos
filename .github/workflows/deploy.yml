@@ -48,6 +48,13 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
+            if [ ! -d ".git" ]; then
+              echo "Repo not found in DEPLOY_PATH. Cloning..."
+              rm -rf ./*
+              git clone https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }}.git .
+            fi
+            git fetch --all
+            git reset --hard origin/main
             echo "${{ secrets.DANIMEZONE_ENV }}" > deploy/.env
             chmod 600 deploy/.env
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
