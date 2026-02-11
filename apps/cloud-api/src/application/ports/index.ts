@@ -3,17 +3,39 @@ import type { AuthTokens } from "../../domain/entities/auth";
 export type { AuthTokens };
 
 export type AuthRepository = {
-  requestMagicLink: (email: string) => Promise<{ token: string; userId: string }>;
-  verifyMagicLink: (token: string) => Promise<AuthTokens | null>;
+  requestMagicLink: (email: string) => Promise<{
+    token: string;
+    userId: string;
+    emailLocale: "ES_MX" | "EN_US";
+    firstName: string | null;
+    email: string | null;
+  }>;
+  verifyMagicLink: (token: string) => Promise<{
+    tokens: AuthTokens;
+    user: { id: string; email: string | null; emailLocale: "ES_MX" | "EN_US"; firstName: string | null };
+    wasUnverified: boolean;
+  } | null>;
   refreshTokens: (refreshToken: string) => Promise<AuthTokens | null>;
   revokeRefreshToken: (refreshToken: string) => Promise<void>;
   loginWithPassword: (email: string, password: string) => Promise<AuthTokens | null>;
-  buildMagicLink: (locale: string, token: string) => string;
+  buildMagicLink: (locale: "ES_MX" | "EN_US" | null, token: string) => string;
 };
 
 export type EmailService = {
-  sendMagicLinkEmail: (params: { to: string; subject: string; html: string; text: string }) => Promise<void>;
-  sendEmail: (params: { to: string; subject: string; html: string; text: string }) => Promise<void>;
+  sendMagicLinkEmail: (params: {
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+    meta?: { userId?: string | null; template?: string; locale?: string; orderId?: string | null };
+  }) => Promise<void>;
+  sendEmail: (params: {
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+    meta?: { userId?: string | null; template?: string; locale?: string; orderId?: string | null };
+  }) => Promise<void>;
 };
 
 export type CatalogRepository = {
@@ -162,7 +184,9 @@ export type CheckoutRepository = {
     orderId: string;
     status: string;
     expiresAt: string;
+    customerId: string;
     customerEmail: string | null;
+    customerEmailLocale: "ES_MX" | "EN_US" | null;
     subtotal: number;
     currency: string;
     pickupBranchName: string | null;
@@ -207,12 +231,16 @@ export type OrderFulfillmentRepository = {
     fromStatus: string | null;
     toStatus: string;
     customerEmail: string | null;
+    customerEmailLocale: "ES_MX" | "EN_US" | null;
+    customerId: string | null;
   }>;
   expirePendingOrders: () => Promise<Array<{
     orderId: string;
     fromStatus: string | null;
     toStatus: string;
     customerEmail: string | null;
+    customerEmailLocale: "ES_MX" | "EN_US" | null;
+    customerId: string | null;
   }>>;
 };
 

@@ -1,10 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger
+} from "@/components/ui/sheet";
 import { useCart } from "@/components/cart/cart-context";
 import { CartItemRow } from "@/components/cart/cart-item-row";
 import { formatMoney } from "@/lib/cart";
@@ -12,11 +21,17 @@ import { Link } from "@/navigation";
 
 export function Cart() {
   const t = useTranslations();
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
   const { items, itemCount, subtotal, updateQuantity, removeItem } = useCart();
   const hasItems = items.length > 0;
 
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
           type="button"
@@ -61,15 +76,21 @@ export function Cart() {
                 <span className="text-white">{formatMoney(subtotal, "MXN")}</span>
               </div>
               <div className="mt-4 flex flex-col gap-2">
-                <Button asChild className="w-full">
-                  <Link href="/cart">{t("cart.actions.viewCart")}</Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full border-white/10">
-                  <Link href="/checkout">{t("cart.actions.checkout")}</Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full border-white/10">
-                  <Link href="/catalog">{t("cart.actions.continueShopping")}</Link>
-                </Button>
+                <SheetClose asChild>
+                  <Button asChild className="w-full">
+                    <Link href="/cart">{t("cart.actions.viewCart")}</Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button asChild variant="outline" className="w-full border-white/10">
+                    <Link href="/checkout">{t("cart.actions.checkout")}</Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button asChild variant="outline" className="w-full border-white/10">
+                    <Link href="/catalog">{t("cart.actions.continueShopping")}</Link>
+                  </Button>
+                </SheetClose>
               </div>
             </div>
           </div>
@@ -77,9 +98,11 @@ export function Cart() {
           <div className="mt-10 flex flex-col items-center gap-4 text-center text-sm text-white/60">
             <p className="text-base font-semibold text-white">{t("cart.empty.title")}</p>
             <p>{t("cart.empty.subtitle")}</p>
-            <Button asChild className="mt-2">
-              <Link href="/catalog">{t("cart.actions.continueShopping")}</Link>
-            </Button>
+            <SheetClose asChild>
+              <Button asChild className="mt-2">
+                <Link href="/catalog">{t("cart.actions.continueShopping")}</Link>
+              </Button>
+            </SheetClose>
           </div>
         )}
       </SheetContent>

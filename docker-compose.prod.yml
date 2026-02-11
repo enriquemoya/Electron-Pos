@@ -58,6 +58,11 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM}
+      - SMTP_SECURE=${SMTP_SECURE}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - APP_NAME=${APP_NAME}
+      - SUPPORT_EMAIL=${SUPPORT_EMAIL}
+      - CLOUD_API_BASE_URL=${CLOUD_API_BASE_URL}
       - ENVIROMENT=${ENVIROMENT}
     labels:
       - traefik.enable=true

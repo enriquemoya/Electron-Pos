@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { fetchCustomerOrder } from "@/lib/order-api";
-import { Link } from "@/navigation";
+import { BackButton } from "@/components/common/back-button";
 
 export default async function AccountOrderDetailPage({
   params
@@ -30,6 +30,11 @@ export default async function AccountOrderDetailPage({
   if (loadError || !order) {
     return (
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+        <BackButton
+          label={t("backToList")}
+          fallbackHref="/account/orders"
+          className="px-0 text-sm text-white/70 hover:text-white"
+        />
         <div>
           <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>
           <p className="text-sm text-white/60">{t("errorDetail")}</p>
@@ -37,17 +42,17 @@ export default async function AccountOrderDetailPage({
         <div className="rounded-2xl border border-rose-300/30 bg-rose-500/10 p-4 text-sm text-rose-200">
           {t("error")}
         </div>
-        <div>
-          <Link href="/account/orders" className="text-sm text-amber-300 hover:text-amber-200">
-            {t("backToList")}
-          </Link>
-        </div>
       </div>
     );
   }
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+      <BackButton
+        label={t("backToList")}
+        fallbackHref="/account/orders"
+        className="px-0 text-sm text-white/70 hover:text-white"
+      />
       <div>
         <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>
         <p className="text-sm text-white/60">{order.id}</p>

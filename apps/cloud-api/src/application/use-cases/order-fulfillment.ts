@@ -1,4 +1,4 @@
-import { renderOrderStatusUpdatedEmail } from "../../email-templates";
+import { renderOrderStatusChangedEmail, resolveLocaleString, LOCALE } from "../../email";
 
 import type { EmailService, OrderFulfillmentRepository } from "../ports";
 import { ApiErrors } from "../../errors/api-error";
@@ -62,32 +62,42 @@ export type OrderFulfillmentUseCases = {
 
 async function sendStatusMail(
   emailService: EmailService,
-  payload: { orderId: string; fromStatus: string | null; toStatus: string; customerEmail: string | null; reason?: string | null }
+  payload: {
+    orderId: string;
+    fromStatus: string | null;
+    toStatus: string;
+    customerEmail: string | null;
+    customerEmailLocale?: "ES_MX" | "EN_US" | null;
+    customerId?: string | null;
+    reason?: string | null;
+  }
 ) {
-  if (!payload.customerEmail) {
+  const customerEmail = payload.customerEmail;
+  if (!customerEmail) {
     return;
   }
-  try {
-    const mail = renderOrderStatusUpdatedEmail({
-      locale: "es",
+  void (async () => {
+    const resolvedLocale = resolveLocaleString(payload.customerEmailLocale, LOCALE.ES_MX);
+    const mail = await renderOrderStatusChangedEmail({
+      locale: resolvedLocale,
       orderId: payload.orderId,
       fromStatus: payload.fromStatus,
       toStatus: payload.toStatus,
       reason: payload.reason ?? null
     });
     await emailService.sendEmail({
-      to: payload.customerEmail,
+      to: customerEmail,
       subject: mail.subject,
       html: mail.html,
-      text: mail.text
+      text: mail.text,
+      meta: {
+        userId: payload.customerId ?? null,
+        template: "OrderStatusChangedEmail",
+        locale: resolvedLocale,
+        orderId: payload.orderId
+      }
     });
-  } catch (error) {
-    console.error("order status email failed", {
-      orderId: payload.orderId,
-      toStatus: payload.toStatus,
-      error: error instanceof Error ? error.message : "unknown"
-    });
-  }
+  })();
 }
 
 export function createOrderFulfillmentUseCases(deps: {
@@ -141,6 +151,8 @@ export function createOrderFulfillmentUseCases(deps: {
         fromStatus: updated.fromStatus,
         toStatus: updated.toStatus,
         customerEmail: updated.customerEmail,
+        customerEmailLocale: updated.customerEmailLocale,
+        customerId: updated.customerId,
         reason: params.reason
       });
       return {
@@ -157,6 +169,8 @@ export function createOrderFulfillmentUseCases(deps: {
           fromStatus: entry.fromStatus,
           toStatus: entry.toStatus,
           customerEmail: entry.customerEmail,
+          customerEmailLocale: entry.customerEmailLocale,
+          customerId: entry.customerId,
           reason: "expired_unpaid"
         });
       }

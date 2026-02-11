@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 
 import { prisma } from "../db/prisma";
 import { env } from "../../config/env";
+import { resolveLocalePath } from "../../email/locales";
 
 const ACCESS_TTL_MINUTES = 15;
 const REFRESH_TTL_DAYS = 30;
@@ -79,7 +80,13 @@ export async function requestMagicLink(email: string) {
     }
   });
 
-  return { token, userId: user.id };
+  return {
+    token,
+    userId: user.id,
+    emailLocale: user.emailLocale,
+    firstName: user.firstName,
+    email: user.email
+  };
 }
 
 export async function verifyMagicLink(token: string) {
@@ -104,6 +111,8 @@ export async function verifyMagicLink(token: string) {
     data: { consumedAt: now }
   });
 
+  const wasUnverified = !record.user.emailVerifiedAt;
+
   await prisma.user.update({
     where: { id: record.userId },
     data: {
@@ -112,11 +121,22 @@ export async function verifyMagicLink(token: string) {
     }
   });
 
-  return issueTokensForUser({
+  const tokens = await issueTokensForUser({
     id: record.user.id,
     role: record.user.role,
     email: record.user.email
   });
+
+  return {
+    tokens,
+    user: {
+      id: record.user.id,
+      email: record.user.email,
+      emailLocale: record.user.emailLocale,
+      firstName: record.user.firstName
+    },
+    wasUnverified
+  };
 }
 
 export async function refreshTokens(refreshToken: string) {
@@ -195,7 +215,7 @@ export async function loginWithPassword(email: string, password: string) {
   });
 }
 
-export function buildMagicLink(locale: string, token: string) {
-  const safeLocale = locale === "en" ? "en" : "es";
+export function buildMagicLink(locale: "ES_MX" | "EN_US" | null, token: string) {
+  const safeLocale = resolveLocalePath(locale ?? null);
   return `${env.onlineStoreBaseUrl}/${safeLocale}/auth/verify?token=${token}`;
 }

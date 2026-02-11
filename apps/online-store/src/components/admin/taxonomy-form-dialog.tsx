@@ -6,6 +6,7 @@ import { TaxonomyOptionCombobox, type TaxonomyOption } from "@/components/admin/
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -41,6 +42,7 @@ type TaxonomyFormDialogProps = {
     labelEs: string;
     labelEn: string;
     submit: string;
+    cancel: string;
   };
   typeLabels: {
     category: string;
@@ -300,6 +302,11 @@ export function TaxonomyFormDialog({
             <Input name="labelEn" defaultValue={formDefaults.labelEn} placeholder={labels.labelEn} />
           </div>
           <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="ghost">
+                {labels.cancel}
+              </Button>
+            </DialogClose>
             <Button type="submit">{labels.submit}</Button>
           </DialogFooter>
         </form>

@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
 }
 
 datasource db {
@@ -80,6 +81,11 @@ enum UserStatus {
   DISABLED
 }
 
+enum EmailLocale {
+  ES_MX
+  EN_US
+}
+
 enum CatalogTaxonomyType {
   CATEGORY
   GAME
@@ -135,6 +141,7 @@ model User {
   birthDate  DateTime?   @map("birth_date") @db.Date
   role       UserRole    @default(CUSTOMER)
   status     UserStatus  @default(ACTIVE)
+  emailLocale EmailLocale @default(ES_MX) @map("email_locale")
   emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz(6)
   lastLoginAt     DateTime? @map("last_login_at") @db.Timestamptz(6)
   createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)

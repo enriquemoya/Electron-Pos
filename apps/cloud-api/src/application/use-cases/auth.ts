@@ -1,4 +1,5 @@
 import type { AuthRepository, AuthTokens, EmailService } from "../ports";
+import { renderMagicLinkEmail, renderWelcomeEmail, resolveLocaleEnum, resolveLocaleString } from "../../email";
 
 export type AuthUseCases = {
   requestMagicLink: (email: string, locale: string) => Promise<void>;
@@ -15,17 +16,51 @@ export function createAuthUseCases(deps: {
   return {
     async requestMagicLink(email: string, locale: string) {
       const result = await deps.authRepository.requestMagicLink(email);
-      const link = deps.authRepository.buildMagicLink(locale, result.token);
-
-      await deps.emailService.sendMagicLinkEmail({
-        to: email,
-        subject: "Verify your email",
-        html: `<p>Use this link to sign in:</p><p><a href="${link}">${link}</a></p>`,
-        text: `Use this link to sign in: ${link}`
-      });
+      const localeEnum = resolveLocaleEnum(locale);
+      const resolvedLocale = resolveLocaleString(result.emailLocale ?? localeEnum);
+      const link = deps.authRepository.buildMagicLink(result.emailLocale ?? localeEnum, result.token);
+      void (async () => {
+        const mail = await renderMagicLinkEmail({ locale: resolvedLocale, link });
+        await deps.emailService.sendMagicLinkEmail({
+          to: email,
+          subject: mail.subject,
+          html: mail.html,
+          text: mail.text,
+          meta: {
+            userId: result.userId,
+            template: "MagicLinkEmail",
+            locale: resolvedLocale
+          }
+        });
+      })();
     },
-    verifyMagicLink(token: string) {
-      return deps.authRepository.verifyMagicLink(token);
+    async verifyMagicLink(token: string) {
+      const result = await deps.authRepository.verifyMagicLink(token);
+      if (!result) {
+        return null;
+      }
+      const userEmail = result.user.email;
+      if (result.wasUnverified && userEmail) {
+        const resolvedLocale = resolveLocaleString(result.user.emailLocale);
+        void (async () => {
+          const mail = await renderWelcomeEmail({
+            locale: resolvedLocale,
+            firstName: result.user.firstName
+          });
+          await deps.emailService.sendEmail({
+            to: userEmail,
+            subject: mail.subject,
+            html: mail.html,
+            text: mail.text,
+            meta: {
+              userId: result.user.id,
+              template: "WelcomeEmail",
+              locale: resolvedLocale
+            }
+          });
+        })();
+      }
+      return result.tokens;
     },
     refreshTokens(refreshToken: string) {
       return deps.authRepository.refreshTokens(refreshToken);

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useFormState } from "react-dom";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ const initialState: State = { ok: false };
 export function PasswordForm({ action, labels }: PasswordFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useFormState(action, initialState);
+  const lastState = useRef<State>(initialState);
   const errorMessage =
     state.error === "invalid"
       ? labels.errorInvalid
@@ -39,6 +41,17 @@ export function PasswordForm({ action, labels }: PasswordFormProps) {
       formRef.current?.reset();
     }
   }, [state.ok]);
+
+  useEffect(() => {
+    if (state.ok && !lastState.current.ok) {
+      toast.success(labels.success);
+    }
+    if (state.error && state.error !== lastState.current.error) {
+      const title = state.error === "invalid" ? labels.errorInvalid : labels.errorServer;
+      toast.error(title, { description: errorMessage || undefined });
+    }
+    lastState.current = state;
+  }, [errorMessage, labels.errorInvalid, labels.errorServer, labels.success, state]);
 
   return (
     <form ref={formRef} action={formAction} className="space-y-6">

@@ -1,4 +1,5 @@
 import express, { json } from "express";
+import path from "path";
 
 import { corsMiddleware, logCorsConfig } from "./config/cors";
 import { attachRuntimeLogging, logStartup } from "./config/runtime-logger";
@@ -37,6 +38,7 @@ export function createApp() {
   app.use(corsMiddleware);
   attachRuntimeLogging(app);
   app.use(json({ limit: "1mb" }));
+  app.use("/assets", express.static(path.join(process.cwd(), "assets")));
 
   app.get("/health", (_req, res) => {
     res.status(200).json({ ok: true });

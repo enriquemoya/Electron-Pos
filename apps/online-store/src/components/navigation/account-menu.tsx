@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Package, UserRound } from "lucide-react";
+import { LayoutDashboard, LogOut, Package, UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,27 +15,33 @@ import { Link } from "@/navigation";
 type AccountMenuProps = {
   profileHref: string;
   ordersHref: string;
+  adminHref: string;
   ordersLabel: string;
   profileLabel: string;
+  adminLabel: string;
   logoutLabel: string;
   menuLabel: string;
   signInLabel: string;
   signInHref: string;
   logoutHref: string;
   isAuthenticated: boolean;
+  isAdmin: boolean;
 };
 
 export function AccountMenu({
   profileHref,
   ordersHref,
+  adminHref,
   ordersLabel,
   profileLabel,
+  adminLabel,
   logoutLabel,
   menuLabel,
   signInLabel,
   signInHref,
   logoutHref,
   isAuthenticated,
+  isAdmin,
 }: AccountMenuProps) {
   return (
     <DropdownMenu>
@@ -65,6 +71,14 @@ export function AccountMenu({
                 <span>{profileLabel}</span>
               </Link>
             </DropdownMenuItem>
+            {isAdmin ? (
+              <DropdownMenuItem asChild>
+                <Link href={adminHref} className="flex items-center gap-2">
+                  <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+                  <span>{adminLabel}</span>
+                </Link>
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href={logoutHref} className="flex items-center gap-2">

@@ -74,10 +74,12 @@
       "menu": {
         "profile": "Perfil",
         "orders": "Pedidos",
+        "admin": "Panel admin",
         "logout": "Cerrar sesion",
         "signIn": "Iniciar sesion"
       }
     },
+    "back": "Volver",
     "menu": {
       "status": "Menu principal",
       "locked": "Menu fijado"
@@ -136,6 +138,16 @@
       "subtitle": "Explora el catalogo para agregar articulos."
     }
   },
+  "toast": {
+    "addToCart": {
+      "success": "Agregado al carrito",
+      "error": "No se pudo agregar al carrito"
+    },
+    "cart": {
+      "removeSuccess": "Producto eliminado del carrito",
+      "removeError": "No se pudo eliminar el producto"
+    }
+  },
   "auth": {
     "login": {
       "title": "Iniciar sesion",
@@ -180,7 +192,10 @@
         "submit": "Guardar perfil",
         "success": "Perfil actualizado.",
         "errorInvalid": "Completa los campos obligatorios.",
-        "errorServer": "No se pudo guardar el perfil."
+        "errorServer": "No se pudo guardar el perfil.",
+        "emailLocale": "Idioma de correo",
+        "emailLocaleEs": "Español (México)",
+        "emailLocaleEn": "Inglés (EE. UU.)"
       },
       "address": {
         "title": "Direccion (opcional)",
@@ -356,6 +371,13 @@
     "updateSubtitle": "Los cambios se aplican despues de confirmar.",
     "updateAction": "Actualizar",
     "updateError": "No se pudo actualizar el usuario.",
+    "actions": {
+      "back": "Volver a usuarios"
+    },
+    "toast": {
+      "saveSuccess": "Usuario actualizado",
+      "saveError": "No se pudo actualizar el usuario"
+    },
     "roles": {
       "CUSTOMER": "Cliente",
       "ADMIN": "Admin"
@@ -432,7 +454,12 @@
     "actions": {
       "edit": "Editar",
       "save": "Guardar",
-      "create": "Crear producto"
+      "create": "Crear producto",
+      "back": "Volver a productos"
+    },
+    "toast": {
+      "saveSuccess": "Producto guardado",
+      "saveError": "No se pudo guardar el producto"
     },
     "pagination": {
       "prev": "Anterior",
@@ -527,7 +554,8 @@
       "create": "Crear",
       "edit": "Editar",
       "save": "Guardar",
-      "delete": "Eliminar"
+      "delete": "Eliminar",
+      "cancel": "Cancelar"
     },
     "modal": {
       "createDescription": "Crea una taxonomia y asigna juego padre cuando el tipo sea expansion.",
@@ -596,7 +624,9 @@
     },
     "revalidation": {
       "title": "Carrito actualizado",
-      "removed": "Se removieron articulos por cambios de disponibilidad."
+      "removed": "Se removieron articulos por cambios de disponibilidad.",
+      "updated": "Se actualizaron cantidades o precios del carrito.",
+      "error": "No se pudo actualizar el carrito."
     },
     "empty": {
       "title": "Tu carrito esta vacio",
@@ -633,7 +663,8 @@
       "action": "Accion"
     },
     "actions": {
-      "view": "Ver"
+      "view": "Ver",
+      "back": "Volver a pedidos"
     },
     "filters": {
       "search": "Buscar por correo o ID",
@@ -659,7 +690,9 @@
       "confirmBody": "Este cambio actualizara el pedido y registrara el evento en la bitacora.",
       "confirmAction": "Confirmar",
       "cancelAction": "Cancelar",
-      "error": "No se pudo actualizar el estado."
+      "error": "No se pudo actualizar el estado.",
+      "toastSuccess": "Estado actualizado",
+      "toastError": "No se pudo actualizar el estado"
     },
     "timeline": {
       "initial": "Inicial"

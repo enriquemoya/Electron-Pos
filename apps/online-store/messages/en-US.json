@@ -74,10 +74,12 @@
       "menu": {
         "profile": "Profile",
         "orders": "Orders",
+        "admin": "Admin dashboard",
         "logout": "Close session",
         "signIn": "Sign in"
       }
     },
+    "back": "Back",
     "menu": {
       "status": "Main navigation menu",
       "locked": "Menu locked"
@@ -136,6 +138,16 @@
       "subtitle": "Browse the catalog to add items."
     }
   },
+  "toast": {
+    "addToCart": {
+      "success": "Added to cart",
+      "error": "Unable to add to cart"
+    },
+    "cart": {
+      "removeSuccess": "Removed from cart",
+      "removeError": "Unable to remove item"
+    }
+  },
   "auth": {
     "login": {
       "title": "Sign in",
@@ -180,7 +192,10 @@
         "submit": "Save profile",
         "success": "Profile updated.",
         "errorInvalid": "Please complete the required fields.",
-        "errorServer": "Unable to save your profile."
+        "errorServer": "Unable to save your profile.",
+        "emailLocale": "Email language",
+        "emailLocaleEs": "Spanish (Mexico)",
+        "emailLocaleEn": "English (US)"
       },
       "address": {
         "title": "Address (optional)",
@@ -356,6 +371,13 @@
     "updateSubtitle": "Changes apply immediately after confirmation.",
     "updateAction": "Update",
     "updateError": "Unable to update this user right now.",
+    "actions": {
+      "back": "Back to users"
+    },
+    "toast": {
+      "saveSuccess": "User updated",
+      "saveError": "Unable to update user"
+    },
     "roles": {
       "CUSTOMER": "Customer",
       "ADMIN": "Admin"
@@ -432,7 +454,12 @@
     "actions": {
       "edit": "Edit",
       "save": "Save",
-      "create": "Create product"
+      "create": "Create product",
+      "back": "Back to products"
+    },
+    "toast": {
+      "saveSuccess": "Product saved",
+      "saveError": "Unable to save product"
     },
     "pagination": {
       "prev": "Prev",
@@ -527,7 +554,8 @@
       "create": "Create",
       "edit": "Edit",
       "save": "Save",
-      "delete": "Delete"
+      "delete": "Delete",
+      "cancel": "Cancel"
     },
     "modal": {
       "createDescription": "Create a taxonomy and assign a parent game when type is expansion.",
@@ -596,7 +624,9 @@
     },
     "revalidation": {
       "title": "Cart updated",
-      "removed": "Some items were removed due to availability changes."
+      "removed": "Some items were removed due to availability changes.",
+      "updated": "Cart quantities or prices were updated.",
+      "error": "We could not refresh your cart right now."
     },
     "empty": {
       "title": "Your cart is empty",
@@ -633,7 +663,8 @@
       "action": "Action"
     },
     "actions": {
-      "view": "View"
+      "view": "View",
+      "back": "Back to orders"
     },
     "filters": {
       "search": "Search by email or ID",
@@ -659,7 +690,9 @@
       "confirmBody": "This action will update the order and append a timeline event.",
       "confirmAction": "Confirm",
       "cancelAction": "Cancel",
-      "error": "Could not update order status."
+      "error": "Could not update order status.",
+      "toastSuccess": "Order status updated",
+      "toastError": "Unable to update order status"
     },
     "timeline": {
       "initial": "Initial"

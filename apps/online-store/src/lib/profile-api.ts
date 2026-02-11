@@ -9,6 +9,7 @@ type ProfileUser = {
   firstName: string | null;
   lastName: string | null;
   birthDate: string | null;
+  emailLocale: "ES_MX" | "EN_US";
   role: "CUSTOMER" | "ADMIN";
   status: "ACTIVE" | "DISABLED";
   emailVerifiedAt: string | null;

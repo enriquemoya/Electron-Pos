@@ -2,6 +2,7 @@
 
 import { Minus, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 import type { CartItem } from "@/lib/cart";
 import { formatMoney } from "@/lib/cart";
@@ -61,7 +62,14 @@ export function CartItemRow({
             type="button"
             variant="ghost"
             size="icon"
-            onClick={onRemove}
+            onClick={() => {
+              try {
+                onRemove();
+                toast.success(t("toast.cart.removeSuccess"));
+              } catch {
+                toast.error(t("toast.cart.removeError"));
+              }
+            }}
             aria-label={t("cart.actions.remove")}
             className="text-white/60 hover:text-white"
           >

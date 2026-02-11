@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 
 import { ApiErrors, asApiError } from "../../errors/api-error";
 import type { AuthUseCases } from "../../application/use-cases/auth";
+import { LOCALE } from "../../email/locales";
 import {
   validateEmailPayload,
   validatePasswordLoginPayload,
@@ -14,7 +15,7 @@ export function createAuthController(useCases: AuthUseCases) {
     async requestMagicLinkHandler(req: Request, res: Response) {
       try {
         const email = validateEmailPayload(req.body ?? {});
-        const locale = typeof req.body?.locale === "string" ? req.body.locale : "es";
+        const locale = typeof req.body?.locale === "string" ? req.body.locale : LOCALE.ES_MX;
         await useCases.requestMagicLink(email, locale);
         res.status(200).json({ status: "ok" });
       } catch (error) {

@@ -3,7 +3,12 @@ import type { ProfileRepository } from "../ports";
 export type ProfileUseCases = {
   getProfile: (userId: string) => Promise<Record<string, unknown> | null>;
   updateProfile: (userId: string, payload: {
-    user: { firstName?: string | null; lastName?: string | null; phone?: string | null };
+    user: {
+      firstName?: string | null;
+      lastName?: string | null;
+      phone?: string | null;
+      emailLocale?: "ES_MX" | "EN_US";
+    };
     address?: {
       street: string;
       externalNumber: string;

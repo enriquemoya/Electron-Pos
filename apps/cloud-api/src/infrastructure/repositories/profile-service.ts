@@ -9,6 +9,7 @@ type ProfileUser = {
   firstName: string | null;
   lastName: string | null;
   birthDate: Date | null;
+  emailLocale: "ES_MX" | "EN_US";
   role: "CUSTOMER" | "ADMIN";
   status: "ACTIVE" | "DISABLED";
   emailVerifiedAt: Date | null;
@@ -24,6 +25,7 @@ const profileUserSelect = {
   firstName: true,
   lastName: true,
   birthDate: true,
+  emailLocale: true,
   role: true,
   status: true,
   emailVerifiedAt: true,
@@ -53,7 +55,12 @@ export async function getProfile(userId: string) {
 export async function updateProfile(
   userId: string,
   payload: {
-    user: { firstName?: string | null; lastName?: string | null; phone?: string | null };
+    user: {
+      firstName?: string | null;
+      lastName?: string | null;
+      phone?: string | null;
+      emailLocale?: "ES_MX" | "EN_US";
+    };
     address?: {
       street: string;
       externalNumber: string;
@@ -72,7 +79,8 @@ export async function updateProfile(
     data: {
       firstName: payload.user.firstName,
       lastName: payload.user.lastName,
-      phone: payload.user.phone
+      phone: payload.user.phone,
+      emailLocale: payload.user.emailLocale
     },
     select: profileUserSelect
   })) as ProfileUser;

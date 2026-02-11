@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/product-card";
 import { Pagination } from "@/components/pagination";
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
 import { fetchTaxonomyBundle, resolveCatalogRoute, taxonomyLabel } from "@/lib/taxonomies";
+import { BackButton } from "@/components/common/back-button";
 
 type CatalogPageProps = {
   params: {
@@ -33,6 +34,7 @@ function parseNonNegative(value: string | undefined) {
 export default async function CatalogPage({ params, searchParams }: CatalogPageProps) {
   setRequestLocale(params.locale);
   const t = await getTranslations();
+  const tNav = await getTranslations({ locale: params.locale, namespace: "navigation" });
   const page = parseNumber(searchParams.page, 1);
   const pageSize = parseNumber(searchParams.pageSize, 12);
   const priceMin = parseNonNegative(searchParams.priceMin);
@@ -152,7 +154,8 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
+        <div className="space-y-2">
+          <BackButton label={tNav("back")} fallbackHref={`/${params.locale}`} className="text-white/70" />
           <h1 className="text-2xl font-semibold text-white">{t("catalog.title")}</h1>
           <p className="text-sm text-white/60">{t("catalog.subtitle")}</p>
         </div>

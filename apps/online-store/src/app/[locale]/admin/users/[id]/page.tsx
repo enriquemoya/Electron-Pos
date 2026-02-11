@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireAdmin } from "@/lib/admin-guard";
 import { fetchAdminUser } from "@/lib/admin-api";
 import { UserRoleStatusForm } from "@/components/admin/users/user-role-status-form";
+import { BackButton } from "@/components/common/back-button";
 import { updateUserAction } from "./actions";
 
 export default async function AdminUserDetailPage({
@@ -21,6 +22,11 @@ export default async function AdminUserDetailPage({
 
     return (
       <div className="space-y-6">
+        <BackButton
+          label={t("actions.back")}
+          fallbackHref={`/${params.locale}/admin/users`}
+          className="px-0 text-sm text-white/70 hover:text-white"
+        />
         <div>
           <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>
           <p className="text-sm text-white/60">{t("detailSubtitle")}</p>
@@ -67,7 +73,9 @@ export default async function AdminUserDetailPage({
                 confirmBody: t("confirm.body"),
                 confirmPrimary: t("confirm.confirm"),
                 confirmCancel: t("confirm.cancel"),
-                errorGeneric: t("updateError")
+                errorGeneric: t("updateError"),
+                toastSuccess: t("toast.saveSuccess"),
+                toastError: t("toast.saveError")
               }}
               onUpdate={updateUserAction.bind(null, params.locale, user.id)}
             />

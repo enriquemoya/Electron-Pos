@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin-guard";
 import { fetchAdminUsers } from "@/lib/admin-api";
 import { Pagination } from "@/components/pagination";
 import { Link } from "@/navigation";
+import { BackButton } from "@/components/common/back-button";
 
 const PAGE_SIZE = 20;
 
@@ -22,6 +23,7 @@ export default async function AdminUsersPage({ params, searchParams }: AdminUser
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminUsers" });
+  const tNav = await getTranslations({ locale: params.locale, namespace: "navigation" });
   const page = parsePage(searchParams.page);
 
   try {
@@ -29,7 +31,12 @@ export default async function AdminUsersPage({ params, searchParams }: AdminUser
 
     return (
       <div className="space-y-6">
-        <div>
+        <div className="space-y-2">
+          <BackButton
+            label={tNav("back")}
+            fallbackHref={`/${params.locale}/admin/home`}
+            className="text-white/70"
+          />
           <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
           <p className="text-sm text-white/60">{t("subtitle")}</p>
         </div>

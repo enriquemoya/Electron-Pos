@@ -12,6 +12,7 @@ import { requireAdmin } from "@/lib/admin-guard";
 import { AdminTableControls } from "@/components/admin/admin-table-controls";
 import { TaxonomyFormDialog } from "@/components/admin/taxonomy-form-dialog";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/common/back-button";
 
 type TaxonomyType = "CATEGORY" | "GAME" | "EXPANSION" | "OTHER";
 
@@ -149,6 +150,7 @@ export default async function TaxonomiesPage({
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminTaxonomies" });
+  const tNav = await getTranslations({ locale: params.locale, namespace: "navigation" });
   const page = Number(searchParams?.page ?? 1) || 1;
   const pageSize = Number(searchParams?.pageSize ?? 20) || 20;
   const query = searchParams?.query ?? "";
@@ -175,7 +177,12 @@ export default async function TaxonomiesPage({
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="space-y-2">
+        <BackButton
+          label={tNav("back")}
+          fallbackHref={`/${params.locale}/admin/home`}
+          className="text-white/70"
+        />
         <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
         <p className="text-sm text-white/60">{t("subtitle")}</p>
       </div>
@@ -226,7 +233,8 @@ export default async function TaxonomiesPage({
             releaseEmpty: t("fields.releaseEmpty"),
             labelEs: t("fields.labelEs"),
             labelEn: t("fields.labelEn"),
-            submit: t("actions.create")
+            submit: t("actions.create"),
+            cancel: t("actions.cancel")
           }}
           typeLabels={{
             category: t("types.category"),
@@ -296,7 +304,8 @@ export default async function TaxonomiesPage({
                           releaseEmpty: t("fields.releaseEmpty"),
                           labelEs: t("fields.labelEs"),
                           labelEn: t("fields.labelEn"),
-                          submit: t("actions.save")
+                          submit: t("actions.save"),
+                          cancel: t("actions.cancel")
                         }}
                         typeLabels={{
                           category: t("types.category"),

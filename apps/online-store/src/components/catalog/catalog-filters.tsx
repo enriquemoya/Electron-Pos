@@ -7,7 +7,14 @@ import { Check, ChevronDown, ChevronsUpDown, Filter } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger
+} from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
@@ -142,6 +149,7 @@ export function CatalogFilters({
   const searchParams = useSearchParams();
 
   const [isDesktopOpen, setIsDesktopOpen] = useState(true);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const initial = useMemo(() => {
     return {
@@ -162,6 +170,10 @@ export function CatalogFilters({
       initial.priceMax ?? DEFAULT_MAX
     ]);
   }, [initial]);
+
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [pathname, searchParams]);
 
   const applyFilters = () => {
     const queryString = buildQuery({
@@ -257,7 +269,7 @@ export function CatalogFilters({
     <div className={cn("rounded-xl border border-white/10 bg-base-800/60 p-4", className)}>
       <div className="flex items-center justify-between gap-3 md:hidden">
         <div className="text-sm font-semibold text-white">{t("catalog.filters.title")}</div>
-        <Sheet>
+        <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
           <SheetTrigger asChild>
             <Button type="button" variant="outline">
               <Filter className="mr-2 h-4 w-4" />
@@ -268,7 +280,36 @@ export function CatalogFilters({
             <SheetHeader>
               <SheetTitle>{t("catalog.filters.title")}</SheetTitle>
             </SheetHeader>
-            <div className="mt-6 space-y-4">{filterContent}</div>
+            <div className="mt-6 space-y-4">
+              {taxonomyContent}
+              {priceContent}
+              <div className="flex flex-wrap gap-2">
+                <SheetClose asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      applyFilters();
+                      setIsMobileOpen(false);
+                    }}
+                  >
+                    {t("catalog.applyFilters")}
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      clearFilters();
+                      setIsMobileOpen(false);
+                    }}
+                  >
+                    {t("catalog.filters.clear")}
+                  </Button>
+                </SheetClose>
+              </div>
+            </div>
           </SheetContent>
         </Sheet>
       </div>

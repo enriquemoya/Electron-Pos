@@ -277,7 +277,7 @@ export async function createOrder(params: {
     const existingOrder = await tx.onlineOrder.findFirst({
       where: { draftId: params.draftId },
       include: {
-        user: { select: { email: true } },
+        user: { select: { email: true, emailLocale: true } },
         pickupBranch: { select: { name: true } }
       }
     });
@@ -287,7 +287,9 @@ export async function createOrder(params: {
         orderId: existingOrder.id,
         status: normalizeStatus(existingOrder.status),
         expiresAt: existingOrder.expiresAt.toISOString(),
+        customerId: existingOrder.userId,
         customerEmail: existingOrder.user?.email ?? null,
+        customerEmailLocale: existingOrder.user?.emailLocale ?? null,
         subtotal: Number(existingOrder.subtotal),
         currency: existingOrder.currency,
         pickupBranchName: existingOrder.pickupBranch?.name ?? null
@@ -353,7 +355,7 @@ export async function createOrder(params: {
         expiresAt
       },
       include: {
-        user: { select: { email: true } },
+        user: { select: { email: true, emailLocale: true } },
         pickupBranch: { select: { name: true } }
       }
     });
@@ -405,7 +407,9 @@ export async function createOrder(params: {
       orderId: order.id,
       status: normalizeStatus(order.status),
       expiresAt: order.expiresAt.toISOString(),
+      customerId: order.userId,
       customerEmail: order.user?.email ?? null,
+      customerEmailLocale: order.user?.emailLocale ?? null,
       subtotal,
       currency: order.currency,
       pickupBranchName: order.pickupBranch?.name ?? null
@@ -688,7 +692,7 @@ export async function transitionOrderStatus(params: {
     const order = await tx.onlineOrder.findUnique({
       where: { id: params.orderId },
       include: {
-        user: { select: { email: true } }
+        user: { select: { email: true, emailLocale: true } }
       }
     });
 
@@ -705,7 +709,9 @@ export async function transitionOrderStatus(params: {
         orderId: order.id,
         fromStatus,
         toStatus,
-        customerEmail: order.user.email ?? null
+        customerId: order.userId,
+        customerEmail: order.user.email ?? null,
+        customerEmailLocale: order.user.emailLocale ?? null
       };
     }
 
@@ -738,7 +744,9 @@ export async function transitionOrderStatus(params: {
       orderId: order.id,
       fromStatus,
       toStatus,
-      customerEmail: order.user.email ?? null
+      customerId: order.userId,
+      customerEmail: order.user.email ?? null,
+      customerEmailLocale: order.user.emailLocale ?? null
     };
   });
 }
@@ -757,6 +765,8 @@ export async function expirePendingOrders() {
     fromStatus: string | null;
     toStatus: string;
     customerEmail: string | null;
+    customerEmailLocale: "ES_MX" | "EN_US" | null;
+    customerId: string | null;
   }> = [];
 
   for (const item of pending) {

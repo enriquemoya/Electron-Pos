@@ -1,30 +1,31 @@
-import nodemailer from "nodemailer";
+import { smtpEmailProvider } from "../../email/email-provider";
 
-import { env } from "../../config/env";
-
-function createTransporter() {
-  return nodemailer.createTransport({
-    host: env.smtpHost,
-    port: env.smtpPort,
-    secure: env.smtpPort === 465,
-    auth: {
-      user: env.smtpUser,
-      pass: env.smtpPass
-    }
-  });
+export async function sendEmail(params: {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  meta?: {
+    userId?: string | null;
+    template?: string;
+    locale?: string;
+    orderId?: string | null;
+  };
+}) {
+  await smtpEmailProvider.sendEmail(params);
 }
 
-export async function sendEmail(params: { to: string; subject: string; html: string; text: string }) {
-  const transporter = createTransporter();
-  await transporter.sendMail({
-    from: env.smtpFrom,
-    to: params.to,
-    subject: params.subject,
-    html: params.html,
-    text: params.text
-  });
-}
-
-export async function sendMagicLinkEmail(params: { to: string; subject: string; html: string; text: string }) {
-  await sendEmail(params);
+export async function sendMagicLinkEmail(params: {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  meta?: {
+    userId?: string | null;
+    template?: string;
+    locale?: string;
+    orderId?: string | null;
+  };
+}) {
+  await smtpEmailProvider.sendEmail(params);
 }

@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { fetchAdminOrder, transitionAdminOrderStatus } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
 import { OrderStatusTransitionForm } from "@/components/admin/order-status-transition-form";
+import { BackButton } from "@/components/common/back-button";
+import { OrderStatusToast } from "@/components/admin/order-status-toast";
 
 async function transitionOrderStatusAction(formData: FormData) {
   "use server";
@@ -29,7 +31,7 @@ async function transitionOrderStatusAction(formData: FormData) {
 
   revalidatePath(`/${locale}/admin/orders`);
   revalidatePath(`/${locale}/admin/orders/${orderId}`);
-  redirect(`/${locale}/admin/orders/${orderId}`);
+  redirect(`/${locale}/admin/orders/${orderId}?success=transition`);
 }
 
 export default async function AdminOrderDetailPage({
@@ -37,7 +39,7 @@ export default async function AdminOrderDetailPage({
   searchParams
 }: {
   params: { locale: string; orderId: string };
-  searchParams?: { error?: string };
+  searchParams?: { error?: string; success?: string };
 }) {
   setRequestLocale(params.locale);
   requireAdmin(params.locale);
@@ -57,6 +59,17 @@ export default async function AdminOrderDetailPage({
 
   return (
     <div className="space-y-6">
+      <OrderStatusToast
+        success={searchParams?.success === "transition"}
+        error={searchParams?.error === "transition" || searchParams?.error === "invalid"}
+        successMessage={t("transition.toastSuccess")}
+        errorMessage={t("transition.toastError")}
+      />
+      <BackButton
+        label={t("actions.back")}
+        fallbackHref={`/${params.locale}/admin/orders`}
+        className="px-0 text-sm text-white/70 hover:text-white"
+      />
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>

@@ -3,6 +3,7 @@
 import type { MouseEvent } from "react";
 import { ShoppingCart } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/cart/cart-context";
@@ -32,7 +33,12 @@ export function AddToCartButton({
         if (event.defaultPrevented || disabled) {
           return;
         }
-        addItem(item);
+        try {
+          addItem(item);
+          toast.success(t("toast.addToCart.success"));
+        } catch {
+          toast.error(t("toast.addToCart.error"));
+        }
       }}
     >
       <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />

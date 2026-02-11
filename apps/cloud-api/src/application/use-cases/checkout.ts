@@ -1,6 +1,6 @@
 import type { CheckoutRepository } from "../ports";
 import type { EmailService } from "../ports";
-import { renderOrderCreatedEmail } from "../../email-templates";
+import { renderOrderCreatedEmail, resolveLocaleString, LOCALE } from "../../email";
 
 export type CheckoutUseCases = {
   createDraft: (params: {
@@ -65,10 +65,12 @@ export function createCheckoutUseCases(deps: {
     revalidate: (params) => deps.checkoutRepository.revalidateItems(params),
     async createOrder(params) {
       const created = await deps.checkoutRepository.createOrder(params);
-      if (created.customerEmail) {
-        try {
-          const mail = renderOrderCreatedEmail({
-            locale: "es",
+      const customerEmail = created.customerEmail;
+      if (customerEmail) {
+        void (async () => {
+          const resolvedLocale = resolveLocaleString(created.customerEmailLocale, LOCALE.ES_MX);
+          const mail = await renderOrderCreatedEmail({
+            locale: resolvedLocale,
             orderId: created.orderId,
             status: created.status,
             subtotal: created.subtotal,
@@ -77,17 +79,18 @@ export function createCheckoutUseCases(deps: {
             pickupBranchName: created.pickupBranchName
           });
           await deps.emailService?.sendEmail({
-            to: created.customerEmail,
+            to: customerEmail,
             subject: mail.subject,
             html: mail.html,
-            text: mail.text
+            text: mail.text,
+            meta: {
+              userId: created.customerId,
+              template: "OrderCreatedEmail",
+              locale: resolvedLocale,
+              orderId: created.orderId
+            }
           });
-        } catch (error) {
-          console.error("order created email failed", {
-            orderId: created.orderId,
-            error: error instanceof Error ? error.message : "unknown"
-          });
-        }
+        })();
       }
       return {
         orderId: created.orderId,

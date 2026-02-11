@@ -32,26 +32,30 @@ async function createProductAction(formData: FormData) {
     .toUpperCase();
   const reason = String(formData.get("reason") ?? "").trim();
 
-  await createCatalogProduct({
-    name,
-    slug,
-    gameId: gameId || null,
-    categoryId,
-    expansionId: expansionId || null,
-    price,
-    imageUrl,
-    description: description || null,
-    rarity: rarity || null,
-    tags,
-    availabilityState,
-    isActive,
-    isFeatured,
-    featuredOrder: featuredOrder ?? null,
-    reason
-  });
+  try {
+    await createCatalogProduct({
+      name,
+      slug,
+      gameId: gameId || null,
+      categoryId,
+      expansionId: expansionId || null,
+      price,
+      imageUrl,
+      description: description || null,
+      rarity: rarity || null,
+      tags,
+      availabilityState,
+      isActive,
+      isFeatured,
+      featuredOrder: featuredOrder ?? null,
+      reason
+    });
 
-  revalidatePath(`/${locale}/admin/products`);
-  redirect(`/${locale}/admin/products`);
+    revalidatePath(`/${locale}/admin/products`);
+    redirect(`/${locale}/admin/products?toast=save-success`);
+  } catch {
+    redirect(`/${locale}/admin/products?toast=save-error`);
+  }
 }
 
 export default async function ProductCreatePage({ params }: { params: { locale: string } }) {

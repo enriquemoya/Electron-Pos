@@ -6,6 +6,7 @@ import { ProfileForm } from "@/components/account/profile-form";
 import { PasswordForm } from "@/components/account/password-form";
 import { Card } from "@/components/ui/card";
 import { fetchProfile } from "@/lib/profile-api";
+import { toEmailLocaleValue } from "@/lib/email-locale";
 
 type State = { ok: boolean; error?: string };
 
@@ -24,6 +25,7 @@ async function updateProfileAction(prev: State, formData: FormData): Promise<Sta
   const firstName = String(formData.get("firstName") ?? "").trim();
   const lastName = String(formData.get("lastName") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
+  const emailLocale = String(formData.get("emailLocale") ?? "").trim();
 
   const addressPayload = {
     street: String(formData.get("street") ?? "").trim(),
@@ -43,6 +45,7 @@ async function updateProfileAction(prev: State, formData: FormData): Promise<Sta
     firstName,
     lastName,
     phone,
+    ...(emailLocale ? { emailLocale } : {}),
     ...(hasAddress ? { address: addressPayload } : {})
   };
 
@@ -114,6 +117,7 @@ export default async function ProfilePage({ params }: { params: { locale: string
     firstName: profile?.user.firstName ?? "",
     lastName: profile?.user.lastName ?? "",
     phone: profile?.user.phone ?? "",
+    emailLocale: toEmailLocaleValue(profile?.user.emailLocale ?? "ES_MX"),
     address: {
       street: profile?.address?.street ?? "",
       externalNumber: profile?.address?.externalNumber ?? "",
@@ -144,6 +148,9 @@ export default async function ProfilePage({ params }: { params: { locale: string
             firstName: t("profile.personal.firstName"),
             lastName: t("profile.personal.lastName"),
             phone: t("profile.personal.phone"),
+            emailLocale: t("profile.personal.emailLocale"),
+            emailLocaleEs: t("profile.personal.emailLocaleEs"),
+            emailLocaleEn: t("profile.personal.emailLocaleEn"),
             addressTitle: t("profile.address.title"),
             street: t("profile.address.street"),
             externalNumber: t("profile.address.externalNumber"),

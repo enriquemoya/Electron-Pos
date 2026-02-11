@@ -5,7 +5,7 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { CartProvider } from "@/components/cart/cart-context";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 
 export function generateStaticParams() {
   return [{ locale: "es" }, { locale: "en" }];

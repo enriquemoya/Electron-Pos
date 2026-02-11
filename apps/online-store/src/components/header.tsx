@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 import { Link } from "@/navigation";
 import { MainNav } from "@/components/navigation/main-nav";
@@ -14,6 +15,17 @@ import { fetchCategoriesByGame, fetchTaxonomyBundle, taxonomyLabel } from "@/lib
 export async function Header({ locale }: { locale: string }) {
   const t = await getTranslations();
   const token = cookies().get("auth_access")?.value;
+  const secret = process.env.JWT_SECRET;
+  let role: string | null = null;
+  if (token && secret) {
+    try {
+      const payload = jwt.verify(token, secret) as { role?: string };
+      role = payload.role ?? null;
+    } catch {
+      role = null;
+    }
+  }
+  const isAdmin = role === "ADMIN";
   const taxonomy = await fetchTaxonomyBundle();
   const categoriesByGame = await fetchCategoriesByGame(taxonomy.games);
 
@@ -177,14 +189,17 @@ export async function Header({ locale }: { locale: string }) {
             <AccountMenu
               profileHref="/account/profile"
               ordersHref="/account/orders"
+              adminHref="/admin/home"
               profileLabel={t("navigation.account.menu.profile")}
               ordersLabel={t("navigation.account.menu.orders")}
+              adminLabel={t("navigation.account.menu.admin")}
               logoutLabel={t("navigation.account.menu.logout")}
               menuLabel={t("navigation.account.label")}
               signInLabel={t("navigation.account.menu.signIn")}
               signInHref="/auth/login"
               logoutHref="/auth/logout"
               isAuthenticated={Boolean(token)}
+              isAdmin={isAdmin}
             />
             <Cart />
             <LocaleSwitcher />
@@ -194,14 +209,17 @@ export async function Header({ locale }: { locale: string }) {
             <AccountMenu
               profileHref="/account/profile"
               ordersHref="/account/orders"
+              adminHref="/admin/home"
               profileLabel={t("navigation.account.menu.profile")}
               ordersLabel={t("navigation.account.menu.orders")}
+              adminLabel={t("navigation.account.menu.admin")}
               logoutLabel={t("navigation.account.menu.logout")}
               menuLabel={t("navigation.account.label")}
               signInLabel={t("navigation.account.menu.signIn")}
               signInHref="/auth/login"
               logoutHref="/auth/logout"
               isAuthenticated={Boolean(token)}
+              isAdmin={isAdmin}
             />
             <Cart />
             <LocaleSwitcher />

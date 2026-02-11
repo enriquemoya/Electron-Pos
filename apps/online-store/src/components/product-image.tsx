@@ -27,10 +27,23 @@ export function ProductImage({
   sizes
 }: ProductImageProps) {
   const [failed, setFailed] = useState(false);
+  const isExternal = typeof src === "string" && (/^https?:\/\//i.test(src) || src.startsWith("//"));
   const hasSrc = Boolean(src);
   const resolvedSrc = !hasSrc || failed ? PLACEHOLDER_SRC : (src as string);
   const resolvedAlt = !hasSrc || failed ? fallbackAlt : alt;
   const resolvedSizes = useMemo(() => sizes ?? (fill ? "100vw" : undefined), [fill, sizes]);
+
+  if (isExternal) {
+    return (
+      <img
+        src={resolvedSrc}
+        alt={resolvedAlt}
+        loading={priority ? "eager" : "lazy"}
+        className={cn("h-full w-full object-cover", className)}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
 
   return (
     <Image

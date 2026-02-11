@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 import { useCart } from "@/components/cart/cart-context";
 import { CartItemRow } from "@/components/cart/cart-item-row";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
 import { formatMoney } from "@/lib/cart";
 import { Link } from "@/navigation";
 
@@ -42,7 +42,6 @@ type OrderResponse = {
 export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
   const t = useTranslations("checkout");
   const { items, subtotal, replaceItems, clear, updateQuantity, removeItem } = useCart();
-  const { toast } = useToast();
   const [draftId, setDraftId] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,6 +88,9 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
         const detail = typeof data.error === "string" ? data.error : "";
         setError(detail === "unauthorized" ? "unauthorized" : "server");
         setErrorDetail(detail || null);
+        toast.error(t("revalidation.title"), {
+          description: t("revalidation.error")
+        });
         setDraftId(null);
         setIsSyncing(false);
         return;
@@ -114,10 +116,25 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
         .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
       if (data.removedItems.length) {
-        toast({
-          title: t("revalidation.title"),
+        toast(t("revalidation.title"), {
           description: t("revalidation.removed")
         });
+      } else {
+        const hasChanges = nextItems.some((validated) => {
+          const existing = items.find((item) => item.id === validated.id);
+          if (!existing) return true;
+          return (
+            existing.quantity !== validated.quantity ||
+            existing.price !== validated.price ||
+            existing.currency !== validated.currency ||
+            existing.availability !== validated.availability
+          );
+        });
+        if (hasChanges) {
+          toast(t("revalidation.title"), {
+            description: t("revalidation.updated")
+          });
+        }
       }
 
       replaceItems(nextItems);

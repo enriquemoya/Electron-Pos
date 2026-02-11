@@ -2,18 +2,17 @@
 
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/cart/cart-context";
 import { CartItemRow } from "@/components/cart/cart-item-row";
 import { formatMoney } from "@/lib/cart";
 import { Link } from "@/navigation";
-import { useToast } from "@/components/ui/use-toast";
 
 export function CartPage() {
   const t = useTranslations();
   const { items, subtotal, updateQuantity, removeItem, clear, replaceItems } = useCart();
-  const { toast } = useToast();
   const hasValidated = useRef(false);
 
   useEffect(() => {
@@ -63,8 +62,7 @@ export function CartPage() {
         .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
       if (data.removedItems.length) {
-        toast({
-          title: t("checkout.revalidation.title"),
+        toast(t("checkout.revalidation.title"), {
           description: t("checkout.revalidation.removed")
         });
       }

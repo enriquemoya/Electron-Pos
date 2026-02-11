@@ -4,18 +4,28 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { fetchCatalogProducts } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
 import { AdminTableControls } from "@/components/admin/admin-table-controls";
+import { AdminSaveToast } from "@/components/admin/admin-save-toast";
+import { BackButton } from "@/components/common/back-button";
 
 export default async function ProductsPage({
   params,
   searchParams
 }: {
   params: { locale: string };
-  searchParams?: { page?: string; pageSize?: string; query?: string; sort?: string; direction?: string };
+  searchParams?: {
+    page?: string;
+    pageSize?: string;
+    query?: string;
+    sort?: string;
+    direction?: string;
+    toast?: string;
+  };
 }) {
   setRequestLocale(params.locale);
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminProducts" });
+  const tNav = await getTranslations({ locale: params.locale, namespace: "navigation" });
   const page = Number(searchParams?.page ?? 1) || 1;
   const pageSize = Number(searchParams?.pageSize ?? 20) || 20;
   const query = searchParams?.query ?? "";
@@ -26,8 +36,18 @@ export default async function ProductsPage({
 
   return (
     <div className="space-y-6">
+      <AdminSaveToast
+        status={searchParams?.toast}
+        successMessage={t("toast.saveSuccess")}
+        errorMessage={t("toast.saveError")}
+      />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
+          <BackButton
+            label={tNav("back")}
+            fallbackHref={`/${params.locale}/admin/home`}
+            className="text-white/70"
+          />
           <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
           <p className="text-sm text-white/60">{t("subtitle")}</p>
         </div>

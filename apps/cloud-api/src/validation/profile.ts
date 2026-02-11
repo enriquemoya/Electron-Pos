@@ -1,4 +1,5 @@
 import { ApiErrors } from "../errors/api-error";
+import { resolveLocaleEnum, LOCALE } from "../email/locales";
 import { validateAddressCreate } from "./users";
 
 const PHONE_RE = /^[+0-9()\-\s]+$/;
@@ -20,6 +21,7 @@ type ProfilePayload = {
   lastName?: unknown;
   phone?: unknown;
   address?: AddressInput;
+  emailLocale?: unknown;
 };
 
 function toNullableString(value: unknown) {
@@ -50,6 +52,10 @@ export function validateProfileUpdate(payload: ProfilePayload) {
 
   const firstName = payload.firstName === undefined ? undefined : toNullableString(payload.firstName);
   const lastName = payload.lastName === undefined ? undefined : toNullableString(payload.lastName);
+  const emailLocale =
+    payload.emailLocale === undefined
+      ? undefined
+      : resolveLocaleEnum(typeof payload.emailLocale === "string" ? payload.emailLocale : LOCALE.ES_MX);
 
   const addressInput = payload.address;
   const address = hasAddressData(addressInput)
@@ -67,7 +73,11 @@ export function validateProfileUpdate(payload: ProfilePayload) {
     : undefined;
 
   const hasAny =
-    firstName !== undefined || lastName !== undefined || phone !== undefined || address !== undefined;
+    firstName !== undefined ||
+    lastName !== undefined ||
+    phone !== undefined ||
+    address !== undefined ||
+    emailLocale !== undefined;
 
   if (!hasAny) {
     throw ApiErrors.invalidRequest;
@@ -77,7 +87,8 @@ export function validateProfileUpdate(payload: ProfilePayload) {
     user: {
       firstName,
       lastName,
-      phone
+      phone,
+      emailLocale
     },
     address
   };

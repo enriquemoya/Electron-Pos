@@ -1,9 +1,18 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 
 type State = { ok: boolean; error?: string };
 
@@ -11,6 +20,7 @@ type ProfileFormValues = {
   firstName: string;
   lastName: string;
   phone: string;
+  emailLocale: string;
   address: {
     street: string;
     externalNumber: string;
@@ -33,6 +43,9 @@ type ProfileFormProps = {
     firstName: string;
     lastName: string;
     phone: string;
+    emailLocale: string;
+    emailLocaleEs: string;
+    emailLocaleEn: string;
     addressTitle: string;
     street: string;
     externalNumber: string;
@@ -54,12 +67,25 @@ const initialState: State = { ok: false };
 
 export function ProfileForm({ action, labels, values }: ProfileFormProps) {
   const [state, formAction] = useFormState(action, initialState);
+  const lastState = useRef<State>(initialState);
+  const [emailLocale, setEmailLocale] = useState(values.emailLocale);
   const errorMessage =
     state.error === "invalid"
       ? labels.errorInvalid
       : state.error === "server"
         ? labels.errorServer
         : null;
+
+  useEffect(() => {
+    if (state.ok && !lastState.current.ok) {
+      toast.success(labels.success);
+    }
+    if (state.error && state.error !== lastState.current.error) {
+      const title = state.error === "invalid" ? labels.errorInvalid : labels.errorServer;
+      toast.error(title, { description: errorMessage || undefined });
+    }
+    lastState.current = state;
+  }, [errorMessage, labels.errorInvalid, labels.errorServer, labels.success, state]);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -80,6 +106,19 @@ export function ProfileForm({ action, labels, values }: ProfileFormProps) {
         <label className="space-y-2 text-sm text-white/70 sm:col-span-2">
           <span>{labels.phone}</span>
           <Input name="phone" defaultValue={values.phone} />
+        </label>
+        <label className="space-y-2 text-sm text-white/70 sm:col-span-2">
+          <span>{labels.emailLocale}</span>
+          <input type="hidden" name="emailLocale" value={emailLocale} />
+          <Select value={emailLocale} onValueChange={setEmailLocale}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="es-MX">{labels.emailLocaleEs}</SelectItem>
+              <SelectItem value="en-US">{labels.emailLocaleEn}</SelectItem>
+            </SelectContent>
+          </Select>
         </label>
       </div>
 

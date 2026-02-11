@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 type Role = "CUSTOMER" | "ADMIN";
@@ -19,6 +20,8 @@ type Labels = {
   confirmPrimary: string;
   confirmCancel: string;
   errorGeneric: string;
+  toastSuccess: string;
+  toastError: string;
 };
 
 type UpdateAction = (payload: { role: Role; status: Status }) => Promise<{ ok: boolean; error?: string }>;
@@ -44,9 +47,12 @@ export function UserRoleStatusForm({ initialRole, initialStatus, labels, onUpdat
     startTransition(async () => {
       const result = await onUpdate({ role, status });
       if (!result.ok) {
-        setError(result.error || labels.errorGeneric);
+        const message = result.error || labels.errorGeneric;
+        setError(message);
+        toast.error(labels.toastError, { description: message });
       } else {
         setOpen(false);
+        toast.success(labels.toastSuccess);
       }
     });
   };

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BranchCreateForm } from "@/components/admin/branch-create-form";
+import { BackButton } from "@/components/common/back-button";
 
 function parseCoordinate(value: FormDataEntryValue | null) {
   if (typeof value !== "string") {
@@ -100,11 +101,17 @@ export default async function BranchesPage({ params }: { params: { locale: strin
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminBranches" });
+  const tNav = await getTranslations({ locale: params.locale, namespace: "navigation" });
   const branches = await fetchAdminBranches();
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="space-y-2">
+        <BackButton
+          label={tNav("back")}
+          fallbackHref={`/${params.locale}/admin/home`}
+          className="text-white/70"
+        />
         <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
         <p className="text-sm text-white/60">{t("subtitle")}</p>
       </div>

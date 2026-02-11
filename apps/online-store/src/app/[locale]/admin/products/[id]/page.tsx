@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { fetchCatalogProduct, fetchTaxonomies, updateCatalogProduct } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
 import { ProductEditForm } from "@/components/admin/product-edit-form";
+import { BackButton } from "@/components/common/back-button";
+import { AdminSaveToast } from "@/components/admin/admin-save-toast";
+import { redirect } from "next/navigation";
 
 async function updateProductAction(formData: FormData) {
   "use server";
@@ -37,14 +40,21 @@ async function updateProductAction(formData: FormData) {
     reason: String(formData.get("reason") ?? "").trim()
   };
 
-  await updateCatalogProduct(productId, payload);
-  revalidatePath(`/${locale}/admin/products/${productId}`);
+  try {
+    await updateCatalogProduct(productId, payload);
+    revalidatePath(`/${locale}/admin/products/${productId}`);
+    redirect(`/${locale}/admin/products/${productId}?toast=save-success`);
+  } catch {
+    redirect(`/${locale}/admin/products/${productId}?toast=save-error`);
+  }
 }
 
 export default async function ProductDetailPage({
-  params
+  params,
+  searchParams
 }: {
   params: { locale: string; id: string };
+  searchParams?: { toast?: string };
 }) {
   setRequestLocale(params.locale);
   requireAdmin(params.locale);
@@ -57,6 +67,16 @@ export default async function ProductDetailPage({
 
   return (
     <div className="space-y-6">
+      <AdminSaveToast
+        status={searchParams?.toast}
+        successMessage={t("toast.saveSuccess")}
+        errorMessage={t("toast.saveError")}
+      />
+      <BackButton
+        label={t("actions.back")}
+        fallbackHref={`/${params.locale}/admin/products`}
+        className="px-0 text-sm text-white/70 hover:text-white"
+      />
       <div>
         <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>
         <p className="text-sm text-white/60">{product.displayName ?? product.productId}</p>

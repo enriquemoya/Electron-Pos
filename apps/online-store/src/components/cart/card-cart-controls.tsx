@@ -4,6 +4,7 @@ import type { MouseEvent } from "react";
 import { useState } from "react";
 import { Minus, Plus, ShoppingCart, AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 import type { CartItemInput } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
@@ -97,7 +98,12 @@ export function CardCartControls({ item }: { item: CartItemInput }) {
           size="icon"
           onClick={(event) => {
             blockLink(event);
-            addItem({ ...item, quantity });
+            try {
+              addItem({ ...item, quantity });
+              toast.success(t("toast.addToCart.success"));
+            } catch {
+              toast.error(t("toast.addToCart.error"));
+            }
           }}
           aria-label={t("cart.actions.add")}
           className="h-8 w-8 bg-accent-500 text-base-900 hover:bg-accent-400"
