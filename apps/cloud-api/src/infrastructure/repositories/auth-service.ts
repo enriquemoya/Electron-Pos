@@ -6,7 +6,7 @@ import { prisma } from "../db/prisma";
 import { env } from "../../config/env";
 import { resolveLocalePath } from "../../email/locales";
 
-const ACCESS_TTL_MINUTES = 15;
+const ACCESS_TTL_MINUTES = 60 * 24;
 const REFRESH_TTL_DAYS = 30;
 const MAGIC_LINK_TTL_MINUTES = 15;
 

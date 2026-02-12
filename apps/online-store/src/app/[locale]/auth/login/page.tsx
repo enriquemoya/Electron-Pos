@@ -66,7 +66,7 @@ async function passwordLogin(prev: { ok: boolean; error?: string }, formData: Fo
     secure: true,
     sameSite: "lax",
     path: "/",
-    maxAge: 15 * 60
+    maxAge: 24 * 60 * 60
   });
   cookieStore.set("auth_refresh", data.refreshToken, {
     httpOnly: true,

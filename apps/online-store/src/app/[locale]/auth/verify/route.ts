@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import { getPublicBaseUrl } from "@/lib/public-base-url";
 
-const ACCESS_MAX_AGE = 15 * 60;
+const ACCESS_MAX_AGE = 24 * 60 * 60;
 const REFRESH_MAX_AGE = 30 * 24 * 60 * 60;
 
 export async function GET(request: Request, { params }: { params: { locale: string } }) {
