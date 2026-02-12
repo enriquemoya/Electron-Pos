@@ -24,11 +24,25 @@ jobs:
 
       - name: Load build env
         run: |
-          echo "${{ secrets.DANIMEZONE_ENV }}" > /tmp/danimezone.env
-          set -a
-          . /tmp/danimezone.env
-          set +a
-          echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL" >> $GITHUB_ENV
+          python - <<'PY'
+          import os
+          env = os.environ.get("DANIMEZONE_ENV", "")
+          next_public = ""
+          for line in env.splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+              continue
+            key, value = line.split("=", 1)
+            if key == "NEXT_PUBLIC_API_URL":
+              next_public = value.strip().strip('"').strip("'")
+              break
+          if not next_public:
+            raise SystemExit("NEXT_PUBLIC_API_URL missing in DANIMEZONE_ENV")
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+            f.write(f"NEXT_PUBLIC_API_URL={next_public}\n")
+          PY
+        env:
+          DANIMEZONE_ENV: ${{ secrets.DANIMEZONE_ENV }}
 
       - name: Build & Push danimezone-site
         uses: docker/build-push-action@v6
