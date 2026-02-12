@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getPublicBaseUrl } from "@/lib/public-base-url";
 
 const ACCESS_MAX_AGE = 0;
 const REFRESH_MAX_AGE = 0;
@@ -16,7 +17,8 @@ export async function GET(request: NextRequest, { params }: { params: { locale: 
     });
   }
 
-  const response = NextResponse.redirect(new URL(`/${params.locale}?logout=1`, request.url));
+  const publicBaseUrl = getPublicBaseUrl(request);
+  const response = NextResponse.redirect(new URL(`/${params.locale}?logout=1`, publicBaseUrl));
   response.cookies.set("auth_access", "", {
     httpOnly: true,
     secure: true,

@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
+import { getPublicBaseUrl } from "@/lib/public-base-url";
 
 const ACCESS_MAX_AGE = 15 * 60;
 const REFRESH_MAX_AGE = 30 * 24 * 60 * 60;
@@ -8,13 +9,15 @@ export async function GET(request: Request, { params }: { params: { locale: stri
   const { searchParams } = new URL(request.url);
   const token = searchParams.get("token") ?? "";
 
+  const publicBaseUrl = getPublicBaseUrl(request);
+
   if (!token) {
-    return NextResponse.redirect(new URL(`/${params.locale}/auth/login?error=invalid`, request.url));
+    return NextResponse.redirect(new URL(`/${params.locale}/auth/login?error=invalid`, publicBaseUrl));
   }
 
   const baseUrl = process.env.CLOUD_API_URL;
   if (!baseUrl) {
-    return NextResponse.redirect(new URL(`/${params.locale}/auth/login?error=server`, request.url));
+    return NextResponse.redirect(new URL(`/${params.locale}/auth/login?error=server`, publicBaseUrl));
   }
 
   const response = await fetch(`${baseUrl}/auth/magic-link/verify`, {
@@ -25,7 +28,7 @@ export async function GET(request: Request, { params }: { params: { locale: stri
   });
 
   if (!response.ok) {
-    return NextResponse.redirect(new URL(`/${params.locale}/auth/login?error=invalid`, request.url));
+    return NextResponse.redirect(new URL(`/${params.locale}/auth/login?error=invalid`, publicBaseUrl));
   }
 
   const data = (await response.json()) as { accessToken: string; refreshToken: string };
@@ -42,7 +45,7 @@ export async function GET(request: Request, { params }: { params: { locale: stri
     }
   }
 
-  const result = NextResponse.redirect(new URL(redirectPath, request.url));
+  const result = NextResponse.redirect(new URL(redirectPath, publicBaseUrl));
   result.cookies.set("auth_access", data.accessToken, {
     httpOnly: true,
     secure: true,

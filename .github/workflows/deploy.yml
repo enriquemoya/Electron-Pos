@@ -92,3 +92,9 @@ jobs:
             done
             docker network inspect danimezone-web >/dev/null 2>&1 || docker network create danimezone-web
             docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d danimezone-site danimezone-api
+            FORCE_TRAEFIK_UPDATE="${{ secrets.FORCE_TRAEFIK_UPDATE }}"
+            if [ "${FORCE_TRAEFIK_UPDATE}" = "true" ]; then
+              docker compose -f docker-compose.traefik.yml --env-file deploy/.env up -d --force-recreate
+            elif ! docker ps -a --format '{{.Names}}' | grep -qx 'danimezone-traefik'; then
+              docker compose -f docker-compose.traefik.yml --env-file deploy/.env up -d
+            fi

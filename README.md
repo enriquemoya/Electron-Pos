@@ -113,3 +113,61 @@ const summary = await window.api.dashboard.getSummary(new Date().toLocaleDateStr
 - Renderer never touches SQLite directly.
 - All persistence goes through IPC.
 - Specs are ASCII-only by governance rules.
+
+## DanimeZone Deployment (VPS + Docker)
+
+This repo also deploys the `danimezone-site` and `danimezone-api` services to a VPS using Docker + Traefik.
+
+### Files
+
+- `docker-compose.prod.yml` runs the app services only (site + api).
+- `docker-compose.traefik.yml` runs Traefik only (reverse proxy + SSL).
+- `deploy/.env` holds production env variables (copied from GitHub Secrets).
+
+### Workflow
+
+GitHub Actions workflow: `.github/workflows/deploy.yml`
+
+Behavior:
+
+- Builds and pushes images to GHCR on `main`.
+- SSH deploy on VPS.
+- Recreates `danimezone-site` and `danimezone-api` only.
+- Traefik is not restarted on every deploy.
+
+### Traefik (SSL)
+
+Traefik is a separate stack to avoid unnecessary certificate re-issuance.
+
+Initial setup on VPS:
+
+```bash
+cd /docker/electron-pos
+docker compose -f docker-compose.traefik.yml --env-file deploy/.env up -d
+```
+
+Normal app deploy (no Traefik restart):
+
+```bash
+cd /docker/electron-pos
+docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d danimezone-site danimezone-api
+```
+
+### Force Traefik Update (Optional)
+
+GitHub Secret `FORCE_TRAEFIK_UPDATE` controls Traefik updates.
+
+- Set to `true` to force recreate Traefik on next deploy.
+- Omit or set `false` to skip.
+
+### Required GitHub Secrets
+
+- `VPS_HOST`
+- `VPS_USER`
+- `VPS_PORT`
+- `VPS_SSH_KEY`
+- `DEPLOY_PATH`
+- `DANIMEZONE_ENV`
+- `GHCR_TOKEN`
+- `GIT_TOKEN`
+- `FORCE_TRAEFIK_UPDATE` (optional)
