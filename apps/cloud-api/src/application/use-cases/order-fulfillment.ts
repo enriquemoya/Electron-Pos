@@ -56,7 +56,13 @@ export type OrderFulfillmentUseCases = {
     toStatus: string;
     actorUserId: string;
     reason: string | null;
-  }) => Promise<{ orderId: string; fromStatus: string | null; toStatus: string }>;
+  }) => Promise<{
+    orderId: string;
+    orderNumber: number;
+    orderCode: string;
+    fromStatus: string | null;
+    toStatus: string;
+  }>;
   runExpirationSweep: () => Promise<{ expired: number }>;
 };
 
@@ -64,6 +70,7 @@ async function sendStatusMail(
   emailService: EmailService,
   payload: {
     orderId: string;
+    orderCode: string;
     fromStatus: string | null;
     toStatus: string;
     customerEmail: string | null;
@@ -80,7 +87,7 @@ async function sendStatusMail(
     const resolvedLocale = resolveLocaleString(payload.customerEmailLocale, LOCALE.ES_MX);
     const mail = await renderOrderStatusChangedEmail({
       locale: resolvedLocale,
-      orderId: payload.orderId,
+      orderCode: payload.orderCode,
       fromStatus: payload.fromStatus,
       toStatus: payload.toStatus,
       reason: payload.reason ?? null
@@ -148,6 +155,7 @@ export function createOrderFulfillmentUseCases(deps: {
       });
       await sendStatusMail(deps.emailService, {
         orderId: updated.orderId,
+        orderCode: updated.orderCode,
         fromStatus: updated.fromStatus,
         toStatus: updated.toStatus,
         customerEmail: updated.customerEmail,
@@ -157,6 +165,8 @@ export function createOrderFulfillmentUseCases(deps: {
       });
       return {
         orderId: updated.orderId,
+        orderNumber: updated.orderNumber,
+        orderCode: updated.orderCode,
         fromStatus: updated.fromStatus,
         toStatus: updated.toStatus
       };
@@ -166,6 +176,7 @@ export function createOrderFulfillmentUseCases(deps: {
       for (const entry of expired) {
         await sendStatusMail(deps.emailService, {
           orderId: entry.orderId,
+          orderCode: entry.orderCode,
           fromStatus: entry.fromStatus,
           toStatus: entry.toStatus,
           customerEmail: entry.customerEmail,

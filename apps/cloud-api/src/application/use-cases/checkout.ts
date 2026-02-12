@@ -51,7 +51,7 @@ export type CheckoutUseCases = {
     draftId: string;
     paymentMethod: "PAY_IN_STORE";
     pickupBranchId: string | null;
-  }) => Promise<{ orderId: string; status: string; expiresAt: string }>;
+  }) => Promise<{ orderId: string; orderNumber: number; orderCode: string; status: string; expiresAt: string }>;
   getOrder: (params: { userId: string; orderId: string }) => Promise<Record<string, unknown> | null>;
 };
 
@@ -71,7 +71,7 @@ export function createCheckoutUseCases(deps: {
           const resolvedLocale = resolveLocaleString(created.customerEmailLocale, LOCALE.ES_MX);
           const mail = await renderOrderCreatedEmail({
             locale: resolvedLocale,
-            orderId: created.orderId,
+            orderCode: created.orderCode,
             status: created.status,
             subtotal: created.subtotal,
             currency: created.currency,
@@ -94,6 +94,8 @@ export function createCheckoutUseCases(deps: {
       }
       return {
         orderId: created.orderId,
+        orderNumber: created.orderNumber,
+        orderCode: created.orderCode,
         status: created.status,
         expiresAt: created.expiresAt
       };

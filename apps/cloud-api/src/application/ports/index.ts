@@ -182,6 +182,8 @@ export type CheckoutRepository = {
     pickupBranchId: string | null;
   }) => Promise<{
     orderId: string;
+    orderNumber: number;
+    orderCode: string;
     status: string;
     expiresAt: string;
     customerId: string;
@@ -205,6 +207,8 @@ export type OrderFulfillmentRepository = {
   }) => Promise<{ items: Array<Record<string, unknown>>; total: number }>;
   getOrderTransitionContext: (params: { orderId: string }) => Promise<{
     orderId: string;
+    orderNumber: number;
+    orderCode: string;
     status: string;
     paymentMethod: string;
     pickupBranchId: string | null;
@@ -228,6 +232,8 @@ export type OrderFulfillmentRepository = {
     source: "admin" | "system";
   }) => Promise<{
     orderId: string;
+    orderNumber: number;
+    orderCode: string;
     fromStatus: string | null;
     toStatus: string;
     customerEmail: string | null;
@@ -236,6 +242,8 @@ export type OrderFulfillmentRepository = {
   }>;
   expirePendingOrders: () => Promise<Array<{
     orderId: string;
+    orderNumber: number;
+    orderCode: string;
     fromStatus: string | null;
     toStatus: string;
     customerEmail: string | null;

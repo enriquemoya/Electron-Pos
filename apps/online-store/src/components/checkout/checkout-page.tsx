@@ -35,6 +35,8 @@ type DraftResponse = {
 
 type OrderResponse = {
   orderId: string;
+  orderNumber: number;
+  orderCode: string;
   status: string;
   expiresAt: string;
 };
@@ -196,14 +198,14 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
           <h1 className="text-2xl font-semibold text-white">{t("success.title")}</h1>
           <p className="text-sm text-white/60">{t("success.subtitle")}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-          <p>
-            {t("success.orderId")}: <span className="text-white">{order.orderId}</span>
-          </p>
-          <p>
-            {t("success.expires")}: <span className="text-white">{new Date(order.expiresAt).toLocaleDateString()}</span>
-          </p>
-        </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+            <p>
+              {t("success.orderId")}: <span className="text-white">{order.orderCode}</span>
+            </p>
+            <p>
+              {t("success.expires")}: <span className="text-white">{new Date(order.expiresAt).toLocaleDateString()}</span>
+            </p>
+          </div>
         <Button asChild>
           <Link href="/">{t("success.backHome")}</Link>
         </Button>

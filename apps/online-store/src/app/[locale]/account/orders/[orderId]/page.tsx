@@ -55,7 +55,7 @@ export default async function AccountOrderDetailPage({
       />
       <div>
         <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>
-        <p className="text-sm text-white/60">{order.id}</p>
+        <p className="text-sm text-white/60">{order.orderCode}</p>
       </div>
 
       <div className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 md:grid-cols-2">

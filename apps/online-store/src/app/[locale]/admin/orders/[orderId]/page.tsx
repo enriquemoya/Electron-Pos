@@ -73,7 +73,7 @@ export default async function AdminOrderDetailPage({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>
-          <p className="text-sm text-white/60">{order.id}</p>
+          <p className="text-sm text-white/60">{order.orderCode}</p>
         </div>
       </div>
 

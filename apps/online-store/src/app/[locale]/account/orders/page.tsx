@@ -78,7 +78,7 @@ export default async function AccountOrdersPage({
                   result.items.map((item) => (
                     <tr key={item.id} className="border-t border-white/10">
                       <td className="px-4 py-3">
-                        <p className="text-white">{item.id}</p>
+                        <p className="text-white">{item.orderCode}</p>
                         <p className="text-xs text-white/50">{new Date(item.createdAt).toLocaleString()}</p>
                       </td>
                       <td className="px-4 py-3">{t(`statuses.${item.status}`)}</td>

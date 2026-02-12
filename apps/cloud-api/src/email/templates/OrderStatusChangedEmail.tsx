@@ -8,7 +8,7 @@ import { TOKENS, SPACING, TYPOGRAPHY } from "../design-tokens";
 
 export type OrderStatusChangedEmailInput = {
   locale: LocaleString;
-  orderId: string;
+  orderCode: string;
   fromStatus: string | null;
   toStatus: string;
   reason?: string | null;
@@ -93,7 +93,7 @@ export function OrderStatusChangedEmail({ locale, ...props }: OrderStatusChanged
       <Text style={{ ...TYPOGRAPHY.body, color: TOKENS.MUTED_TEXT_COLOR }}>{copy.subtitle}</Text>
       <Section style={{ marginTop: SPACING.md }}>
         <SectionCard title={copy.orderIdLabel}>
-          <Text style={{ ...TYPOGRAPHY.body, margin: 0 }}>{props.orderId}</Text>
+          <Text style={{ ...TYPOGRAPHY.body, margin: 0 }}>{props.orderCode}</Text>
         </SectionCard>
       </Section>
       {fromStatus ? (
@@ -122,5 +122,5 @@ export function OrderStatusChangedEmail({ locale, ...props }: OrderStatusChanged
 export async function renderOrderStatusChangedEmail(params: OrderStatusChangedEmailInput) {
   const html = await render(<OrderStatusChangedEmail {...params} />);
   const text = await render(<OrderStatusChangedEmail {...params} />, { plainText: true });
-  return { subject: content[params.locale].subject, html, text };
+  return { subject: `${content[params.locale].subject} ${params.orderCode}`, html, text };
 }

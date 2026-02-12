@@ -277,6 +277,8 @@ model PreorderDraftItem {
 
 model OnlineOrder {
   id             String           @id @default(uuid()) @db.Uuid
+  orderNumber    Int              @unique @default(dbgenerated("nextval('order_number_seq'::regclass)")) @map("order_number")
+  orderCode      String           @unique @map("order_code")
   userId         String           @map("user_id") @db.Uuid
   draftId        String           @map("draft_id") @db.Uuid
   status         OnlineOrderStatus @default(PENDING_PAYMENT)

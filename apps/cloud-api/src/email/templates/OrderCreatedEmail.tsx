@@ -8,7 +8,7 @@ import { TOKENS, SPACING, TYPOGRAPHY } from "../design-tokens";
 
 export type OrderCreatedEmailInput = {
   locale: LocaleString;
-  orderId: string;
+  orderCode: string;
   status: string;
   subtotal: number;
   currency: string;
@@ -97,7 +97,7 @@ export function OrderCreatedEmail({ locale, ...props }: OrderCreatedEmailInput) 
       <Text style={{ ...TYPOGRAPHY.body, color: TOKENS.MUTED_TEXT_COLOR }}>{copy.subtitle}</Text>
       <Section style={{ marginTop: SPACING.md }}>
         <SectionCard title={copy.orderIdLabel}>
-          <Text style={{ ...TYPOGRAPHY.body, margin: 0 }}>{props.orderId}</Text>
+          <Text style={{ ...TYPOGRAPHY.body, margin: 0 }}>{props.orderCode}</Text>
         </SectionCard>
       </Section>
       <Section style={{ marginTop: SPACING.md }}>
@@ -129,5 +129,5 @@ export function OrderCreatedEmail({ locale, ...props }: OrderCreatedEmailInput) 
 export async function renderOrderCreatedEmail(params: OrderCreatedEmailInput) {
   const html = await render(<OrderCreatedEmail {...params} />);
   const text = await render(<OrderCreatedEmail {...params} />, { plainText: true });
-  return { subject: content[params.locale].subject, html, text };
+  return { subject: `${content[params.locale].subject} ${params.orderCode}`, html, text };
 }

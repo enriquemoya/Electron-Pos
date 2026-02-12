@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 
 export type CustomerOrderListItem = {
   id: string;
+  orderNumber: number;
+  orderCode: string;
   status: string;
   subtotal: number;
   currency: string;
@@ -16,6 +18,8 @@ export type CustomerOrderListItem = {
 
 export type CustomerOrderDetail = {
   id: string;
+  orderNumber: number;
+  orderCode: string;
   status: string;
   subtotal: number;
   currency: string;

@@ -113,6 +113,8 @@ type OrderStatus =
 
 type AdminOrderListItem = {
   id: string;
+  orderNumber: number;
+  orderCode: string;
   status: OrderStatus;
   subtotal: number;
   currency: string;
@@ -127,6 +129,8 @@ type AdminOrderListItem = {
 
 type AdminOrderDetail = {
   id: string;
+  orderNumber: number;
+  orderCode: string;
   status: OrderStatus;
   subtotal: number;
   currency: string;

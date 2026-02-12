@@ -13,6 +13,22 @@ function normalizeStatus(value: string) {
   return value;
 }
 
+function normalizeBranchPrefix(name: string) {
+  const normalized = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "")
+    .toUpperCase();
+  const prefix = normalized.slice(0, 3);
+  return prefix || "ONL";
+}
+
+function buildOrderCode(prefix: string, orderNumber: number) {
+  const normalizedPrefix = prefix.slice(0, 3) || "ONL";
+  const padded = orderNumber.toString().padStart(6, "0");
+  return `${normalizedPrefix}-${padded}`;
+}
+
 function toDbStatus(value: string): OnlineOrderStatus {
   if (value === "CANCELLED_MANUAL") {
     return "CANCELLED_MANUAL";
@@ -285,6 +301,8 @@ export async function createOrder(params: {
     if (existingOrder) {
       return {
         orderId: existingOrder.id,
+        orderNumber: existingOrder.orderNumber,
+        orderCode: existingOrder.orderCode,
         status: normalizeStatus(existingOrder.status),
         expiresAt: existingOrder.expiresAt.toISOString(),
         customerId: existingOrder.userId,
@@ -309,11 +327,13 @@ export async function createOrder(params: {
       throw ApiErrors.checkoutDraftInactive;
     }
 
+    let pickupBranchName: string | null = null;
     if (params.pickupBranchId) {
       const branch = await tx.pickupBranch.findUnique({ where: { id: params.pickupBranchId } });
       if (!branch) {
         throw ApiErrors.branchNotFound;
       }
+      pickupBranchName = branch.name;
     }
 
     if (!draft.items.length) {
@@ -342,6 +362,15 @@ export async function createOrder(params: {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
 
+    const prefix = params.pickupBranchId ? normalizeBranchPrefix(pickupBranchName ?? "") : "ONL";
+    const nextNumberRows =
+      await tx.$queryRaw<{ nextval: bigint }[]>`SELECT nextval('order_number_seq') AS nextval`;
+    const orderNumber = Number(nextNumberRows[0]?.nextval ?? 0);
+    if (!Number.isFinite(orderNumber) || orderNumber <= 0) {
+      throw ApiErrors.checkoutInvalid;
+    }
+    const orderCode = buildOrderCode(prefix, orderNumber);
+
     const order = await tx.onlineOrder.create({
       data: {
         userId: params.userId,
@@ -352,7 +381,9 @@ export async function createOrder(params: {
         pickupBranchId: params.pickupBranchId,
         subtotal: new Prisma.Decimal(subtotal),
         currency: "MXN",
-        expiresAt
+        expiresAt,
+        orderNumber,
+        orderCode
       },
       include: {
         user: { select: { email: true, emailLocale: true } },
@@ -405,6 +436,8 @@ export async function createOrder(params: {
 
     return {
       orderId: order.id,
+      orderNumber: order.orderNumber,
+      orderCode: order.orderCode,
       status: normalizeStatus(order.status),
       expiresAt: order.expiresAt.toISOString(),
       customerId: order.userId,
@@ -429,6 +462,8 @@ export async function getOrder(params: { userId: string; orderId: string }) {
 
   return {
     id: order.id,
+    orderNumber: order.orderNumber,
+    orderCode: order.orderCode,
     status: normalizeStatus(order.status),
     paymentMethod: order.paymentMethod,
     subtotal: Number(order.subtotal),
@@ -453,7 +488,11 @@ export async function listAdminOrders(params: {
   direction?: "asc" | "desc";
 }) {
   const search = params.query?.trim();
-  const isUuid = Boolean(search && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(search));
+  const isUuid = Boolean(
+    search && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(search)
+  );
+  const isOrderNumber = Boolean(search && /^\d+$/.test(search));
+  const orderCodeQuery = search ? search.toUpperCase() : null;
 
   const where: Prisma.OnlineOrderWhereInput = {
     ...(params.status ? { status: toDbStatus(params.status) } : {}),
@@ -461,6 +500,13 @@ export async function listAdminOrders(params: {
       ? {
           OR: [
             ...(isUuid ? [{ id: search }] : []),
+            ...(isOrderNumber ? [{ orderNumber: Number(search) }] : []),
+            ...(orderCodeQuery
+              ? [
+                  { orderCode: orderCodeQuery },
+                  { orderCode: { startsWith: orderCodeQuery } }
+                ]
+              : []),
             { user: { email: { contains: search, mode: "insensitive" } } }
           ]
         }
@@ -496,6 +542,8 @@ export async function listAdminOrders(params: {
   return {
     items: items.map((item) => ({
       id: item.id,
+      orderNumber: item.orderNumber,
+      orderCode: item.orderCode,
       status: normalizeStatus(item.status),
       subtotal: Number(item.subtotal),
       currency: item.currency,
@@ -521,6 +569,8 @@ export async function getOrderTransitionContext(params: { orderId: string }) {
     where: { id: params.orderId },
     select: {
       id: true,
+      orderNumber: true,
+      orderCode: true,
       status: true,
       paymentMethod: true,
       pickupBranchId: true
@@ -533,6 +583,8 @@ export async function getOrderTransitionContext(params: { orderId: string }) {
 
   return {
     orderId: order.id,
+    orderNumber: order.orderNumber,
+    orderCode: order.orderCode,
     status: normalizeStatus(order.status),
     paymentMethod: order.paymentMethod,
     pickupBranchId: order.pickupBranchId
@@ -559,6 +611,8 @@ export async function getAdminOrder(params: { orderId: string }) {
 
   return {
     id: order.id,
+    orderNumber: order.orderNumber,
+    orderCode: order.orderCode,
     status: normalizeStatus(order.status),
     subtotal: Number(order.subtotal),
     currency: order.currency,
@@ -621,6 +675,8 @@ export async function listCustomerOrders(params: {
   return {
     items: items.map((item) => ({
       id: item.id,
+      orderNumber: item.orderNumber,
+      orderCode: item.orderCode,
       status: normalizeStatus(item.status),
       subtotal: Number(item.subtotal),
       currency: item.currency,
@@ -656,6 +712,8 @@ export async function getCustomerOrder(params: { userId: string; orderId: string
 
   return {
     id: order.id,
+    orderNumber: order.orderNumber,
+    orderCode: order.orderCode,
     status: normalizeStatus(order.status),
     subtotal: Number(order.subtotal),
     currency: order.currency,
@@ -707,6 +765,8 @@ export async function transitionOrderStatus(params: {
     if (fromStatus === toStatus) {
       return {
         orderId: order.id,
+        orderNumber: order.orderNumber,
+        orderCode: order.orderCode,
         fromStatus,
         toStatus,
         customerId: order.userId,
@@ -742,6 +802,8 @@ export async function transitionOrderStatus(params: {
 
     return {
       orderId: order.id,
+      orderNumber: order.orderNumber,
+      orderCode: order.orderCode,
       fromStatus,
       toStatus,
       customerId: order.userId,
@@ -762,6 +824,8 @@ export async function expirePendingOrders() {
 
   const results: Array<{
     orderId: string;
+    orderNumber: number;
+    orderCode: string;
     fromStatus: string | null;
     toStatus: string;
     customerEmail: string | null;
