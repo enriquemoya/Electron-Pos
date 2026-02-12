@@ -14,10 +14,11 @@ services:
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
       - --certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_EMAIL}
-      - --certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme-staging.json
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.letsencrypt-staging.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesresolvers.letsencrypt-staging.acme.email=${TRAEFIK_EMAIL}
+      - --certificatesresolvers.letsencrypt-staging.acme.storage=/letsencrypt/acme-staging.json
+      - --certificatesresolvers.letsencrypt-staging.acme.httpchallenge=true
+      - --certificatesresolvers.letsencrypt-staging.acme.httpchallenge.entrypoint=web
     ports:
       - "80:80"
       - "443:443"
@@ -40,7 +41,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.danimezone-site.rule=Host(`danimezone.com`) || Host(`www.danimezone.com`)
       - traefik.http.routers.danimezone-site.entrypoints=websecure
-      - traefik.http.routers.danimezone-site.tls.certresolver=letsencrypt
+      - traefik.http.routers.danimezone-site.tls.certresolver=letsencrypt-staging
       - traefik.http.services.danimezone-site.loadbalancer.server.port=3000
       - traefik.http.routers.danimezone-site-http.rule=Host(`danimezone.com`) || Host(`www.danimezone.com`)
       - traefik.http.routers.danimezone-site-http.entrypoints=web
@@ -78,7 +79,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.danimezone-api.rule=Host(`api.danimezone.com`)
       - traefik.http.routers.danimezone-api.entrypoints=websecure
-      - traefik.http.routers.danimezone-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.danimezone-api.tls.certresolver=letsencrypt-staging
       - traefik.http.services.danimezone-api.loadbalancer.server.port=4000
       - traefik.http.routers.danimezone-api-http.rule=Host(`api.danimezone.com`)
       - traefik.http.routers.danimezone-api-http.entrypoints=web
