@@ -84,13 +84,11 @@ jobs:
             EOF
             sed -i 's/\r$//' deploy/.env
             chmod 600 deploy/.env
-            mkdir -p deploy/letsencrypt
-            touch deploy/letsencrypt/acme.json
-            chmod 600 deploy/letsencrypt/acme.json
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             for i in 1 2 3; do
               echo "Pull attempt $i..."
               docker compose -f docker-compose.prod.yml --env-file deploy/.env pull && break
               sleep 5
             done
-            docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d
+            docker network inspect danimezone-web >/dev/null 2>&1 || docker network create danimezone-web
+            docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d danimezone-site danimezone-api
