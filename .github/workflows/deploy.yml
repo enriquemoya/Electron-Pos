@@ -72,10 +72,13 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
-            if [ ! -f "docker-compose.prod.yml" ]; then
-              echo "docker-compose.prod.yml not found in DEPLOY_PATH. Aborting deploy."
-              exit 1
+            if [ ! -d ".git" ]; then
+              echo "Repo not found in DEPLOY_PATH. Cloning..."
+              rm -rf ./* ./.??* 2>/dev/null || true
+              git clone https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }}.git .
             fi
+            git fetch --all
+            git reset --hard origin/main
             cat <<'EOF' > deploy/.env
             ${{ secrets.DANIMEZONE_ENV }}
             EOF
