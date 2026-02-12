@@ -72,7 +72,7 @@ services:
       - APP_NAME=${APP_NAME}
       - SUPPORT_EMAIL=${SUPPORT_EMAIL}
       - CLOUD_API_BASE_URL=${CLOUD_API_BASE_URL}
-      - ENVIROMENT=${ENVIROMENT}
+      - ENVIROMENT=${ENVIRONMENT}
     labels:
       - traefik.enable=true
       - traefik.http.routers.danimezone-api.rule=Host(`api.danimezone.com`)
