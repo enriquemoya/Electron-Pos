@@ -44,7 +44,9 @@ services:
       - traefik.http.routers.danimezone-site-http.rule=Host(`danimezone.com`) || Host(`www.danimezone.com`)
       - traefik.http.routers.danimezone-site-http.entrypoints=web
       - traefik.http.routers.danimezone-site-http.middlewares=redirect-to-https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectregex.regex=^http://(.*)/(?!\\.well-known/acme-challenge/)(.*)
+      - traefik.http.middlewares.redirect-to-https.redirectregex.replacement=https://$${1}/$${2}
+      - traefik.http.middlewares.redirect-to-https.redirectregex.permanent=true
     networks:
       - web
 
@@ -80,7 +82,9 @@ services:
       - traefik.http.routers.danimezone-api-http.rule=Host(`api.danimezone.com`)
       - traefik.http.routers.danimezone-api-http.entrypoints=web
       - traefik.http.routers.danimezone-api-http.middlewares=redirect-to-https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectregex.regex=^http://(.*)/(?!\\.well-known/acme-challenge/)(.*)
+      - traefik.http.middlewares.redirect-to-https.redirectregex.replacement=https://$${1}/$${2}
+      - traefik.http.middlewares.redirect-to-https.redirectregex.permanent=true
     networks:
       - web
 
