@@ -54,8 +54,8 @@ export function EmailLayout({ preview, children }: EmailLayoutProps) {
               <Img
                 src={branding.logoUrl}
                 alt={branding.appName}
-                width="140"
-                height="36"
+                width="75"
+                height="75"
                 style={{ display: "block", marginBottom: SPACING.sm }}
               />
             ) : null}
