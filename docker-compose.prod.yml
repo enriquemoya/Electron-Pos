@@ -37,6 +37,10 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - CLOUD_API_URL=${CLOUD_API_URL}
+      - CLOUD_API_BASE_URL=${CLOUD_API_BASE_URL}
+      - API_URL=${API_URL}
+      - CLOUD_SHARED_SECRET=${CLOUD_SHARED_SECRET}
     labels:
       - traefik.enable=true
       - traefik.http.routers.danimezone-site.rule=Host(`danimezone.com`) || Host(`www.danimezone.com`)
