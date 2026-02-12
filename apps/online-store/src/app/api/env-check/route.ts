@@ -1,6 +1,8 @@
+import { getCloudApiUrl } from "@/lib/cloud-api";
+
 export async function GET() {
   return Response.json({
-    cloudApiUrl: process.env.CLOUD_API_URL ?? null,
+    cloudApiUrl: getCloudApiUrl(),
     nextPublicApiUrl: process.env.NEXT_PUBLIC_API_URL ?? null
   });
 }

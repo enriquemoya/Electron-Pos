@@ -1,9 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { getCloudApiUrl, getCloudSecret } from "@/lib/cloud-api";
+
 export async function GET() {
   const token = cookies().get("auth_access")?.value;
-  const baseUrl = process.env.CLOUD_API_URL;
+  const baseUrl = getCloudApiUrl();
+  const secret = getCloudSecret();
 
   if (!token || !baseUrl) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -11,7 +14,7 @@ export async function GET() {
 
   const response = await fetch(`${baseUrl}/checkout/drafts/active`, {
     headers: {
-      "x-cloud-secret": process.env.CLOUD_SHARED_SECRET || "",
+      "x-cloud-secret": secret,
       authorization: `Bearer ${token}`
     },
     cache: "no-store"

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { getCloudApiUrl } from "@/lib/cloud-api";
+
 const ALLOWED_TYPES = new Set(["games", "categories", "expansions"]);
 
 export async function GET(
@@ -10,7 +12,7 @@ export async function GET(
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const baseUrl = process.env.CLOUD_API_URL;
+  const baseUrl = getCloudApiUrl();
   if (!baseUrl) {
     return NextResponse.json({ error: "missing_cloud_api_url" }, { status: 500 });
   }

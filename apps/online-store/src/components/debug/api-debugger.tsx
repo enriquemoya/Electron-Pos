@@ -36,22 +36,14 @@
            body: env ?? envText
          });
 
-         const apiUrl = env?.cloudApiUrl || env?.nextPublicApiUrl;
-         if (!apiUrl) {
-           console.error("[api-debug] Missing API URL in env.");
-           return;
-         }
-
-         const target = `${apiUrl.replace(/\/$/, "")}/api/cloud/catalog/featured`;
-
-         const res = await fetch(target, { method: "GET" });
-         const body = await safeReadBody(res);
-         console.error("[api-debug] api response", {
-           url: target,
-           status: res.status,
-           ok: res.ok,
-           body
-         });
+        const res = await fetch("/api/cloud/catalog/featured", { method: "GET" });
+        const body = await safeReadBody(res);
+        console.error("[api-debug] api response", {
+          url: "/api/cloud/catalog/featured",
+          status: res.status,
+          ok: res.ok,
+          body
+        });
        } catch (error) {
          console.error("[api-debug] failed", error);
        }

@@ -75,8 +75,8 @@ export async function fetchCatalog(params: {
   priceMax?: number;
   id?: string;
 }): Promise<ProductListResponse> {
-  const baseUrl = process.env.CLOUD_API_URL;
-  const secret = process.env.CLOUD_SHARED_SECRET;
+  const baseUrl = getCloudApiUrl();
+  const secret = getCloudSecret();
 
   if (!baseUrl) {
     throw new Error("CLOUD_API_URL is required.");
@@ -118,8 +118,8 @@ export async function fetchCatalog(params: {
 export async function fetchFeaturedProducts(): Promise<{
   items: ProductListItem[];
 }> {
-  const baseUrl = process.env.CLOUD_API_URL;
-  const secret = process.env.CLOUD_SHARED_SECRET;
+  const baseUrl = getCloudApiUrl();
+  const secret = getCloudSecret();
 
   if (!baseUrl) {
     throw new Error("CLOUD_API_URL is required.");
@@ -161,8 +161,8 @@ export async function fetchFeaturedProducts(): Promise<{
 }
 
 async function fetchTaxonomyEndpoint(path: string): Promise<TaxonomyItem[]> {
-  const baseUrl = process.env.CLOUD_API_URL;
-  const secret = process.env.CLOUD_SHARED_SECRET;
+  const baseUrl = getCloudApiUrl();
+  const secret = getCloudSecret();
   if (!baseUrl) {
     throw new Error("CLOUD_API_URL is required.");
   }
@@ -218,3 +218,4 @@ export async function fetchTaxonomyExpansions(gameId?: string) {
   const query = gameId ? `?gameId=${encodeURIComponent(gameId)}` : "";
   return fetchTaxonomyEndpoint(`/catalog/taxonomies/expansions${query}`);
 }
+import { getCloudApiUrl, getCloudSecret } from "@/lib/cloud-api";

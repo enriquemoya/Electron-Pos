@@ -1,9 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { getCloudApiUrl, getCloudSecret } from "@/lib/cloud-api";
+
 export async function POST(request: Request) {
   const token = cookies().get("auth_access")?.value;
-  const baseUrl = process.env.CLOUD_API_URL;
+  const baseUrl = getCloudApiUrl();
+  const secret = getCloudSecret();
 
   if (!token || !baseUrl) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -14,7 +17,7 @@ export async function POST(request: Request) {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-cloud-secret": process.env.CLOUD_SHARED_SECRET || "",
+      "x-cloud-secret": secret,
       authorization: `Bearer ${token}`
     },
     body: JSON.stringify(body),
