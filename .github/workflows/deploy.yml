@@ -22,6 +22,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Load build env
+        run: |
+          echo "${{ secrets.DANIMEZONE_ENV }}" > /tmp/danimezone.env
+          set -a
+          . /tmp/danimezone.env
+          set +a
+          echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL" >> $GITHUB_ENV
+
       - name: Build & Push danimezone-site
         uses: docker/build-push-action@v6
         with:
@@ -29,6 +37,8 @@ jobs:
           file: ./apps/online-store/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/danimezone-site:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
 
       - name: Build & Push danimezone-api
         uses: docker/build-push-action@v6
@@ -48,15 +58,15 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
-            if [ ! -d ".git" ]; then
-              echo "Repo not found in DEPLOY_PATH. Cloning..."
-              rm -rf ./* ./.??* 2>/dev/null || true
-              git clone https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }}.git .
+            if [ ! -f "docker-compose.prod.yml" ]; then
+              echo "docker-compose.prod.yml not found in DEPLOY_PATH. Aborting deploy."
+              exit 1
             fi
-            git fetch --all
-            git reset --hard origin/main
             echo "${{ secrets.DANIMEZONE_ENV }}" > deploy/.env
             chmod 600 deploy/.env
+            mkdir -p deploy/letsencrypt
+            touch deploy/letsencrypt/acme.json
+            chmod 600 deploy/letsencrypt/acme.json
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             for i in 1 2 3; do
               echo "Pull attempt $i..."

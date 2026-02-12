@@ -3,6 +3,8 @@ services:
     image: traefik:v2.11
     container_name: danimezone-traefik
     user: "0:0"
+    env_file:
+      - ./deploy/.env
     command:
       - --providers.docker=true
       - --providers.docker.endpoint=unix:///var/run/docker.sock
@@ -27,9 +29,12 @@ services:
   danimezone-site:
     image: ghcr.io/${GHCR_OWNER}/danimezone-site:latest
     pull_policy: always
+    env_file:
+      - ./deploy/.env
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     labels:
       - traefik.enable=true
       - traefik.http.routers.danimezone-site.rule=Host(`danimezone.com`) || Host(`www.danimezone.com`)
@@ -46,6 +51,8 @@ services:
   danimezone-api:
     image: ghcr.io/${GHCR_OWNER}/danimezone-api:latest
     pull_policy: always
+    env_file:
+      - ./deploy/.env
     environment:
       - NODE_ENV=production
       - PORT=4000
