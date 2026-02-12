@@ -37,7 +37,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-      - CLOUD_API_URL=${CLOUD_API_URL:-http://danimezone-api:4000}
+      - CLOUD_API_URL=${CLOUD_API_URL}
       - CLOUD_API_BASE_URL=${CLOUD_API_BASE_URL}
       - API_URL=${API_URL}
       - CLOUD_SHARED_SECRET=${CLOUD_SHARED_SECRET}
