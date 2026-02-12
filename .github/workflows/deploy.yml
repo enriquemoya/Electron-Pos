@@ -76,7 +76,10 @@ jobs:
               echo "docker-compose.prod.yml not found in DEPLOY_PATH. Aborting deploy."
               exit 1
             fi
-            echo "${{ secrets.DANIMEZONE_ENV }}" > deploy/.env
+            cat <<'EOF' > deploy/.env
+            ${{ secrets.DANIMEZONE_ENV }}
+            EOF
+            sed -i 's/\r$//' deploy/.env
             chmod 600 deploy/.env
             mkdir -p deploy/letsencrypt
             touch deploy/letsencrypt/acme.json
