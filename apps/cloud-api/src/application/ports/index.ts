@@ -178,7 +178,7 @@ export type CheckoutRepository = {
   createOrder: (params: {
     userId: string;
     draftId: string;
-    paymentMethod: "PAY_IN_STORE";
+    paymentMethod: "PAY_IN_STORE" | "BANK_TRANSFER";
     pickupBranchId: string | null;
   }) => Promise<{
     orderId: string;
@@ -186,6 +186,8 @@ export type CheckoutRepository = {
     orderCode: string;
     status: string;
     expiresAt: string;
+    paymentMethod: string;
+    paymentStatus: string;
     customerId: string;
     customerEmail: string | null;
     customerEmailLocale: "ES_MX" | "EN_US" | null;
@@ -229,6 +231,7 @@ export type OrderFulfillmentRepository = {
     toStatus: string;
     actorUserId: string | null;
     reason: string | null;
+    adminMessage: string | null;
     source: "admin" | "system";
   }) => Promise<{
     orderId: string;

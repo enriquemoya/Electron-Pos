@@ -27,6 +27,7 @@ type OrderStatusTransitionFormProps = {
   labels: {
     title: string;
     reason: string;
+    adminMessage: string;
     submit: string;
     confirmTitle: string;
     confirmBody: string;
@@ -47,6 +48,7 @@ export function OrderStatusTransitionForm({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toStatus, setToStatus] = useState(defaultStatus);
   const [reason, setReason] = useState("");
+  const [adminMessage, setAdminMessage] = useState("");
 
   const onConfirm = () => {
     setConfirmOpen(false);
@@ -79,6 +81,16 @@ export function OrderStatusTransitionForm({
           placeholder={labels.reason}
           className="md:col-span-2"
         />
+        {toStatus === "PAID_BY_TRANSFER" ? (
+          <Input
+            type="text"
+            name="adminMessage"
+            value={adminMessage}
+            onChange={(event) => setAdminMessage(event.target.value)}
+            placeholder={labels.adminMessage}
+            className="md:col-span-2"
+          />
+        ) : null}
         <Button
           type="button"
           className="h-10 rounded-md bg-amber-400 px-4 text-sm font-semibold text-black transition hover:bg-amber-300"

@@ -54,6 +54,7 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(
     branches.length ? branches[0].id : null
   );
+  const [paymentMethod, setPaymentMethod] = useState<"PAY_IN_STORE" | "BANK_TRANSFER">("PAY_IN_STORE");
   const lastPayload = useRef<string | null>(null);
 
   const branchOptions = useMemo(() => branches, [branches]);
@@ -160,7 +161,7 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         draftId,
-        paymentMethod: "PAY_IN_STORE",
+        paymentMethod,
         pickupBranchId: selectedBranchId
       })
     });
@@ -287,14 +288,30 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
 
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-white">{t("payment.title")}</h3>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+          <button
+            type="button"
+            onClick={() => setPaymentMethod("PAY_IN_STORE")}
+            className={`w-full rounded-2xl border p-4 text-left text-sm transition ${
+              paymentMethod === "PAY_IN_STORE"
+                ? "border-amber-400/60 bg-amber-400/10 text-white"
+                : "border-white/10 bg-white/5 text-white/70 hover:border-white/30"
+            }`}
+          >
             <p className="text-white">{t("payment.payInStore")}</p>
             <p className="text-xs text-white/60">{t("payment.payInStoreHint")}</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/40">
-            <p>{t("payment.payNow")}</p>
-            <p className="text-xs">{t("payment.payNowHint")}</p>
-          </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaymentMethod("BANK_TRANSFER")}
+            className={`w-full rounded-2xl border p-4 text-left text-sm transition ${
+              paymentMethod === "BANK_TRANSFER"
+                ? "border-amber-400/60 bg-amber-400/10 text-white"
+                : "border-white/10 bg-white/5 text-white/70 hover:border-white/30"
+            }`}
+          >
+            <p className="text-white">{t("payment.bankTransfer")}</p>
+            <p className="text-xs text-white/60">{t("payment.bankTransferHint")}</p>
+          </button>
         </div>
 
         {error ? (
@@ -312,7 +329,7 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
           onClick={onSubmit}
           disabled={!draftId || !selectedBranchId || isSubmitting}
         >
-          {isSubmitting ? t("actions.submitting") : t("actions.confirmPayInStore")}
+          {isSubmitting ? t("actions.submitting") : t("actions.confirmPayment")}
         </Button>
       </div>
     </div>

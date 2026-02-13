@@ -93,11 +93,16 @@ export function validateCheckoutOrder(payload: unknown) {
       ? null
       : String(pickupBranchIdRaw).trim();
 
-  if (!draftId || paymentMethod !== "PAY_IN_STORE") {
+  const allowedMethods = new Set(["PAY_IN_STORE", "BANK_TRANSFER"]);
+  if (!draftId || !allowedMethods.has(paymentMethod)) {
     throw ApiErrors.checkoutInvalid;
   }
 
-  return { draftId, paymentMethod: "PAY_IN_STORE" as const, pickupBranchId };
+  return {
+    draftId,
+    paymentMethod: paymentMethod as "PAY_IN_STORE" | "BANK_TRANSFER",
+    pickupBranchId
+  };
 }
 
 export function validateBranchCreate(payload: unknown) {

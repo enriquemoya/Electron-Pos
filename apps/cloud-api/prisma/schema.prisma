@@ -114,7 +114,9 @@ enum OnlineOrderStatus {
   CREATED
   PENDING_PAYMENT
   PAID
+  PAID_BY_TRANSFER
   READY_FOR_PICKUP
+  COMPLETED
   SHIPPED
   CANCELED
   CANCELLED_EXPIRED
@@ -123,6 +125,51 @@ enum OnlineOrderStatus {
 
 enum PaymentMethod {
   PAY_IN_STORE
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING_TRANSFER
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentLedgerState {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  OVERPAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentEntryMethod {
+  PAY_IN_STORE
+  BANK_TRANSFER
+  STORE_CREDIT
+  PROVIDER_EXTERNAL
+}
+
+enum PaymentEntryStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  REFUNDED
+  VOIDED
+}
+
+enum PaymentActorType {
+  ADMIN
+  SYSTEM
+  CUSTOMER
+}
+
+enum PaymentSourceChannel {
+  ADMIN_PANEL
+  CHECKOUT
+  JOB
+  API
 }
 
 enum InventoryReservationStatus {
@@ -155,6 +202,7 @@ model User {
   onlineOrders OnlineOrder[]
   cancelledOrders OnlineOrder[] @relation("OnlineOrderCancelledBy")
   orderStatusLogs OnlineOrderStatusLog[] @relation("OnlineOrderStatusLogActor")
+  paymentEntries OrderPaymentEntry[] @relation("OrderPaymentEntryActor")
 
   @@map("users")
 }
@@ -286,6 +334,7 @@ model OnlineOrder {
   cancelReason   String?          @map("cancel_reason")
   cancelledByUserId String?       @map("cancelled_by_user_id") @db.Uuid
   paymentMethod  PaymentMethod    @map("payment_method")
+  paymentStatus  PaymentStatus    @default(PAID) @map("payment_status")
   pickupBranchId String?          @map("pickup_branch_id") @db.Uuid
   subtotal       Decimal          @map("subtotal")
   currency       String           @default("MXN")
@@ -299,6 +348,8 @@ model OnlineOrder {
   items          OnlineOrderItem[]
   reservations   InventoryReservation[]
   statusLogs     OnlineOrderStatusLog[]
+  paymentLedger  OrderPaymentLedger?
+  paymentEntries OrderPaymentEntry[]
 
   @@index([userId], name: "idx_online_orders_user")
   @@index([status], name: "idx_online_orders_status")
@@ -306,6 +357,52 @@ model OnlineOrder {
   @@index([cancelledByUserId], name: "idx_online_orders_cancelled_by")
   @@unique([draftId], name: "uniq_online_order_draft")
   @@map("online_orders")
+}
+
+model OrderPaymentLedger {
+  id         String            @id @default(uuid()) @db.Uuid
+  orderId    String            @unique @map("order_id") @db.Uuid
+  currency   String            @default("MXN")
+  totalDue   Decimal           @map("total_due")
+  totalPaid  Decimal           @default(0) @map("total_paid")
+  balanceDue Decimal           @map("balance_due")
+  state      PaymentLedgerState @default(UNPAID)
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  order      OnlineOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  entries    OrderPaymentEntry[]
+
+  @@index([state], name: "idx_order_payment_ledgers_state")
+  @@map("order_payment_ledgers")
+}
+
+model OrderPaymentEntry {
+  id            String               @id @default(uuid()) @db.Uuid
+  ledgerId      String               @map("ledger_id") @db.Uuid
+  orderId       String               @map("order_id") @db.Uuid
+  method        PaymentEntryMethod
+  provider      String?              @default("NONE")
+  providerRef   String?              @map("provider_ref")
+  amount        Decimal
+  currency      String               @default("MXN")
+  entryStatus   PaymentEntryStatus   @default(PENDING) @map("entry_status")
+  isStoreCredit Boolean              @default(false) @map("is_store_credit")
+  notes         String?
+  actorId       String?              @map("actor_id") @db.Uuid
+  actorType     PaymentActorType     @default(SYSTEM) @map("actor_type")
+  sourceChannel PaymentSourceChannel @default(API) @map("source_channel")
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  ledger        OrderPaymentLedger   @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+  order         OnlineOrder          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actor         User?                @relation("OrderPaymentEntryActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([ledgerId, createdAt], name: "idx_order_payment_entries_ledger_created")
+  @@index([orderId, createdAt], name: "idx_order_payment_entries_order_created")
+  @@index([entryStatus], name: "idx_order_payment_entries_status")
+  @@index([method], name: "idx_order_payment_entries_method")
+  @@index([actorId], name: "idx_order_payment_entries_actor")
+  @@map("order_payment_entries")
 }
 
 model OnlineOrderItem {
@@ -346,6 +443,9 @@ model OnlineOrderStatusLog {
   fromStatus  OnlineOrderStatus? @map("from_status")
   toStatus    OnlineOrderStatus @map("to_status")
   reason      String?          @map("reason")
+  approvedByAdminId String?    @map("approved_by_admin_id") @db.Uuid
+  approvedByAdminName String?  @map("approved_by_admin_name")
+  adminMessage String?         @map("admin_message")
   actorUserId String?          @map("actor_user_id") @db.Uuid
   createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   order       OnlineOrder      @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -353,6 +453,7 @@ model OnlineOrderStatusLog {
 
   @@index([orderId, createdAt], name: "idx_online_order_status_logs_order_created")
   @@index([actorUserId], name: "idx_online_order_status_logs_actor")
+  @@index([approvedByAdminId], name: "idx_online_order_status_logs_admin")
   @@map("online_order_status_logs")
 }
 

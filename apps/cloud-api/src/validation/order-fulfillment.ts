@@ -1,15 +1,5 @@
 import { ApiErrors } from "../errors/api-error";
-
-const ORDER_STATUSES = new Set([
-  "CREATED",
-  "PENDING_PAYMENT",
-  "PAID",
-  "READY_FOR_PICKUP",
-  "SHIPPED",
-  "CANCELLED_EXPIRED",
-  "CANCELLED_MANUAL",
-  "CANCELED"
-]);
+import { normalizeOnlineOrderStatus } from "../domain/order-status";
 
 const PAGE_SIZE_VALUES = new Set([20, 50, 100]);
 const ORDER_SORT_VALUES = new Set(["createdAt", "status", "expiresAt", "subtotal"]);
@@ -31,7 +21,7 @@ export function validateOrderListQuery(query: Record<string, unknown>) {
   }
 
   const statusRaw = typeof query.status === "string" ? query.status.trim().toUpperCase() : undefined;
-  if (statusRaw && !ORDER_STATUSES.has(statusRaw)) {
+  if (statusRaw && !normalizeOnlineOrderStatus(statusRaw)) {
     throw ApiErrors.orderStatusInvalid;
   }
 
@@ -55,17 +45,20 @@ export function validateOrderListQuery(query: Record<string, unknown>) {
 }
 
 export function validateTransitionBody(payload: unknown) {
-  const toStatus = String((payload as { toStatus?: unknown })?.toStatus ?? "")
-    .trim()
-    .toUpperCase();
-  if (!toStatus || !ORDER_STATUSES.has(toStatus)) {
+  const toStatusRaw = String((payload as { toStatus?: unknown })?.toStatus ?? "");
+  const toStatus = normalizeOnlineOrderStatus(toStatusRaw);
+  if (!toStatus) {
     throw ApiErrors.orderStatusInvalid;
   }
 
   const reasonRaw = (payload as { reason?: unknown })?.reason;
   const reason = reasonRaw === undefined || reasonRaw === null ? null : String(reasonRaw).trim();
+  const adminMessageRaw = (payload as { adminMessage?: unknown })?.adminMessage;
+  const adminMessage =
+    adminMessageRaw === undefined || adminMessageRaw === null ? null : String(adminMessageRaw).trim();
   return {
-    toStatus,
-    reason: reason || null
+    toStatus: toStatus,
+    reason: reason || null,
+    adminMessage: adminMessage || null
   };
 }

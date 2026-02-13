@@ -2,15 +2,212 @@ import { OnlineOrderStatus, Prisma } from "@prisma/client";
 
 import { prisma } from "../db/prisma";
 import { ApiErrors } from "../../errors/api-error";
+import { normalizeOnlineOrderStatus, toApiStatus } from "../../domain/order-status";
 
 const LOW_STOCK_THRESHOLD = 3;
 const EXPIRATION_DAYS = 10;
 
-function normalizeStatus(value: string) {
-  if (value === "CANCELED") {
-    return "CANCELLED_MANUAL";
+type EntryMethod = "PAY_IN_STORE" | "BANK_TRANSFER" | "STORE_CREDIT" | "PROVIDER_EXTERNAL";
+type EntryStatus = "PENDING" | "CONFIRMED" | "FAILED" | "REFUNDED" | "VOIDED";
+type LedgerState = "UNPAID" | "PARTIALLY_PAID" | "PAID" | "OVERPAID" | "FAILED" | "REFUNDED";
+
+function mapPaymentMethodToEntryMethod(method: "PAY_IN_STORE" | "BANK_TRANSFER"): EntryMethod {
+  return method === "BANK_TRANSFER" ? "BANK_TRANSFER" : "PAY_IN_STORE";
+}
+
+function mapPaymentStatusToEntryStatus(status: "PENDING_TRANSFER" | "PAID" | "FAILED" | "REFUNDED"): EntryStatus {
+  if (status === "PAID") {
+    return "CONFIRMED";
   }
-  return value;
+  if (status === "FAILED") {
+    return "FAILED";
+  }
+  if (status === "REFUNDED") {
+    return "REFUNDED";
+  }
+  return "PENDING";
+}
+
+function deriveLedgerState(params: {
+  totalDue: number;
+  confirmedPaid: number;
+  failedCount: number;
+  refundedCount: number;
+  pendingCount: number;
+}): LedgerState {
+  const { totalDue, confirmedPaid, failedCount, refundedCount, pendingCount } = params;
+  if (refundedCount > 0 && confirmedPaid <= 0) {
+    return "REFUNDED";
+  }
+  if (failedCount > 0 && confirmedPaid <= 0 && pendingCount === 0) {
+    return "FAILED";
+  }
+  if (confirmedPaid <= 0) {
+    return "UNPAID";
+  }
+  if (confirmedPaid > totalDue) {
+    return "OVERPAID";
+  }
+  if (confirmedPaid < totalDue) {
+    return "PARTIALLY_PAID";
+  }
+  return "PAID";
+}
+
+function mapLedgerStateToCompatibilityStatus(
+  state: LedgerState,
+  fallback: "PENDING_TRANSFER" | "PAID" | "FAILED" | "REFUNDED"
+) {
+  if (state === "PAID" || state === "OVERPAID") {
+    return "PAID" as const;
+  }
+  if (state === "FAILED") {
+    return "FAILED" as const;
+  }
+  if (state === "REFUNDED") {
+    return "REFUNDED" as const;
+  }
+  return fallback;
+}
+
+async function ensurePaymentLedger(tx: Prisma.TransactionClient, params: {
+  orderId: string;
+  subtotal: number;
+  currency: string;
+  paymentMethod: "PAY_IN_STORE" | "BANK_TRANSFER";
+  paymentStatus: "PENDING_TRANSFER" | "PAID" | "FAILED" | "REFUNDED";
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  const totalDue = new Prisma.Decimal(params.subtotal);
+  const totalPaid = params.paymentStatus === "PAID" ? totalDue : new Prisma.Decimal(0);
+  const balanceDue = params.paymentStatus === "PAID" ? new Prisma.Decimal(0) : totalDue;
+  const initialState: LedgerState =
+    params.paymentStatus === "PAID"
+      ? "PAID"
+      : params.paymentStatus === "FAILED"
+        ? "FAILED"
+        : params.paymentStatus === "REFUNDED"
+          ? "REFUNDED"
+          : "UNPAID";
+
+  const ledger = await tx.orderPaymentLedger.upsert({
+    where: { orderId: params.orderId },
+    create: {
+      orderId: params.orderId,
+      currency: params.currency,
+      totalDue,
+      totalPaid,
+      balanceDue,
+      state: initialState,
+      createdAt: params.createdAt,
+      updatedAt: params.updatedAt
+    },
+    update: {},
+    select: { id: true }
+  });
+
+  return ledger.id;
+}
+
+async function recomputePaymentLedger(tx: Prisma.TransactionClient, params: {
+  orderId: string;
+  fallbackPaymentStatus: "PENDING_TRANSFER" | "PAID" | "FAILED" | "REFUNDED";
+}) {
+  const ledger = await tx.orderPaymentLedger.findUnique({
+    where: { orderId: params.orderId },
+    select: {
+      id: true,
+      totalDue: true,
+      entries: {
+        select: {
+          entryStatus: true,
+          amount: true
+        }
+      }
+    }
+  });
+
+  if (!ledger) {
+    return;
+  }
+
+  let confirmedPaid = 0;
+  let failedCount = 0;
+  let refundedCount = 0;
+  let pendingCount = 0;
+
+  for (const entry of ledger.entries) {
+    const amount = Number(entry.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      if (entry.entryStatus === "FAILED") {
+        failedCount += 1;
+      } else if (entry.entryStatus === "REFUNDED") {
+        refundedCount += 1;
+      } else if (entry.entryStatus === "PENDING") {
+        pendingCount += 1;
+      }
+      continue;
+    }
+    if (entry.entryStatus === "CONFIRMED") {
+      confirmedPaid += amount;
+      continue;
+    }
+    if (entry.entryStatus === "REFUNDED" || entry.entryStatus === "VOIDED") {
+      confirmedPaid -= amount;
+      refundedCount += 1;
+      continue;
+    }
+    if (entry.entryStatus === "FAILED") {
+      failedCount += 1;
+      continue;
+    }
+    if (entry.entryStatus === "PENDING") {
+      pendingCount += 1;
+    }
+  }
+
+  const totalDue = Number(ledger.totalDue);
+  if (ledger.entries.length === 0 && params.fallbackPaymentStatus === "PAID") {
+    confirmedPaid = totalDue;
+  }
+  if (confirmedPaid > totalDue) {
+    throw ApiErrors.paymentOverpayNotAllowed;
+  }
+  const safeConfirmed = Math.max(0, confirmedPaid);
+  const balanceDue = Math.max(0, totalDue - safeConfirmed);
+  const nextState = deriveLedgerState({
+    totalDue,
+    confirmedPaid: safeConfirmed,
+    failedCount,
+    refundedCount,
+    pendingCount
+  });
+  const compatibilityStatus = mapLedgerStateToCompatibilityStatus(nextState, params.fallbackPaymentStatus);
+
+  await tx.orderPaymentLedger.update({
+    where: { id: ledger.id },
+    data: {
+      totalPaid: new Prisma.Decimal(safeConfirmed),
+      balanceDue: new Prisma.Decimal(balanceDue),
+      state: nextState
+    }
+  });
+
+  await tx.onlineOrder.update({
+    where: { id: params.orderId },
+    data: {
+      paymentStatus: compatibilityStatus
+    }
+  });
+}
+
+function normalizeStatus(value: string) {
+  const normalized = normalizeOnlineOrderStatus(value);
+  if (!normalized) {
+    throw ApiErrors.orderStatusInvalid;
+  }
+  return toApiStatus(normalized);
 }
 
 function normalizeBranchPrefix(name: string) {
@@ -45,8 +242,14 @@ function toDbStatus(value: string): OnlineOrderStatus {
   if (value === "PAID") {
     return "PAID";
   }
+  if (value === "PAID_BY_TRANSFER") {
+    return "PAID_BY_TRANSFER";
+  }
   if (value === "READY_FOR_PICKUP") {
     return "READY_FOR_PICKUP";
+  }
+  if (value === "COMPLETED") {
+    return "COMPLETED";
   }
   if (value === "SHIPPED") {
     return "SHIPPED";
@@ -157,6 +360,9 @@ function mapStatusTimeline(statusLogs: Array<{
   fromStatus: OnlineOrderStatus | null;
   toStatus: OnlineOrderStatus;
   reason: string | null;
+  approvedByAdminId?: string | null;
+  approvedByAdminName?: string | null;
+  adminMessage?: string | null;
   actorUserId: string | null;
   createdAt: Date;
 }>) {
@@ -168,7 +374,12 @@ function mapStatusTimeline(statusLogs: Array<{
       fromStatus: row.fromStatus ? normalizeStatus(row.fromStatus) : null,
       toStatus: normalizeStatus(row.toStatus),
       reason: row.reason,
-      actorUserId: row.actorUserId,
+      approvedByAdminId: null,
+      approvedByAdminName: row.approvedByAdminName ?? null,
+      adminMessage: row.adminMessage ?? null,
+      actorUserId: null,
+      actorDisplayName: row.approvedByAdminName ?? (row.actorUserId ? "Admin" : "System"),
+      actorType: row.actorUserId ? "ADMIN" : "SYSTEM",
       createdAt: row.createdAt.toISOString()
     }));
 }
@@ -286,7 +497,7 @@ export async function revalidateItems(params: {
 export async function createOrder(params: {
   userId: string;
   draftId: string;
-  paymentMethod: "PAY_IN_STORE";
+  paymentMethod: "PAY_IN_STORE" | "BANK_TRANSFER";
   pickupBranchId: string | null;
 }) {
   return prisma.$transaction(async (tx) => {
@@ -304,6 +515,8 @@ export async function createOrder(params: {
         orderNumber: existingOrder.orderNumber,
         orderCode: existingOrder.orderCode,
         status: normalizeStatus(existingOrder.status),
+        paymentMethod: existingOrder.paymentMethod,
+        paymentStatus: existingOrder.paymentStatus,
         expiresAt: existingOrder.expiresAt.toISOString(),
         customerId: existingOrder.userId,
         customerEmail: existingOrder.user?.email ?? null,
@@ -378,6 +591,7 @@ export async function createOrder(params: {
         status: "PENDING_PAYMENT",
         statusUpdatedAt: now,
         paymentMethod: params.paymentMethod,
+        paymentStatus: params.paymentMethod === "BANK_TRANSFER" ? "PENDING_TRANSFER" : "PAID",
         pickupBranchId: params.pickupBranchId,
         subtotal: new Prisma.Decimal(subtotal),
         currency: "MXN",
@@ -434,11 +648,28 @@ export async function createOrder(params: {
       }
     });
 
+    await ensurePaymentLedger(tx, {
+      orderId: order.id,
+      subtotal,
+      currency: order.currency,
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt
+    });
+
+    await recomputePaymentLedger(tx, {
+      orderId: order.id,
+      fallbackPaymentStatus: order.paymentStatus
+    });
+
     return {
       orderId: order.id,
       orderNumber: order.orderNumber,
       orderCode: order.orderCode,
       status: normalizeStatus(order.status),
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
       expiresAt: order.expiresAt.toISOString(),
       customerId: order.userId,
       customerEmail: order.user?.email ?? null,
@@ -545,6 +776,7 @@ export async function listAdminOrders(params: {
       orderNumber: item.orderNumber,
       orderCode: item.orderCode,
       status: normalizeStatus(item.status),
+      paymentStatus: item.paymentStatus,
       subtotal: Number(item.subtotal),
       currency: item.currency,
       paymentMethod: item.paymentMethod,
@@ -614,6 +846,7 @@ export async function getAdminOrder(params: { orderId: string }) {
     orderNumber: order.orderNumber,
     orderCode: order.orderCode,
     status: normalizeStatus(order.status),
+    paymentStatus: order.paymentStatus,
     subtotal: Number(order.subtotal),
     currency: order.currency,
     paymentMethod: order.paymentMethod,
@@ -641,6 +874,9 @@ export async function getAdminOrder(params: { orderId: string }) {
       fromStatus: row.fromStatus ? normalizeStatus(row.fromStatus) : null,
       toStatus: normalizeStatus(row.toStatus),
       reason: row.reason,
+      approvedByAdminId: row.approvedByAdminId ?? null,
+      approvedByAdminName: row.approvedByAdminName ?? null,
+      adminMessage: row.adminMessage ?? null,
       actor: row.actor
         ? {
             id: row.actor.id,
@@ -678,6 +914,7 @@ export async function listCustomerOrders(params: {
       orderNumber: item.orderNumber,
       orderCode: item.orderCode,
       status: normalizeStatus(item.status),
+      paymentStatus: item.paymentStatus,
       subtotal: Number(item.subtotal),
       currency: item.currency,
       paymentMethod: item.paymentMethod,
@@ -715,6 +952,7 @@ export async function getCustomerOrder(params: { userId: string; orderId: string
     orderNumber: order.orderNumber,
     orderCode: order.orderCode,
     status: normalizeStatus(order.status),
+    paymentStatus: order.paymentStatus,
     subtotal: Number(order.subtotal),
     currency: order.currency,
     paymentMethod: order.paymentMethod,
@@ -741,6 +979,7 @@ export async function transitionOrderStatus(params: {
   toStatus: string;
   actorUserId: string | null;
   reason: string | null;
+  adminMessage: string | null;
   source: "admin" | "system";
 }) {
   const toStatus = normalizeStatus(params.toStatus);
@@ -776,17 +1015,38 @@ export async function transitionOrderStatus(params: {
     }
 
     const now = new Date();
+    let approvedByAdminName: string | null = null;
+    if (toStatus === "PAID_BY_TRANSFER" && params.actorUserId) {
+      const actor = await tx.user.findUnique({
+        where: { id: params.actorUserId },
+        select: { firstName: true, lastName: true, email: true }
+      });
+      if (actor) {
+        approvedByAdminName =
+          [actor.firstName, actor.lastName].filter(Boolean).join(" ") || actor.email || "Admin";
+      }
+    }
     if (toStatus === "CANCELLED_EXPIRED" || toStatus === "CANCELLED_MANUAL") {
       await releaseReservations(tx, order.id, now);
     }
 
-    await tx.onlineOrder.update({
+    const updatedOrder = await tx.onlineOrder.update({
       where: { id: order.id },
       data: {
         status: toDbStatus(toStatus),
         statusUpdatedAt: now,
         cancelReason: toStatus === "CANCELLED_MANUAL" ? params.reason ?? null : null,
-        cancelledByUserId: toStatus === "CANCELLED_MANUAL" ? params.actorUserId : null
+        cancelledByUserId: toStatus === "CANCELLED_MANUAL" ? params.actorUserId : null,
+        paymentStatus: toStatus === "PAID_BY_TRANSFER" || toStatus === "PAID" ? "PAID" : order.paymentStatus
+      },
+      select: {
+        id: true,
+        subtotal: true,
+        currency: true,
+        paymentMethod: true,
+        paymentStatus: true,
+        createdAt: true,
+        updatedAt: true
       }
     });
 
@@ -796,8 +1056,55 @@ export async function transitionOrderStatus(params: {
         fromStatus: toDbStatus(fromStatus),
         toStatus: toDbStatus(toStatus),
         reason: params.reason,
-        actorUserId: params.actorUserId
+        actorUserId: params.actorUserId,
+        approvedByAdminId: toStatus === "PAID_BY_TRANSFER" ? params.actorUserId : null,
+        approvedByAdminName: toStatus === "PAID_BY_TRANSFER" ? approvedByAdminName : null,
+        adminMessage: toStatus === "PAID_BY_TRANSFER" ? params.adminMessage : null
       }
+    });
+
+    await ensurePaymentLedger(tx, {
+      orderId: updatedOrder.id,
+      subtotal: Number(updatedOrder.subtotal),
+      currency: updatedOrder.currency,
+      paymentMethod: updatedOrder.paymentMethod,
+      paymentStatus: updatedOrder.paymentStatus,
+      createdAt: updatedOrder.createdAt,
+      updatedAt: updatedOrder.updatedAt
+    });
+
+    if (toStatus === "PAID_BY_TRANSFER" || toStatus === "PAID") {
+      const ledger = await tx.orderPaymentLedger.findUnique({
+        where: { orderId: updatedOrder.id },
+        select: { id: true, balanceDue: true }
+      });
+      if (ledger) {
+        const remaining = Number(ledger.balanceDue);
+        if (Number.isFinite(remaining) && remaining > 0) {
+          await tx.orderPaymentEntry.create({
+            data: {
+              ledgerId: ledger.id,
+              orderId: updatedOrder.id,
+              method: mapPaymentMethodToEntryMethod(updatedOrder.paymentMethod),
+              provider: "NONE",
+              providerRef: null,
+              amount: new Prisma.Decimal(remaining),
+              currency: updatedOrder.currency,
+              entryStatus: "CONFIRMED",
+              isStoreCredit: false,
+              notes: toStatus === "PAID_BY_TRANSFER" ? "transfer_approved" : "payment_confirmed",
+              actorId: params.actorUserId,
+              actorType: params.actorUserId ? "ADMIN" : "SYSTEM",
+              sourceChannel: params.source === "admin" ? "ADMIN_PANEL" : "JOB"
+            }
+          });
+        }
+      }
+    }
+
+    await recomputePaymentLedger(tx, {
+      orderId: updatedOrder.id,
+      fallbackPaymentStatus: updatedOrder.paymentStatus
     });
 
     return {
@@ -817,6 +1124,7 @@ export async function expirePendingOrders() {
   const pending = await prisma.onlineOrder.findMany({
     where: {
       status: "PENDING_PAYMENT",
+      paymentStatus: { not: "PAID" },
       expiresAt: { lte: new Date() }
     },
     select: { id: true }
@@ -841,6 +1149,7 @@ export async function expirePendingOrders() {
         toStatus: "CANCELLED_EXPIRED",
         actorUserId: null,
         reason: "expired_unpaid",
+        adminMessage: null,
         source: "system"
       });
       results.push(transitioned);

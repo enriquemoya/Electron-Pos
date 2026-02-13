@@ -70,7 +70,8 @@ export function createOrderFulfillmentController(useCases: OrderFulfillmentUseCa
           orderId,
           toStatus: payload.toStatus,
           actorUserId: auth.userId,
-          reason: payload.reason
+          reason: payload.reason,
+          adminMessage: payload.adminMessage
         });
         res.status(200).json(result);
       } catch (error) {

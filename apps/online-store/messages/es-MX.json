@@ -612,11 +612,14 @@
       "payInStore": "Pagar en tienda",
       "payInStoreHint": "Paga en la sucursal para completar tu pedido.",
       "payNow": "Pagar ahora (proximamente)",
-      "payNowHint": "Pagos en linea estaran disponibles pronto."
+      "payNowHint": "Pagos en linea estaran disponibles pronto.",
+      "bankTransfer": "Transferencia / Deposito bancario",
+      "bankTransferHint": "Recibe instrucciones y envia tu comprobante por WhatsApp."
     },
     "actions": {
       "confirmPayInStore": "Confirmar pago en tienda",
-      "submitting": "Creando pedido..."
+      "submitting": "Creando pedido...",
+      "confirmPayment": "Confirmar pedido"
     },
     "errors": {
       "server": "Ocurrio un error. Intenta de nuevo.",
@@ -693,20 +696,24 @@
       "cancelAction": "Cancelar",
       "error": "No se pudo actualizar el estado.",
       "toastSuccess": "Estado actualizado",
-      "toastError": "No se pudo actualizar el estado"
+      "toastError": "No se pudo actualizar el estado",
+      "adminMessage": "Mensaje del administrador (opcional para transferencias)"
     },
     "timeline": {
-      "initial": "Inicial"
+      "initial": "Inicial",
+      "approvedBy": "Pago validado por transferencia por {name}"
     },
     "statuses": {
       "CREATED": "Creado",
       "PENDING_PAYMENT": "Pago pendiente",
       "PAID": "Pagado",
       "READY_FOR_PICKUP": "Listo para recoger",
+      "COMPLETED": "Completado",
       "SHIPPED": "Enviado",
       "CANCELLED_EXPIRED": "Cancelado por expiracion",
       "CANCELLED_MANUAL": "Cancelado manualmente",
-      "CANCELED": "Cancelado"
+      "CANCELED": "Cancelado",
+      "PAID_BY_TRANSFER": "Transferencia validada"
     }
   },
   "accountOrders": {
@@ -739,17 +746,20 @@
       "next": "Siguiente"
     },
     "timeline": {
-      "initial": "Inicial"
+      "initial": "Inicial",
+      "approvedBy": "Pago validado por transferencia por {name}"
     },
     "statuses": {
       "CREATED": "Creado",
       "PENDING_PAYMENT": "Pago pendiente",
       "PAID": "Pagado",
       "READY_FOR_PICKUP": "Listo para recoger",
+      "COMPLETED": "Completado",
       "SHIPPED": "Enviado",
       "CANCELLED_EXPIRED": "Cancelado por expiracion",
       "CANCELLED_MANUAL": "Cancelado manualmente",
-      "CANCELED": "Cancelado"
+      "CANCELED": "Cancelado",
+      "PAID_BY_TRANSFER": "Transferencia validada"
     }
   },
   "footer": {

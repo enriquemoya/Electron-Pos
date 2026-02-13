@@ -15,6 +15,7 @@ async function transitionOrderStatusAction(formData: FormData) {
   const orderId = String(formData.get("orderId") ?? "");
   const toStatus = String(formData.get("toStatus") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
+  const adminMessage = String(formData.get("adminMessage") ?? "").trim();
 
   if (!orderId || !toStatus) {
     redirect(`/${locale}/admin/orders/${orderId}?error=invalid`);
@@ -23,7 +24,8 @@ async function transitionOrderStatusAction(formData: FormData) {
   try {
     await transitionAdminOrderStatus(orderId, {
       toStatus,
-      reason: reason || undefined
+      reason: reason || undefined,
+      adminMessage: adminMessage || undefined
     });
   } catch {
     redirect(`/${locale}/admin/orders/${orderId}?error=transition`);
@@ -51,8 +53,9 @@ export default async function AdminOrderDetailPage({
     { value: "CREATED", label: t("statuses.CREATED") },
     { value: "PENDING_PAYMENT", label: t("statuses.PENDING_PAYMENT") },
     { value: "PAID", label: t("statuses.PAID") },
+    { value: "PAID_BY_TRANSFER", label: t("statuses.PAID_BY_TRANSFER") },
     { value: "READY_FOR_PICKUP", label: t("statuses.READY_FOR_PICKUP") },
-    { value: "SHIPPED", label: t("statuses.SHIPPED") },
+    { value: "COMPLETED", label: t("statuses.COMPLETED") },
     { value: "CANCELLED_EXPIRED", label: t("statuses.CANCELLED_EXPIRED") },
     { value: "CANCELLED_MANUAL", label: t("statuses.CANCELLED_MANUAL") }
   ];
@@ -109,6 +112,7 @@ export default async function AdminOrderDetailPage({
         labels={{
           title: t("transition.title"),
           reason: t("transition.reason"),
+          adminMessage: t("transition.adminMessage"),
           submit: t("transition.submit"),
           confirmTitle: t("transition.confirmTitle"),
           confirmBody: t("transition.confirmBody"),
@@ -147,6 +151,12 @@ export default async function AdminOrderDetailPage({
               </p>
               <p className="text-xs text-white/60">{new Date(entry.createdAt).toLocaleString()}</p>
               {entry.reason ? <p className="text-xs text-white/60">{entry.reason}</p> : null}
+              {entry.approvedByAdminName ? (
+                <p className="text-xs text-white/70">
+                  {t("timeline.approvedBy", { name: entry.approvedByAdminName })}
+                </p>
+              ) : null}
+              {entry.adminMessage ? <p className="text-xs text-white/60">{entry.adminMessage}</p> : null}
             </div>
           ))}
         </div>

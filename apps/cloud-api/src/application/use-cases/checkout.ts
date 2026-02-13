@@ -49,7 +49,7 @@ export type CheckoutUseCases = {
   createOrder: (params: {
     userId: string;
     draftId: string;
-    paymentMethod: "PAY_IN_STORE";
+    paymentMethod: "PAY_IN_STORE" | "BANK_TRANSFER";
     pickupBranchId: string | null;
   }) => Promise<{ orderId: string; orderNumber: number; orderCode: string; status: string; expiresAt: string }>;
   getOrder: (params: { userId: string; orderId: string }) => Promise<Record<string, unknown> | null>;
@@ -73,6 +73,7 @@ export function createCheckoutUseCases(deps: {
             locale: resolvedLocale,
             orderCode: created.orderCode,
             status: created.status,
+            paymentMethod: created.paymentMethod,
             subtotal: created.subtotal,
             currency: created.currency,
             expiresAt: created.expiresAt,

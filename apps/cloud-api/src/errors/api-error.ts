@@ -48,6 +48,12 @@ export const ApiErrors = {
   orderStatusInvalid: new ApiError(400, "ORDER_STATUS_INVALID", "order status invalid"),
   orderTransitionInvalid: new ApiError(400, "ORDER_TRANSITION_INVALID", "order transition invalid"),
   orderTransitionReasonRequired: new ApiError(400, "ORDER_TRANSITION_REASON_REQUIRED", "order transition reason required"),
+  paymentOverpayNotAllowed: new ApiError(400, "PAYMENT_OVERPAY_NOT_ALLOWED", "payment overpay not allowed"),
+  orderTransferApprovalRequired: new ApiError(
+    400,
+    "ORDER_TRANSFER_APPROVAL_REQUIRED",
+    "transfer approval message required"
+  ),
   orderForbidden: new ApiError(403, "ORDER_FORBIDDEN", "order forbidden"),
   branchNotFound: new ApiError(404, "BRANCH_NOT_FOUND", "branch not found")
 };

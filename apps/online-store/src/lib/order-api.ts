@@ -7,6 +7,7 @@ export type CustomerOrderListItem = {
   orderNumber: number;
   orderCode: string;
   status: string;
+  paymentStatus: string;
   subtotal: number;
   currency: string;
   paymentMethod: string;
@@ -21,6 +22,7 @@ export type CustomerOrderDetail = {
   orderNumber: number;
   orderCode: string;
   status: string;
+  paymentStatus: string;
   subtotal: number;
   currency: string;
   paymentMethod: string;
@@ -50,7 +52,12 @@ export type CustomerOrderDetail = {
     fromStatus: string | null;
     toStatus: string;
     reason: string | null;
+    approvedByAdminId?: string | null;
+    approvedByAdminName?: string | null;
+    adminMessage?: string | null;
     actorUserId: string | null;
+    actorDisplayName?: string | null;
+    actorType?: "ADMIN" | "SYSTEM" | null;
     createdAt: string;
   }>;
 };

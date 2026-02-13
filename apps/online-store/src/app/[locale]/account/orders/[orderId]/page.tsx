@@ -106,6 +106,12 @@ export default async function AccountOrderDetailPage({
               </p>
               <p className="text-xs text-white/60">{new Date(entry.createdAt).toLocaleString()}</p>
               {entry.reason ? <p className="text-xs text-white/60">{entry.reason}</p> : null}
+              {entry.approvedByAdminName ? (
+                <p className="text-xs text-white/70">
+                  {t("timeline.approvedBy", { name: entry.approvedByAdminName })}
+                </p>
+              ) : null}
+              {entry.adminMessage ? <p className="text-xs text-white/60">{entry.adminMessage}</p> : null}
             </div>
           ))}
         </div>

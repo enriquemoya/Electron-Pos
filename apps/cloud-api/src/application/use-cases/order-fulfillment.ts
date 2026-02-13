@@ -1,32 +1,18 @@
 import { renderOrderStatusChangedEmail, resolveLocaleString, LOCALE } from "../../email";
+import { OnlineOrderStatus } from "@prisma/client";
 
 import type { EmailService, OrderFulfillmentRepository } from "../ports";
 import { ApiErrors } from "../../errors/api-error";
-
-const ORDER_STATUSES = new Set([
-  "CREATED",
-  "PENDING_PAYMENT",
-  "PAID",
-  "READY_FOR_PICKUP",
-  "SHIPPED",
-  "CANCELLED_EXPIRED",
-  "CANCELLED_MANUAL",
-  "CANCELED"
-]);
-
-const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-  CREATED: ["PENDING_PAYMENT", "PAID"],
-  PENDING_PAYMENT: ["READY_FOR_PICKUP", "PAID", "CANCELLED_EXPIRED", "CANCELLED_MANUAL"],
-  PAID: ["READY_FOR_PICKUP", "CANCELLED_MANUAL"],
-  READY_FOR_PICKUP: ["PAID", "SHIPPED", "CANCELLED_MANUAL"],
-  SHIPPED: [],
-  CANCELLED_EXPIRED: [],
-  CANCELLED_MANUAL: []
-};
+import {
+  FEATURE_DISABLED_TRANSITION_TARGETS,
+  ORDER_STATUS_TRANSITIONS,
+  normalizeOnlineOrderStatus,
+  toApiStatus
+} from "../../domain/order-status";
 
 function normalizeStatus(value: string) {
-  const normalized = value === "CANCELED" ? "CANCELLED_MANUAL" : value;
-  if (!ORDER_STATUSES.has(value) && !ORDER_STATUSES.has(normalized)) {
+  const normalized = normalizeOnlineOrderStatus(value);
+  if (!normalized) {
     throw ApiErrors.orderStatusInvalid;
   }
   return normalized;
@@ -56,6 +42,7 @@ export type OrderFulfillmentUseCases = {
     toStatus: string;
     actorUserId: string;
     reason: string | null;
+    adminMessage: string | null;
   }) => Promise<{
     orderId: string;
     orderNumber: number;
@@ -127,30 +114,35 @@ export function createOrderFulfillmentUseCases(deps: {
       const fromStatus = normalizeStatus(context.status);
       const toStatus = normalizeStatus(params.toStatus);
       if (fromStatus !== toStatus) {
-        const allowed = ALLOWED_TRANSITIONS[fromStatus] ?? [];
+        const allowed = ORDER_STATUS_TRANSITIONS[fromStatus] ?? [];
         if (!allowed.includes(toStatus)) {
           throw ApiErrors.orderTransitionInvalid;
         }
       }
 
-      if (
-        fromStatus === "PENDING_PAYMENT" &&
-        toStatus === "READY_FOR_PICKUP" &&
-        (context.paymentMethod !== "PAY_IN_STORE" || !context.pickupBranchId)
-      ) {
+      if (FEATURE_DISABLED_TRANSITION_TARGETS.has(toStatus)) {
         throw ApiErrors.orderTransitionInvalid;
       }
 
-      if (toStatus === "CANCELLED_MANUAL" && !params.reason?.trim()) {
+      if (toStatus === OnlineOrderStatus.PAID_BY_TRANSFER && context.paymentMethod !== "BANK_TRANSFER") {
+        throw ApiErrors.orderTransitionInvalid;
+      }
+
+      if (context.paymentMethod === "BANK_TRANSFER" && toStatus === OnlineOrderStatus.PAID) {
+        throw ApiErrors.orderTransitionInvalid;
+      }
+
+      if (toStatus === OnlineOrderStatus.CANCELLED_MANUAL && !params.reason?.trim()) {
         throw ApiErrors.orderTransitionReasonRequired;
       }
 
       const updated = await deps.orderFulfillmentRepository.transitionOrderStatus({
         orderId: params.orderId,
-        fromStatus,
-        toStatus,
+        fromStatus: toApiStatus(fromStatus),
+        toStatus: toApiStatus(toStatus),
         actorUserId: params.actorUserId,
         reason: params.reason,
+        adminMessage: params.adminMessage,
         source: "admin"
       });
       await sendStatusMail(deps.emailService, {

@@ -20,6 +20,7 @@ const content = {
     preview: "El estado de tu pedido cambió.",
     title: "Actualización de pedido",
     subtitle: "Tu pedido tiene un nuevo estado.",
+    transferValidated: "Tu transferencia ha sido validada.",
     orderIdLabel: "Número de pedido",
     fromLabel: "Estado anterior",
     toLabel: "Nuevo estado",
@@ -30,6 +31,7 @@ const content = {
     preview: "Your order status has changed.",
     title: "Order update",
     subtitle: "Your order has a new status.",
+    transferValidated: "Your bank transfer has been validated.",
     orderIdLabel: "Order number",
     fromLabel: "Previous status",
     toLabel: "New status",
@@ -41,7 +43,9 @@ const ORDER_STATUS_KEYS = [
   "CREATED",
   "PENDING_PAYMENT",
   "PAID",
+  "PAID_BY_TRANSFER",
   "READY_FOR_PICKUP",
+  "COMPLETED",
   "SHIPPED",
   "CANCELLED_EXPIRED",
   "CANCELLED_MANUAL",
@@ -55,7 +59,9 @@ const statusLabels: Record<LocaleString, Record<OrderStatusKey, string>> = {
     CREATED: "Creado",
     PENDING_PAYMENT: "Pago pendiente",
     PAID: "Pagado",
+    PAID_BY_TRANSFER: "Transferencia validada",
     READY_FOR_PICKUP: "Listo para recoger",
+    COMPLETED: "Completado",
     SHIPPED: "Enviado",
     CANCELLED_EXPIRED: "Cancelado (expirado)",
     CANCELLED_MANUAL: "Cancelado",
@@ -65,7 +71,9 @@ const statusLabels: Record<LocaleString, Record<OrderStatusKey, string>> = {
     CREATED: "Created",
     PENDING_PAYMENT: "Pending payment",
     PAID: "Paid",
+    PAID_BY_TRANSFER: "Transfer validated",
     READY_FOR_PICKUP: "Ready for pickup",
+    COMPLETED: "Completed",
     SHIPPED: "Shipped",
     CANCELLED_EXPIRED: "Cancelled (expired)",
     CANCELLED_MANUAL: "Cancelled",
@@ -91,6 +99,9 @@ export function OrderStatusChangedEmail({ locale, ...props }: OrderStatusChanged
     <EmailLayout preview={copy.preview}>
       <Text style={{ ...TYPOGRAPHY.h1, margin: 0 }}>{copy.title}</Text>
       <Text style={{ ...TYPOGRAPHY.body, color: TOKENS.MUTED_TEXT_COLOR }}>{copy.subtitle}</Text>
+      {props.toStatus === "PAID_BY_TRANSFER" ? (
+        <Text style={{ ...TYPOGRAPHY.body, color: TOKENS.TEXT_COLOR }}>{copy.transferValidated}</Text>
+      ) : null}
       <Section style={{ marginTop: SPACING.md }}>
         <SectionCard title={copy.orderIdLabel}>
           <Text style={{ ...TYPOGRAPHY.body, margin: 0 }}>{props.orderCode}</Text>

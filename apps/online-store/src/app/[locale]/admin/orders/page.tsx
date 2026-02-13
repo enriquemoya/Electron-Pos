@@ -113,8 +113,9 @@ export default async function AdminOrdersPage({
           <option value="CREATED">{t("statuses.CREATED")}</option>
           <option value="PENDING_PAYMENT">{t("statuses.PENDING_PAYMENT")}</option>
           <option value="PAID">{t("statuses.PAID")}</option>
+          <option value="PAID_BY_TRANSFER">{t("statuses.PAID_BY_TRANSFER")}</option>
           <option value="READY_FOR_PICKUP">{t("statuses.READY_FOR_PICKUP")}</option>
-          <option value="SHIPPED">{t("statuses.SHIPPED")}</option>
+          <option value="COMPLETED">{t("statuses.COMPLETED")}</option>
           <option value="CANCELLED_EXPIRED">{t("statuses.CANCELLED_EXPIRED")}</option>
           <option value="CANCELLED_MANUAL">{t("statuses.CANCELLED_MANUAL")}</option>
           <option value="CANCELED">{t("statuses.CANCELED")}</option>

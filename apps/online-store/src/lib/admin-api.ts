@@ -105,7 +105,9 @@ type OrderStatus =
   | "CREATED"
   | "PENDING_PAYMENT"
   | "PAID"
+  | "PAID_BY_TRANSFER"
   | "READY_FOR_PICKUP"
+  | "COMPLETED"
   | "SHIPPED"
   | "CANCELLED_EXPIRED"
   | "CANCELLED_MANUAL"
@@ -116,6 +118,7 @@ type AdminOrderListItem = {
   orderNumber: number;
   orderCode: string;
   status: OrderStatus;
+  paymentStatus: string;
   subtotal: number;
   currency: string;
   paymentMethod: string;
@@ -132,6 +135,7 @@ type AdminOrderDetail = {
   orderNumber: number;
   orderCode: string;
   status: OrderStatus;
+  paymentStatus: string;
   subtotal: number;
   currency: string;
   paymentMethod: string;
@@ -159,6 +163,9 @@ type AdminOrderDetail = {
     fromStatus: OrderStatus | null;
     toStatus: OrderStatus;
     reason: string | null;
+    approvedByAdminId?: string | null;
+    approvedByAdminName?: string | null;
+    adminMessage?: string | null;
     actor: { id: string; email: string | null; name: string | null } | null;
     createdAt: string;
   }>;
@@ -655,7 +662,10 @@ export async function fetchAdminOrder(orderId: string) {
   return response.json() as Promise<{ order: AdminOrderDetail }>;
 }
 
-export async function transitionAdminOrderStatus(orderId: string, data: { toStatus: string; reason?: string }) {
+export async function transitionAdminOrderStatus(
+  orderId: string,
+  data: { toStatus: string; reason?: string; adminMessage?: string }
+) {
   const baseUrl = getBaseUrl();
   const response = await fetch(`${baseUrl}/admin/orders/${orderId}/status`, {
     method: "POST",
