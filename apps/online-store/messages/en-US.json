@@ -2,7 +2,8 @@
   "common": {
     "meta": {
       "title": "DanimeZone",
-      "description": "TCG shop online store"
+      "titleTemplate": "%s | DanimeZone",
+      "description": "Premium TCG store in Mexico for Pokemon, One Piece, Yu-Gi-Oh, and more. Shop sealed products, singles, and preorders with in-store pickup."
     },
     "brand": {
       "name": "DanimeZone",
@@ -750,5 +751,198 @@
       "CANCELLED_MANUAL": "Cancelled manually",
       "CANCELED": "Cancelled"
     }
+  },
+  "footer": {
+    "brand": {
+      "description": "Premium TCG store built for collectors, players, and community events.",
+      "tagline": "Competitive TCG store, community-driven."
+    },
+    "sections": {
+      "quick": "Quick links",
+      "help": "Help",
+      "branches": "Branches"
+    },
+    "links": {
+      "catalog": "Catalog",
+      "orders": "Order history",
+      "profile": "My profile"
+    },
+    "social": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "tiktok": "TikTok"
+    },
+    "newsletter": {
+      "title": "Weekly drops and events",
+      "subtitle": "Get restock alerts, preorders, and event updates.",
+      "label": "Email address",
+      "placeholder": "you@email.com",
+      "cta": "Join newsletter",
+      "loading": "Saving...",
+      "success": "Thanks for joining! We'll keep you posted.",
+      "error": "Enter a valid email to continue.",
+      "duplicate": "You're already on the list.",
+      "help": "No spam. Unsubscribe anytime."
+    },
+    "trust": {
+      "0": "Secure checkout",
+      "1": "Official distributors",
+      "2": "Nationwide shipping",
+      "3": "In-store pickup"
+    },
+    "branches": {
+      "hermosillo": {
+        "name": "Hermosillo",
+        "address": "Enrique Garcia Sanchez #30 entre Zacatecas y Tamaulipas, Col. San Benito, Hermosillo, Sonora"
+      },
+      "guaymas": {
+        "name": "Guaymas",
+        "address": "Interior Plaza Ley, El Vigia, 85440 Guaymas, Son."
+      }
+    },
+    "copyright": "© {year} DanimeZone. All rights reserved."
+  },
+  "legal": {
+    "back": "Back to home",
+    "fallback": {
+      "title": "Content unavailable",
+      "body": "We could not load this content right now.",
+      "cta": "Return home"
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "subtitle": "Everything you need to know before you order.",
+      "meta": {
+        "title": "FAQ | DanimeZone",
+        "description": "Answers about payments, shipping, pickup windows, and returns at DanimeZone."
+      },
+      "questions": [
+        {
+          "q": "Can I pay in store?",
+          "a": "Yes. Select pay in store at checkout and complete the payment when you pick up your order."
+        },
+        {
+          "q": "How long do I have to pick up my order?",
+          "a": "We reserve your items for 10 days. If you need extra time, contact support before the deadline."
+        },
+        {
+          "q": "Do you ship nationwide?",
+          "a": "Yes. We ship to all major cities in Mexico with tracking updates once the order is confirmed."
+        },
+        {
+          "q": "Are your products authentic?",
+          "a": "All products are official and sourced from authorized distributors."
+        },
+        {
+          "q": "What is your returns policy?",
+          "a": "Returns are accepted on unopened sealed products within 10 days. Singles and opened items are final."
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms & conditions",
+      "subtitle": "Please review the policies that govern purchases at DanimeZone.",
+      "meta": {
+        "title": "Terms & Conditions | DanimeZone",
+        "description": "DanimeZone terms of service, order policy, and pickup rules."
+      },
+      "sections": [
+        {
+          "title": "Overview",
+          "body": [
+            "By placing an order you agree to these terms and confirm that your information is accurate.",
+            "DanimeZone may update these terms to improve service and compliance."
+          ]
+        },
+        {
+          "title": "Orders and pickup",
+          "body": [
+            "Orders are confirmed once payment is completed or the pickup is verified.",
+            "In-store pickup is reserved for 10 days; unclaimed orders may be canceled."
+          ]
+        },
+        {
+          "title": "Pricing and availability",
+          "body": [
+            "Prices and inventory can change without notice; we will contact you if an item is unavailable.",
+            "Preorders may have revised release dates depending on suppliers."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "subtitle": "We respect your data and only use it to deliver your order.",
+      "meta": {
+        "title": "Privacy Policy | DanimeZone",
+        "description": "How DanimeZone collects, uses, and protects your personal data."
+      },
+      "sections": [
+        {
+          "title": "Information we collect",
+          "body": [
+            "Contact details, shipping information, and order history to deliver your purchase.",
+            "Session data and analytics to improve the storefront experience."
+          ]
+        },
+        {
+          "title": "How we use your data",
+          "body": [
+            "We use your data to fulfill orders, send updates, and provide support.",
+            "We never sell your personal information to third parties."
+          ]
+        },
+        {
+          "title": "Your rights",
+          "body": [
+            "You can request access, corrections, or deletion of your data by contacting support.",
+            "Marketing emails include an unsubscribe option at any time."
+          ]
+        }
+      ]
+    },
+    "returns": {
+      "title": "Returns & cancellations",
+      "subtitle": "Fair policies for collectors and competitive players.",
+      "meta": {
+        "title": "Returns & Cancellations | DanimeZone",
+        "description": "Return rules for sealed products, pickup windows, and cancellations."
+      },
+      "sections": [
+        {
+          "title": "Sealed product returns",
+          "body": [
+            "Sealed products can be returned within 10 days as long as they are unopened.",
+            "Refunds are processed to the original payment method after inspection."
+          ]
+        },
+        {
+          "title": "Singles and open items",
+          "body": [
+            "Single cards and opened items are final sale to protect collectors.",
+            "If there is a fulfillment error, contact us within 24 hours."
+          ]
+        },
+        {
+          "title": "Pickup cancellations",
+          "body": [
+            "Orders not collected within the pickup window may be canceled automatically.",
+            "You can request a cancellation by contacting support before pickup."
+          ]
+        }
+      ]
+    }
+  },
+  "seo": {
+    "breadcrumb": {
+      "home": "Home",
+      "catalog": "Catalog"
+    }
+  },
+  "conversion": {
+    "inventoryLimited": "Limited inventory on popular items.",
+    "cartReserve": "Your order is reserved once checkout is completed.",
+    "payInStore": "Pay in store available.",
+    "pickupWindow": "You have 10 calendar days to pick up your order."
   }
 }

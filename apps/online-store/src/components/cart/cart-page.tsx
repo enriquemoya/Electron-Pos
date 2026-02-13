@@ -111,6 +111,7 @@ export function CartPage() {
         <div>
           <h2 className="text-lg font-semibold text-white">{t("cart.summary.title")}</h2>
           <p className="text-sm text-white/60">{t("cart.summary.note")}</p>
+          <p className="text-xs text-white/50">{t("conversion.cartReserve")}</p>
         </div>
 
         <div className="flex items-center justify-between text-sm text-white/70">

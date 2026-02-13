@@ -219,6 +219,7 @@ export default async function ProductDetailPage({ params }: { params: { locale: 
             disabled={isOutOfStock}
             className="w-full"
           />
+          <p className="text-xs text-amber-200">{t("conversion.inventoryLimited")}</p>
           {isOutOfStock ? (
             <p className="text-xs text-rose-200">{t("cart.warnings.outOfStock")}</p>
           ) : null}

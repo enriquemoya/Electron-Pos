@@ -12,6 +12,8 @@ import { HeroBlock } from "@/components/landing/hero-block";
 import { Section } from "@/components/landing/section";
 import { SectionHeader } from "@/components/landing/section-header";
 import { fetchProfile } from "@/lib/profile-api";
+import { JsonLd } from "@/components/seo/json-ld";
+import { BRAND_CONFIG } from "@/config/brand-config";
 
 export default async function HomePage({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale);
@@ -24,9 +26,18 @@ export default async function HomePage({ params }: { params: { locale: string } 
       profile?.user && (!profile.user.firstName || !profile.user.lastName)
     );
   }
+  const organization = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: t("common.brand.name"),
+    url: BRAND_CONFIG.siteUrl,
+    logo: `${BRAND_CONFIG.siteUrl}${BRAND_CONFIG.logoPath}`,
+    sameAs: BRAND_CONFIG.social.map((item) => item.href)
+  };
 
   return (
     <div className="flex flex-col gap-16">
+      <JsonLd id="danimezone-organization" data={organization} />
       <LogoutReload />
       <ProfileCompletionDialog
         open={showProfilePrompt}

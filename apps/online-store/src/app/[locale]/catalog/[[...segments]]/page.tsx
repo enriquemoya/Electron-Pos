@@ -7,6 +7,8 @@ import { Pagination } from "@/components/pagination";
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
 import { fetchTaxonomyBundle, resolveCatalogRoute, taxonomyLabel } from "@/lib/taxonomies";
 import { BackButton } from "@/components/common/back-button";
+import { JsonLd } from "@/components/seo/json-ld";
+import { BRAND_CONFIG } from "@/config/brand-config";
 
 type CatalogPageProps = {
   params: {
@@ -43,6 +45,8 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
   const taxonomy = await fetchTaxonomyBundle();
   const selection = resolveCatalogRoute(params.segments, taxonomy);
   const basePath = `/catalog${params.segments?.length ? `/${params.segments.join("/")}` : ""}`;
+  const siteUrl = BRAND_CONFIG.siteUrl;
+  const localeRoot = `${siteUrl}/${params.locale}`;
 
   if (!selection) {
     return (
@@ -150,9 +154,55 @@ export default async function CatalogPage({ params, searchParams }: CatalogPageP
   };
 
   const imageFallbackAlt = t("catalog.imageFallbackAlt");
+  const breadcrumbItems: Array<{ name: string; url: string }> = [
+    { name: t("seo.breadcrumb.home"), url: localeRoot },
+    { name: t("seo.breadcrumb.catalog"), url: `${localeRoot}/catalog` }
+  ];
+
+  if (selection.mode === "misc") {
+    breadcrumbItems.push({ name: t("catalog.filters.miscLabel"), url: `${localeRoot}/catalog/misc` });
+  } else {
+    if (selection.game) {
+      breadcrumbItems.push({
+        name: taxonomyLabel(selection.game, params.locale),
+        url: `${localeRoot}/catalog/${selection.game.slug}`
+      });
+    }
+    if (selection.category) {
+      const categoryPath = selection.game
+        ? `${selection.game.slug}/${selection.category.slug}`
+        : selection.category.slug;
+      breadcrumbItems.push({
+        name: taxonomyLabel(selection.category, params.locale),
+        url: `${localeRoot}/catalog/${categoryPath}`
+      });
+    }
+    if (selection.expansion) {
+      const expansionPath = selection.game
+        ? (selection.category
+            ? `${selection.game.slug}/${selection.category.slug}/${selection.expansion.slug}`
+            : `${selection.game.slug}/${selection.expansion.slug}`)
+        : selection.expansion.slug;
+      breadcrumbItems.push({
+        name: taxonomyLabel(selection.expansion, params.locale),
+        url: `${localeRoot}/catalog/${expansionPath}`
+      });
+    }
+  }
+  const breadcrumbList = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: breadcrumbItems.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url
+    }))
+  };
 
   return (
     <div className="space-y-8">
+      <JsonLd id="catalog-breadcrumbs" data={breadcrumbList} />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-2">
           <BackButton label={tNav("back")} fallbackHref={`/${params.locale}`} className="text-white/70" />

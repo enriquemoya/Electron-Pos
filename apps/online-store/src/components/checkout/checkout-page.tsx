@@ -43,6 +43,7 @@ type OrderResponse = {
 
 export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
   const t = useTranslations("checkout");
+  const tCommon = useTranslations();
   const { items, subtotal, replaceItems, clear, updateQuantity, removeItem } = useCart();
   const [draftId, setDraftId] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -245,6 +246,7 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
         <div className="space-y-1">
           <h2 className="text-lg font-semibold text-white">{t("summary.title")}</h2>
           <p className="text-sm text-white/60">{t("summary.subtitle")}</p>
+          <p className="text-xs text-amber-200">{tCommon("conversion.payInStore")}</p>
         </div>
 
         <div className="flex items-center justify-between text-sm text-white/70">
@@ -276,6 +278,7 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
                   {branchOptions.find((branch) => branch.id === selectedBranchId)?.address}
                 </p>
               ) : null}
+              <p className="text-xs text-white/50">{tCommon("conversion.pickupWindow")}</p>
             </div>
           ) : (
             <p className="text-sm text-white/60">{t("branches.empty")}</p>

@@ -2,7 +2,8 @@
   "common": {
     "meta": {
       "title": "DanimeZone",
-      "description": "Tienda en linea de TCG"
+      "titleTemplate": "%s | DanimeZone",
+      "description": "Tienda TCG premium en Mexico de Pokemon, One Piece, Yu-Gi-Oh y mas. Compra sellados, singles y preventas con pickup en sucursal."
     },
     "brand": {
       "name": "DanimeZone",
@@ -750,5 +751,198 @@
       "CANCELLED_MANUAL": "Cancelado manualmente",
       "CANCELED": "Cancelado"
     }
+  },
+  "footer": {
+    "brand": {
+      "description": "Tienda TCG premium para coleccionistas, jugadores y comunidad.",
+      "tagline": "Tienda oficial para la comundad coleccionista y jugadores competitivos."
+    },
+    "sections": {
+      "quick": "Accesos",
+      "help": "Ayuda",
+      "branches": "Sucursales"
+    },
+    "links": {
+      "catalog": "Catalogo",
+      "orders": "Historial de pedidos",
+      "profile": "Mi perfil"
+    },
+    "social": {
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "tiktok": "TikTok"
+    },
+    "newsletter": {
+      "title": "Lanzamientos y eventos",
+      "subtitle": "Recibe alertas de restock, preventas y torneos.",
+      "label": "Correo electronico",
+      "placeholder": "tu@correo.com",
+      "cta": "Suscribirme",
+      "loading": "Guardando...",
+      "success": "Gracias por suscribirte. Te avisaremos.",
+      "error": "Ingresa un correo valido para continuar.",
+      "duplicate": "Ya estas en la lista.",
+      "help": "Sin spam. Cancela cuando quieras."
+    },
+    "trust": {
+      "0": "Pago seguro",
+      "1": "Distribuidores oficiales",
+      "2": "Envio nacional",
+      "3": "Pickup en sucursal"
+    },
+    "branches": {
+      "hermosillo": {
+        "name": "Hermosillo",
+        "address": "Enrique Garcia Sanchez #30 entre Zacatecas y Tamaulipas, Col. San Benito, Hermosillo, Sonora"
+      },
+      "guaymas": {
+        "name": "Guaymas",
+        "address": "Interior Plaza Ley, El Vigia, 85440 Guaymas, Son."
+      }
+    },
+    "copyright": "© {year} DanimeZone. Todos los derechos reservados."
+  },
+  "legal": {
+    "back": "Volver al inicio",
+    "fallback": {
+      "title": "Contenido no disponible",
+      "body": "No pudimos cargar este contenido en este momento.",
+      "cta": "Regresar al inicio"
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "subtitle": "Resolvemos tus dudas antes de comprar.",
+      "meta": {
+        "title": "FAQ | DanimeZone",
+        "description": "Respuestas sobre pagos, envios, pickup y devoluciones en DanimeZone."
+      },
+      "questions": [
+        {
+          "q": "¿Puedo pagar en sucursal?",
+          "a": "Si. Selecciona pago en sucursal en checkout y liquida al recoger."
+        },
+        {
+          "q": "¿Cuanto tiempo tengo para recoger?",
+          "a": "Reservamos tu pedido por 10 dias. Si necesitas mas tiempo, contacta soporte."
+        },
+        {
+          "q": "¿Hacen envios nacionales?",
+          "a": "Si. Enviamos a todo Mexico con seguimiento una vez confirmado el pedido."
+        },
+        {
+          "q": "¿Los productos son originales?",
+          "a": "Todos los productos son oficiales y de distribuidores autorizados."
+        },
+        {
+          "q": "¿Cual es la politica de devoluciones?",
+          "a": "Devoluciones en sellados sin abrir dentro de 10 dias. Singles y abiertos son venta final."
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terminos y condiciones",
+      "subtitle": "Revisa las politicas que aplican en DanimeZone.",
+      "meta": {
+        "title": "Terminos y condiciones | DanimeZone",
+        "description": "Terminos de servicio, pedidos y reglas de pickup en DanimeZone."
+      },
+      "sections": [
+        {
+          "title": "Resumen",
+          "body": [
+            "Al realizar un pedido aceptas estos terminos y confirmas que tu informacion es correcta.",
+            "DanimeZone puede actualizar estos terminos para mejorar el servicio."
+          ]
+        },
+        {
+          "title": "Pedidos y pickup",
+          "body": [
+            "Los pedidos se confirman al completar el pago o validar el pickup.",
+            "El pickup se reserva por 10 dias; pedidos no recogidos pueden cancelarse."
+          ]
+        },
+        {
+          "title": "Precios y disponibilidad",
+          "body": [
+            "Precios e inventario pueden cambiar sin previo aviso; te contactaremos si un item no esta disponible.",
+            "Las preventas pueden ajustar su fecha dependiendo de los proveedores."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Aviso de privacidad",
+      "subtitle": "Respetamos tus datos y solo los usamos para tu pedido.",
+      "meta": {
+        "title": "Aviso de privacidad | DanimeZone",
+        "description": "Como DanimeZone recopila, usa y protege tu informacion."
+      },
+      "sections": [
+        {
+          "title": "Informacion que recopilamos",
+          "body": [
+            "Datos de contacto, envio e historial de compras para entregar tu pedido.",
+            "Datos de sesion y analitica para mejorar la experiencia."
+          ]
+        },
+        {
+          "title": "Uso de datos",
+          "body": [
+            "Usamos tus datos para procesar pedidos, enviar actualizaciones y soporte.",
+            "Nunca vendemos tu informacion personal a terceros."
+          ]
+        },
+        {
+          "title": "Tus derechos",
+          "body": [
+            "Puedes solicitar acceso, correcciones o eliminacion de tus datos con soporte.",
+            "Los correos promocionales incluyen opcion de cancelar suscripcion."
+          ]
+        }
+      ]
+    },
+    "returns": {
+      "title": "Devoluciones y cancelaciones",
+      "subtitle": "Politicas justas para coleccionistas y jugadores.",
+      "meta": {
+        "title": "Devoluciones y cancelaciones | DanimeZone",
+        "description": "Reglas de devolucion en sellados, pickup y cancelaciones."
+      },
+      "sections": [
+        {
+          "title": "Devoluciones de sellados",
+          "body": [
+            "Sellados pueden devolverse dentro de 10 dias si estan sin abrir.",
+            "Los reembolsos se procesan al metodo original tras revision."
+          ]
+        },
+        {
+          "title": "Singles y abiertos",
+          "body": [
+            "Singles y productos abiertos son venta final para proteger coleccionistas.",
+            "Si hay error de surtido, contactanos dentro de 24 horas."
+          ]
+        },
+        {
+          "title": "Cancelaciones de pickup",
+          "body": [
+            "Pedidos no recogidos dentro del plazo pueden cancelarse automaticamente.",
+            "Puedes solicitar cancelacion con soporte antes del pickup."
+          ]
+        }
+      ]
+    }
+  },
+  "seo": {
+    "breadcrumb": {
+      "home": "Inicio",
+      "catalog": "Catalogo"
+    }
+  },
+  "conversion": {
+    "inventoryLimited": "Inventario limitado en productos populares.",
+    "cartReserve": "Tu pedido se aparta al finalizar checkout.",
+    "payInStore": "Pago en sucursal disponible.",
+    "pickupWindow": "Tienes 10 dias naturales para recogerlo."
   }
 }
