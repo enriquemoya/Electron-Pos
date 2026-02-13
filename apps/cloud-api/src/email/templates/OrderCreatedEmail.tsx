@@ -106,13 +106,7 @@ export function OrderCreatedEmail({ locale, ...props }: OrderCreatedEmailInput) 
   const copy = content[locale];
   const status = humanizeStatus(locale, props.status);
   const branding = getBranding();
-  const storeBase = (() => {
-    if (branding.storeUrl && /^https?:\/\//i.test(branding.storeUrl)) {
-      return branding.storeUrl;
-    }
-    return "https://danimezone.com";
-  })();
-  const wireImageUrl = `${storeBase.replace(/\/$/, "")}/assets/wire_payment.jpg`;
+  const wireImageUrl = branding.wirePaymentUrl;
   return (
     <EmailLayout preview={copy.preview}>
       <Text style={{ ...TYPOGRAPHY.h1, margin: 0 }}>{copy.title}</Text>

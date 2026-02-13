@@ -6,11 +6,12 @@ export function getBranding() {
   const apiBaseUrl = env.cloudApiBaseUrl || "";
   const apiTrimmed = apiBaseUrl.endsWith("/") ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
   const trimmed = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-  const logoBase = apiTrimmed || trimmed || defaultStoreUrl;
+  const assetBase = apiTrimmed || trimmed || defaultStoreUrl;
   return {
     appName: env.appName || "DanimeZone",
     supportEmail: env.supportEmail || "support@danimezone.com",
-    logoUrl: logoBase ? `${logoBase}/assets/logo.webp` : "",
+    logoUrl: assetBase ? `${assetBase}/assets/logo.webp` : "",
+    wirePaymentUrl: assetBase ? `${assetBase}/assets/wire_payment.jpg` : "",
     storeUrl: trimmed || defaultStoreUrl
   };
 }
