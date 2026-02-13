@@ -34,10 +34,10 @@ export function MobileNav({ isOpen, onClose, groups, miscLink }: MobileNavProps)
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-base-950 px-6 py-5">
           <div className="flex items-center gap-3">
             <Image
-              src="/assets/hero/store-logo.png"
+              src="/assets/logo.webp"
               alt={t("navigation.brand.name")}
-              width={28}
-              height={28}
+              width={30}
+              height={27}
               className="rounded-full border border-white/10 bg-base-900"
             />
             <span className="text-sm uppercase tracking-[0.2em] text-white/60">

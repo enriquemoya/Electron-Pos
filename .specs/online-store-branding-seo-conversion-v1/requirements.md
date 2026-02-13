@@ -1,31 +1,52 @@
 # Requirements
 
 ## Goals
-- Deliver a premium footer, legal pages, and FAQ experience for the online store.
-- Add SEO structured data (LocalBusiness, Organization, FAQPage, BreadcrumbList).
-- Improve conversion microcopy without changing checkout, cart, or order logic.
-- Ensure all user-visible copy is localized via next-intl (es-MX, en-US).
+- Deliver premium footer, legal pages, and FAQ for the online store.
+- Improve SEO structured data and metadata correctness.
+- Improve Lighthouse performance on mobile without changing core checkout or catalog behavior.
+- Keep locale-in-URL rule and full localization via next-intl.
 
 ## Scope
 - online-store only
-- Footer, legal pages (faq, terms, privacy, returns), FAQ, and SEO metadata
+- UI, SEO, and performance improvements
 - Newsletter UI only (no backend integration)
 - Locale-aware internal routing
 
 ## Non-goals
-- No changes to cloud-api or data layer
-- No changes to checkout, cart, order lifecycle, or payment logic
-- No new runtime dependencies
+- No cloud-api or data changes
+- No cart, checkout, or order flow changes
+- No new backend services or heavy dependencies
 
 ## Constraints
-- Preserve premium dark theme and existing design system
-- Use shadcn primitives already available (Card, Badge, Button, Input)
+- Preserve premium dark theme and current design tokens
+- Use existing shadcn components only
 - Internal links must be locale-prefixed: /{locale}/...
 - No API contract changes
 
+## Performance Targets
+- Mobile performance score >= 80 on:
+  - /{locale}
+  - /{locale}/faq
+  - /{locale}/terms
+- Mobile LCP <= 3.0s on simulated slow 4G (best effort)
+- No console errors on key routes
+
+## SEO Validation
+- Validate JSON-LD presence:
+  - Home: LocalBusiness + Organization
+  - FAQ: FAQPage
+  - Catalog: BreadcrumbList
+- Validate canonical and hreflang alternates:
+  - canonical points to same-locale URL
+  - alternates.languages includes es and en
+- Verify sitemap and robots configuration
+- Manual checks:
+  - Google Rich Results Test for structured data
+  - Search Console property verification and URL inspection
+
 ## i18n
 - All copy must live in messages files for es-MX and en-US
-- No hardcoded strings in UI components
+- No hardcoded user-visible strings in components
 
 ## Error Handling
 - Newsletter submission:
@@ -33,7 +54,7 @@
   - Duplicate email -> toast info
   - Success -> toast success
   - Network/server error -> toast error
-  - Loading state disables button and blocks double submit
+  - Loading state disables button and prevents double submit
 - Legal pages:
-  - If content is missing/unavailable, render a safe fallback UI with a link back to home
+  - If content is missing/unavailable, render fallback UI with a link back to home
   - No runtime crash

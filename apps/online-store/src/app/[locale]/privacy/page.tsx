@@ -2,17 +2,19 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { LegalPage } from "@/components/legal/legal-page";
 import { BRAND_CONFIG } from "@/config/brand-config";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function generateMetadata({ params }: { params: { locale: string } }) {
   const t = await getTranslations({ locale: params.locale, namespace: "legal.privacy.meta" });
+  const siteUrl = getSiteUrl(BRAND_CONFIG.siteUrl);
   return {
     title: t("title"),
     description: t("description"),
     alternates: {
-      canonical: `${BRAND_CONFIG.siteUrl}/${params.locale}/privacy`,
+      canonical: `${siteUrl}/${params.locale}/privacy`,
       languages: {
-        "es-MX": `${BRAND_CONFIG.siteUrl}/es/privacy`,
-        "en-US": `${BRAND_CONFIG.siteUrl}/en/privacy`
+        "es-MX": `${siteUrl}/es/privacy`,
+        "en-US": `${siteUrl}/en/privacy`
       }
     }
   };

@@ -33,6 +33,7 @@ export function ProductMedia({
           fallbackAlt={fallbackAlt}
           className="object-cover"
           priority
+          sizes="(min-width: 1024px) 50vw, 100vw"
         />
       </div>
 
@@ -51,7 +52,13 @@ export function ProductMedia({
                 )}
                 aria-label={img.alt}
               >
-                <ProductImage src={img.src} alt={img.alt} fallbackAlt={fallbackAlt} className="object-cover" />
+                <ProductImage
+                  src={img.src}
+                  alt={img.alt}
+                  fallbackAlt={fallbackAlt}
+                  className="object-cover"
+                  sizes="64px"
+                />
               </button>
             );
           })}

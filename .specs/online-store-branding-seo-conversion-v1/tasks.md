@@ -1,22 +1,24 @@
 # Tasks
 
-## Phase 1 - Spec fixes
-- Ensure requirements include error handling and i18n rules
-- Ensure design includes data model, edge cases, accessibility notes
-- Ensure locale path rule is explicit
+## Phase 1 - Spec updates
+- Add performance targets and SEO validation requirements
+- Add performance plan and remote image strategy
+- Add edge cases and accessibility notes
 
-## Phase 2 - UI and SEO implementation
-- Make footer links locale-aware
-- Make legal links locale-aware
-- Upgrade footer layout using shadcn Card/Badge/Button/Input
-- Add trust badges as compact chips
-- Build newsletter block with validation and toasts
-- Style FAQ with accordion layout and JSON-LD
-- Style legal pages with Card sections and back control
-- Add JSON-LD (LocalBusiness, Organization, FAQPage, BreadcrumbList)
-- Add localized metadata and alternates
+## Phase 2 - Implementation
+- Fix logo aspect ratio warning
+- Replace hero background with next/image priority LCP
+- Implement image proxy for remote product images
+- Add caching for featured and taxonomy fetches
+- Fix console errors from checkout drafts when unauthenticated
+- Ensure locale-aware footer and legal links
+- Improve footer layout with shadcn cards and trust badges
+- Style FAQ with accordion and JSON-LD
+- Style legal pages with cards and back control
+- Add alternates languages in metadata
 
-## Phase 3 - i18n and verification
-- Update ES/EN message files for footer, legal, FAQ, trust, newsletter
-- Validate accessibility for links, forms, and accordion
-- Run spec audit and implementation audit
+## Phase 3 - i18n and QA
+- Update ES/EN messages for new labels and error states
+- Validate accessibility for forms, accordion, and links
+- Run spec audit and impl audit
+- Run Lighthouse on key routes and save reports

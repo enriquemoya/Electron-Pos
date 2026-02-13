@@ -162,11 +162,11 @@ export async function Header({ locale }: { locale: string }) {
         <div className="flex min-h-[88px] items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3 text-white">
             <Image
-              src="/assets/hero/store-logo.png"
+              src="/assets/logo.webp"
               alt={t("navigation.brand.name")}
-              width={88}
-              height={88}
-              className="h-[2.1875rem] w-[2.1875rem] rounded-full border border-white/10 bg-base-900 lg:h-[5.5rem] lg:w-[5.5rem]"
+              width={100}
+              height={90}
+              className="h-[2.25rem] w-[2.5rem] rounded-full border border-white/10 bg-base-900 lg:h-[4.5rem] lg:w-[5rem]"
               priority
             />
             <span className="text-lg font-semibold tracking-[0.15em] lg:hidden">

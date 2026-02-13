@@ -9,7 +9,7 @@ export async function GET() {
   const secret = getCloudSecret();
 
   if (!token || !baseUrl) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    return new Response(null, { status: 204 });
   }
 
   const response = await fetch(`${baseUrl}/checkout/drafts/active`, {

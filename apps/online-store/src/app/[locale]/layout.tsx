@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { JsonLd } from "@/components/seo/json-ld";
 import { BRAND_CONFIG } from "@/config/brand-config";
 import { BRANCHES } from "@/config/branch-config";
+import { getSiteUrl } from "@/lib/site-url";
 
 export function generateStaticParams() {
   return [{ locale: "es" }, { locale: "en" }];
@@ -16,7 +17,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: { locale: string } }) {
   const t = await getTranslations({ locale: params.locale, namespace: "common.meta" });
-  const siteUrl = BRAND_CONFIG.siteUrl;
+  const siteUrl = getSiteUrl(BRAND_CONFIG.siteUrl);
   const localeRoot = `${siteUrl}/${params.locale}`;
   return {
     metadataBase: new URL(siteUrl),
@@ -70,7 +71,7 @@ export default async function LocaleLayout({
   setRequestLocale(params.locale);
   const t = await getTranslations({ locale: params.locale });
   const messages = await getMessages({ locale: params.locale });
-  const siteUrl = BRAND_CONFIG.siteUrl;
+  const siteUrl = getSiteUrl(BRAND_CONFIG.siteUrl);
   const localBusiness = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",

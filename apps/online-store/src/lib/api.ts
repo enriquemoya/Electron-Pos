@@ -130,7 +130,7 @@ export async function fetchFeaturedProducts(): Promise<{
     headers: {
       "x-cloud-secret": secret || ""
     },
-    cache: "no-store"
+    next: { revalidate: 300 }
   });
 
   if (!response.ok) {
@@ -171,8 +171,8 @@ async function fetchTaxonomyEndpoint(path: string): Promise<TaxonomyItem[]> {
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
       const response = await fetch(`${baseUrl}${path}`, {
-        cache: "no-store",
-        headers: secret ? { "x-cloud-secret": secret } : undefined
+        headers: secret ? { "x-cloud-secret": secret } : undefined,
+        next: { revalidate: 3600 }
       });
 
       if (response.ok) {

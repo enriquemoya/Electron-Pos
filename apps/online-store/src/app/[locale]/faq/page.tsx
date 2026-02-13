@@ -5,17 +5,19 @@ import { BRAND_CONFIG } from "@/config/brand-config";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Link } from "@/navigation";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function generateMetadata({ params }: { params: { locale: string } }) {
   const t = await getTranslations({ locale: params.locale, namespace: "legal.faq.meta" });
+  const siteUrl = getSiteUrl(BRAND_CONFIG.siteUrl);
   return {
     title: t("title"),
     description: t("description"),
     alternates: {
-      canonical: `${BRAND_CONFIG.siteUrl}/${params.locale}/faq`,
+      canonical: `${siteUrl}/${params.locale}/faq`,
       languages: {
-        "es-MX": `${BRAND_CONFIG.siteUrl}/es/faq`,
-        "en-US": `${BRAND_CONFIG.siteUrl}/en/faq`
+        "es-MX": `${siteUrl}/es/faq`,
+        "en-US": `${siteUrl}/en/faq`
       }
     }
   };

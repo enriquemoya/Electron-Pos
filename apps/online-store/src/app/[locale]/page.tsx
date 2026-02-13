@@ -14,6 +14,7 @@ import { SectionHeader } from "@/components/landing/section-header";
 import { fetchProfile } from "@/lib/profile-api";
 import { JsonLd } from "@/components/seo/json-ld";
 import { BRAND_CONFIG } from "@/config/brand-config";
+import { getSiteUrl } from "@/lib/site-url";
 
 export default async function HomePage({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale);
@@ -26,12 +27,13 @@ export default async function HomePage({ params }: { params: { locale: string } 
       profile?.user && (!profile.user.firstName || !profile.user.lastName)
     );
   }
+  const siteUrl = getSiteUrl(BRAND_CONFIG.siteUrl);
   const organization = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: t("common.brand.name"),
-    url: BRAND_CONFIG.siteUrl,
-    logo: `${BRAND_CONFIG.siteUrl}${BRAND_CONFIG.logoPath}`,
+    url: siteUrl,
+    logo: `${siteUrl}${BRAND_CONFIG.logoPath}`,
     sameAs: BRAND_CONFIG.social.map((item) => item.href)
   };
 
@@ -121,21 +123,21 @@ export default async function HomePage({ params }: { params: { locale: string } 
               id: "news",
               title: t("landing.community.newsTitle"),
               body: t("landing.community.placeholderLink"),
-              image: "/assets/landing/news.png",
+              image: "/assets/landing/news.webp",
               imageAlt: t("landing.community.newsImageAlt")
             },
             {
               id: "events",
               title: t("landing.community.eventsTitle"),
               body: t("landing.community.placeholderLink"),
-              image: "/assets/landing/events.png",
+              image: "/assets/landing/events.webp",
               imageAlt: t("landing.community.eventsImageAlt")
             },
             {
               id: "tournaments",
               title: t("landing.community.communityTitle"),
               body: t("landing.community.placeholderLink"),
-              image: "/assets/landing/community.png",
+              image: "/assets/landing/community.webp",
               imageAlt: t("landing.community.communityImageAlt")
             }
           ].map((item) => (

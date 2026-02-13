@@ -9,7 +9,7 @@ export function getBranding() {
   return {
     appName: env.appName || "DanimeZone",
     supportEmail: env.supportEmail || "support@danimezone.com",
-    logoUrl: logoBase ? `${logoBase}/assets/logo.png` : "",
+    logoUrl: logoBase ? `${logoBase}/assets/logo.webp` : "",
     storeUrl: trimmed || "#"
   };
 }

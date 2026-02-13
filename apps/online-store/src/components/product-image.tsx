@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
-const PLACEHOLDER_SRC = "/assets/hero/product_placeholder.png";
+const PLACEHOLDER_SRC = "/assets/hero/product_placeholder.webp";
 
 type ProductImageProps = {
   src?: string | null;
@@ -32,22 +32,13 @@ export function ProductImage({
   const resolvedSrc = !hasSrc || failed ? PLACEHOLDER_SRC : (src as string);
   const resolvedAlt = !hasSrc || failed ? fallbackAlt : alt;
   const resolvedSizes = useMemo(() => sizes ?? (fill ? "100vw" : undefined), [fill, sizes]);
-
-  if (isExternal) {
-    return (
-      <img
-        src={resolvedSrc}
-        alt={resolvedAlt}
-        loading={priority ? "eager" : "lazy"}
-        className={cn("h-full w-full object-cover", className)}
-        onError={() => setFailed(true)}
-      />
-    );
-  }
+  const proxySrc = isExternal
+    ? `/api/image-proxy?url=${encodeURIComponent(resolvedSrc)}`
+    : resolvedSrc;
 
   return (
     <Image
-      src={resolvedSrc}
+      src={proxySrc}
       alt={resolvedAlt}
       fill={fill}
       sizes={resolvedSizes}
