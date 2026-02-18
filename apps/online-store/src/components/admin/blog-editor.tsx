@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { BubbleMenu, EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Heading from "@tiptap/extension-heading";
 import Link from "@tiptap/extension-link";
@@ -17,6 +17,10 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
+import { BlogToolbar } from "@/components/admin/blog/blog-toolbar";
+import { BlogStatusIndicator } from "@/components/admin/blog/blog-status-indicator";
+import { BlogPreviewRenderer } from "@/components/admin/blog/blog-preview-renderer";
 
 type AdminBlogPost = {
   id: string;
@@ -53,8 +57,19 @@ type BlogEditorLabels = {
   publish: string;
   unpublish: string;
   uploadImage: string;
+  delete: string;
+  deleteConfirm: string;
   published: string;
   draft: string;
+  preview: string;
+  untitled: string;
+  saving: string;
+  saved: string;
+  linkPrompt: string;
+  slugLocked: string;
+  bubbleBold: string;
+  bubbleItalic: string;
+  bubbleLink: string;
   toolbar: {
     h2: string;
     h3: string;
@@ -75,7 +90,6 @@ type BlogEditorLabels = {
     publishError: string;
     uploadOk: string;
     uploadError: string;
-    autosave: string;
   };
 };
 
@@ -122,6 +136,7 @@ export function BlogEditor({
   const [model, setModel] = useState<AdminBlogPost>(initialPosts[0] || initialPost(locale));
   const [query, setQuery] = useState("");
   const [saving, setSaving] = useState(false);
+  const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const storageKey = useMemo(() => `blog-editor-draft-${locale}-${selectedId}`, [locale, selectedId]);
@@ -170,13 +185,12 @@ export function BlogEditor({
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
+      setAutosaveStatus("saving");
       localStorage.setItem(storageKey, JSON.stringify(model));
-      if (model.slug || model.title) {
-        toast.message(labels.toasts.autosave);
-      }
+      setAutosaveStatus("saved");
     }, 1200);
     return () => window.clearTimeout(timer);
-  }, [model, storageKey, labels.toasts.autosave]);
+  }, [model, storageKey]);
 
   const filteredPosts = posts.filter((post) =>
     [post.title, post.slug].some((value) => value.toLowerCase().includes(query.toLowerCase()))
@@ -217,8 +231,7 @@ export function BlogEditor({
         coverImageUrl: model.coverImageUrl,
         authorName: model.authorName,
         seoTitle: model.seoTitle,
-        seoDescription: model.seoDescription,
-        isPublished: model.isPublished
+        seoDescription: model.seoDescription
       };
 
       const response = await fetch(
@@ -269,8 +282,28 @@ export function BlogEditor({
     toast.success(labels.toasts.publishOk);
   };
 
+  const deletePost = async () => {
+    if (!model.id) {
+      return;
+    }
+    const confirmed = window.confirm(labels.deleteConfirm);
+    if (!confirmed) {
+      return;
+    }
+    const response = await fetch(`/api/admin/blog/posts/${model.id}`, { method: "DELETE" });
+    if (!response.ok) {
+      toast.error(labels.toasts.saveError);
+      return;
+    }
+    setPosts((current) => current.filter((post) => post.id !== model.id));
+    setSelectedId("new");
+    setModel(initialPost(locale));
+    editor?.commands.setContent(emptyDocument);
+    toast.success(labels.toasts.saveOk);
+  };
+
   const addLink = () => {
-    const href = window.prompt("https://");
+    const href = window.prompt(labels.linkPrompt);
     if (!href || !editor) {
       return;
     }
@@ -331,10 +364,32 @@ export function BlogEditor({
         </Card>
 
         <Card className="space-y-4 border-white/10 bg-base-800/60 p-4">
+          <div className="sticky top-0 z-10 flex items-center justify-between rounded-lg border border-white/10 bg-base-900/90 px-3 py-2 backdrop-blur">
+            <BlogStatusIndicator
+              status={autosaveStatus}
+              isPublished={model.isPublished}
+              publishedLabel={labels.published}
+              draftLabel={labels.draft}
+              savingLabel={labels.saving}
+              savedLabel={labels.saved}
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button disabled={saving} onClick={() => void save()}>{labels.saveDraft}</Button>
+              <Button disabled={model.isPublished} onClick={() => void publishAction("publish")}>{labels.publish}</Button>
+              <Button disabled={!model.isPublished} variant="outline" onClick={() => void publishAction("unpublish")}>{labels.unpublish}</Button>
+              <Button variant="outline" onClick={() => fileInputRef.current?.click()}>{labels.uploadImage}</Button>
+              <Button variant="ghost" disabled={!model.id} onClick={() => void deletePost()}><Trash2 className="mr-1 h-4 w-4" />{labels.delete}</Button>
+            </div>
+          </div>
           <div className="grid gap-3 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs uppercase text-white/60">{labels.slug}</label>
-              <Input value={model.slug} onChange={(event) => setModel((current) => ({ ...current, slug: event.target.value }))} />
+              <Input
+                value={model.slug}
+                disabled={model.isPublished}
+                onChange={(event) => setModel((current) => ({ ...current, slug: event.target.value }))}
+              />
+              {model.isPublished ? <p className="mt-1 text-xs text-white/50">{labels.slugLocked}</p> : null}
             </div>
             <div>
               <label className="mb-1 block text-xs uppercase text-white/60">{labels.locale}</label>
@@ -384,19 +439,22 @@ export function BlogEditor({
           </div>
 
           <div className="space-y-3 rounded-lg border border-white/10 bg-base-900/80 p-3">
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="outline" onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>{labels.toolbar.h2}</Button>
-              <Button size="sm" variant="outline" onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}>{labels.toolbar.h3}</Button>
-              <Button size="sm" variant="outline" onClick={() => editor?.chain().focus().toggleHeading({ level: 4 }).run()}>{labels.toolbar.h4}</Button>
-              <Button size="sm" variant="outline" onClick={() => editor?.chain().focus().toggleBold().run()}>{labels.toolbar.bold}</Button>
-              <Button size="sm" variant="outline" onClick={() => editor?.chain().focus().toggleItalic().run()}>{labels.toolbar.italic}</Button>
-              <Button size="sm" variant="outline" onClick={() => editor?.chain().focus().toggleBulletList().run()}>{labels.toolbar.bullet}</Button>
-              <Button size="sm" variant="outline" onClick={() => editor?.chain().focus().toggleOrderedList().run()}>{labels.toolbar.ordered}</Button>
-              <Button size="sm" variant="outline" onClick={() => editor?.chain().focus().toggleCodeBlock().run()}>{labels.toolbar.code}</Button>
-              <Button size="sm" variant="outline" onClick={() => editor?.chain().focus().toggleBlockquote().run()}>{labels.toolbar.quote}</Button>
-              <Button size="sm" variant="outline" onClick={addLink}>{labels.toolbar.link}</Button>
-              <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>{labels.toolbar.image}</Button>
-            </div>
+            <BlogToolbar editor={editor} labels={labels.toolbar} onLink={addLink} onImage={() => fileInputRef.current?.click()} />
+            {editor ? (
+              <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="rounded-lg border border-white/10 bg-base-900/95 p-1 shadow-xl">
+                <div className="flex gap-1">
+                  <Button type="button" size="sm" variant={editor.isActive("bold") ? "default" : "outline"} onClick={() => editor.chain().focus().toggleBold().run()}>
+                    {labels.bubbleBold}
+                  </Button>
+                  <Button type="button" size="sm" variant={editor.isActive("italic") ? "default" : "outline"} onClick={() => editor.chain().focus().toggleItalic().run()}>
+                    {labels.bubbleItalic}
+                  </Button>
+                  <Button type="button" size="sm" variant={editor.isActive("link") ? "default" : "outline"} onClick={addLink}>
+                    {labels.bubbleLink}
+                  </Button>
+                </div>
+              </BubbleMenu>
+            ) : null}
             <input
               ref={fileInputRef}
               type="file"
@@ -413,12 +471,13 @@ export function BlogEditor({
             <EditorContent editor={editor} className="min-h-[360px] rounded-md border border-white/10 bg-base-900 p-3" />
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button disabled={saving} onClick={() => void save()}>{labels.saveDraft}</Button>
-            <Button onClick={() => void publishAction("publish")}>{labels.publish}</Button>
-            <Button variant="outline" onClick={() => void publishAction("unpublish")}>{labels.unpublish}</Button>
-            <Button variant="outline" onClick={() => fileInputRef.current?.click()}>{labels.uploadImage}</Button>
-          </div>
+          <BlogPreviewRenderer
+            contentJson={(editor?.getJSON() as Record<string, unknown>) || model.contentJson}
+            title={model.title}
+            excerpt={model.excerpt}
+            previewLabel={labels.preview}
+            untitledLabel={labels.untitled}
+          />
         </Card>
       </div>
     </div>

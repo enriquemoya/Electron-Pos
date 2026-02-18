@@ -4,6 +4,12 @@ import { Prisma } from "@prisma/client";
 
 import { prisma } from "../db/prisma";
 import { ApiErrors } from "../../errors/api-error";
+import {
+  assertCanDelete,
+  assertCanPublish,
+  assertCanUnpublish,
+  assertCanUpdate
+} from "../../domain/blog/blog-domain-rules";
 
 function selectBase() {
   return {
@@ -19,6 +25,8 @@ function selectBase() {
     seoTitle: true,
     seoDescription: true,
     isPublished: true,
+    isDeleted: true,
+    deletedAt: true,
     publishedAt: true,
     createdAt: true,
     updatedAt: true
@@ -41,6 +49,7 @@ export async function listAdminPosts(params: {
 }) {
   const skip = (params.page - 1) * params.pageSize;
   const where: Prisma.BlogPostWhereInput = {
+    isDeleted: false,
     ...(params.locale ? { locale: params.locale } : {}),
     ...(typeof params.isPublished === "boolean" ? { isPublished: params.isPublished } : {}),
     ...(params.query
@@ -69,8 +78,8 @@ export async function listAdminPosts(params: {
 }
 
 export async function getAdminPostById(id: string) {
-  return prisma.blogPost.findUnique({
-    where: { id },
+  return prisma.blogPost.findFirst({
+    where: { id, isDeleted: false },
     select: selectBase()
   });
 }
@@ -86,7 +95,6 @@ export async function createPost(payload: {
   readingTimeMinutes: number;
   seoTitle: string;
   seoDescription: string;
-  isPublished: boolean;
 }) {
   try {
     return await prisma.blogPost.create({
@@ -102,8 +110,8 @@ export async function createPost(payload: {
         readingTimeMinutes: payload.readingTimeMinutes,
         seoTitle: payload.seoTitle,
         seoDescription: payload.seoDescription,
-        isPublished: payload.isPublished,
-        publishedAt: payload.isPublished ? new Date() : null
+        isPublished: false,
+        publishedAt: null
       },
       select: selectBase()
     });
@@ -125,14 +133,25 @@ export async function updatePost(
     readingTimeMinutes?: number;
     seoTitle?: string;
     seoDescription?: string;
-    isPublished?: boolean;
   }
   ) {
   try {
-    const current = await prisma.blogPost.findUnique({ where: { id }, select: { id: true, isPublished: true } });
+    const current = await prisma.blogPost.findUnique({
+      where: { id },
+      select: { id: true, slug: true, isPublished: true, isDeleted: true }
+    });
     if (!current) {
       throw ApiErrors.blogNotFound;
     }
+    assertCanUpdate(
+      {
+        id: current.id,
+        slug: current.slug,
+        isDeleted: current.isDeleted,
+        isPublished: current.isPublished
+      },
+      payload
+    );
 
     const { contentJson, ...restPayload } = payload;
     return await prisma.blogPost.update({
@@ -142,15 +161,6 @@ export async function updatePost(
         ...(contentJson
           ? { contentJson: contentJson as Prisma.InputJsonValue }
           : {}),
-        ...(typeof payload.isPublished === "boolean"
-          ? {
-              publishedAt: payload.isPublished
-                ? current.isPublished
-                  ? undefined
-                  : new Date()
-                : null
-            }
-          : {})
       },
       select: selectBase()
     });
@@ -164,6 +174,19 @@ export async function updatePost(
 
 export async function publishPost(id: string) {
   try {
+    const current = await prisma.blogPost.findUnique({
+      where: { id },
+      select: { id: true, slug: true, isDeleted: true, isPublished: true }
+    });
+    if (!current) {
+      throw ApiErrors.blogNotFound;
+    }
+    assertCanPublish({
+      id: current.id,
+      slug: current.slug,
+      isDeleted: current.isDeleted,
+      isPublished: current.isPublished
+    });
     return await prisma.blogPost.update({
       where: { id },
       data: {
@@ -182,6 +205,19 @@ export async function publishPost(id: string) {
 
 export async function unpublishPost(id: string) {
   try {
+    const current = await prisma.blogPost.findUnique({
+      where: { id },
+      select: { id: true, slug: true, isDeleted: true, isPublished: true }
+    });
+    if (!current) {
+      throw ApiErrors.blogNotFound;
+    }
+    assertCanUnpublish({
+      id: current.id,
+      slug: current.slug,
+      isDeleted: current.isDeleted,
+      isPublished: current.isPublished
+    });
     return await prisma.blogPost.update({
       where: { id },
       data: {
@@ -207,6 +243,7 @@ export async function listPublicPosts(params: {
   const where: Prisma.BlogPostWhereInput = {
     locale: params.locale,
     isPublished: true,
+    isDeleted: false,
     publishedAt: { not: null }
   };
 
@@ -244,6 +281,7 @@ export async function getPublicPostBySlug(params: {
       locale: params.locale,
       slug: params.slug,
       isPublished: true,
+      isDeleted: false,
       publishedAt: { not: null }
     },
     select: {
@@ -269,6 +307,7 @@ export async function listPublishedPostsForFeed(locale: string) {
     where: {
       locale,
       isPublished: true,
+      isDeleted: false,
       publishedAt: { not: null }
     },
     orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
@@ -283,5 +322,32 @@ export async function listPublishedPostsForFeed(locale: string) {
       publishedAt: true,
       updatedAt: true
     }
+  });
+}
+
+export async function deletePost(id: string) {
+  const current = await prisma.blogPost.findUnique({
+    where: { id },
+    select: { id: true, slug: true, isDeleted: true, isPublished: true }
+  });
+  if (!current) {
+    throw ApiErrors.blogNotFound;
+  }
+  assertCanDelete({
+    id: current.id,
+    slug: current.slug,
+    isDeleted: current.isDeleted,
+    isPublished: current.isPublished
+  });
+
+  return prisma.blogPost.update({
+    where: { id },
+    data: {
+      isDeleted: true,
+      deletedAt: new Date(),
+      isPublished: false,
+      publishedAt: null
+    },
+    select: selectBase()
   });
 }

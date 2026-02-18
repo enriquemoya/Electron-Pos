@@ -36,8 +36,19 @@ export default async function AdminBlogPage({ params }: { params: { locale: stri
         publish: t("actions.publish"),
         unpublish: t("actions.unpublish"),
         uploadImage: t("actions.uploadImage"),
+        delete: t("actions.delete"),
+        deleteConfirm: t("actions.deleteConfirm"),
         published: blogT("status.published"),
         draft: blogT("status.draft"),
+        preview: t("preview.title"),
+        untitled: t("preview.untitled"),
+        saving: t("status.saving"),
+        saved: t("status.saved"),
+        linkPrompt: t("prompts.link"),
+        slugLocked: t("status.slugLocked"),
+        bubbleBold: t("bubble.bold"),
+        bubbleItalic: t("bubble.italic"),
+        bubbleLink: t("bubble.link"),
         toolbar: {
           h2: t("toolbar.h2"),
           h3: t("toolbar.h3"),
@@ -57,8 +68,7 @@ export default async function AdminBlogPage({ params }: { params: { locale: stri
           publishOk: t("toasts.publishOk"),
           publishError: t("toasts.publishError"),
           uploadOk: t("toasts.uploadOk"),
-          uploadError: t("toasts.uploadError"),
-          autosave: t("toasts.autosave")
+          uploadError: t("toasts.uploadError")
         }
       }}
     />

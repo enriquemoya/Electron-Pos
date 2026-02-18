@@ -27,6 +27,7 @@ import { createOrderFulfillmentController } from "../controllers/order-fulfillme
 import { createMediaController } from "../controllers/media-controller";
 import { adminMediaUploadMiddleware } from "../middleware/admin-media-upload";
 import { createBlogController } from "../controllers/blog-controller";
+import { createRateLimitMiddleware } from "../middleware/rate-limit";
 
 export function createProtectedRoutes(params: {
   adminDashboardUseCases: AdminDashboardUseCases;
@@ -55,6 +56,11 @@ export function createProtectedRoutes(params: {
   const orderFulfillmentController = createOrderFulfillmentController(params.orderFulfillmentUseCases);
   const mediaController = createMediaController(params.mediaUseCases);
   const blogController = createBlogController(params.blogUseCases);
+  const blogMutationsRateLimit = createRateLimitMiddleware({
+    limit: 30,
+    windowMs: 60_000,
+    keyPrefix: "admin-blog-mutations"
+  });
 
   router.post("/sync/events", syncController.recordEventsHandler);
   router.get("/sync/pending", syncController.getPendingHandler);
@@ -103,10 +109,11 @@ export function createProtectedRoutes(params: {
   router.post("/admin/media/upload", adminMediaUploadMiddleware, mediaController.uploadAdminMediaHandler);
   router.get("/admin/blog/posts", blogController.listAdminPostsHandler);
   router.get("/admin/blog/posts/:id", blogController.getAdminPostHandler);
-  router.post("/admin/blog/posts", blogController.createPostHandler);
-  router.patch("/admin/blog/posts/:id", blogController.updatePostHandler);
-  router.post("/admin/blog/posts/:id/publish", blogController.publishPostHandler);
-  router.post("/admin/blog/posts/:id/unpublish", blogController.unpublishPostHandler);
+  router.post("/admin/blog/posts", blogMutationsRateLimit, blogController.createPostHandler);
+  router.patch("/admin/blog/posts/:id", blogMutationsRateLimit, blogController.updatePostHandler);
+  router.post("/admin/blog/posts/:id/publish", blogMutationsRateLimit, blogController.publishPostHandler);
+  router.post("/admin/blog/posts/:id/unpublish", blogMutationsRateLimit, blogController.unpublishPostHandler);
+  router.delete("/admin/blog/posts/:id", blogMutationsRateLimit, blogController.deletePostHandler);
   router.get("/admin/users", usersController.listUsersHandler);
   router.get("/admin/users/:id", usersController.getUserHandler);
   router.post("/admin/users", usersController.createUserHandler);

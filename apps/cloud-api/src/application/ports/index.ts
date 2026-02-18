@@ -304,7 +304,6 @@ export type BlogRepository = {
     readingTimeMinutes: number;
     seoTitle: string;
     seoDescription: string;
-    isPublished: boolean;
   }) => Promise<Record<string, unknown>>;
   updatePost: (id: string, payload: {
     slug?: string;
@@ -317,10 +316,10 @@ export type BlogRepository = {
     readingTimeMinutes?: number;
     seoTitle?: string;
     seoDescription?: string;
-    isPublished?: boolean;
   }) => Promise<Record<string, unknown>>;
   publishPost: (id: string) => Promise<Record<string, unknown>>;
   unpublishPost: (id: string) => Promise<Record<string, unknown>>;
+  deletePost: (id: string) => Promise<Record<string, unknown>>;
   listPublicPosts: (params: {
     locale: string;
     page: number;

@@ -3,42 +3,10 @@ import type { Request, Response } from "express";
 import { env } from "../../config/env";
 import type { BlogUseCases } from "../../application/use-cases/blog";
 import { ApiErrors, asApiError } from "../../errors/api-error";
-import {
-  estimateReadingTimeMinutes,
-  validateBlogListQuery,
-  validateBlogPayload,
-  validateBlogSlug,
-  validateBlogUpdatePayload
-} from "../../validation/blog";
-
-function escapeXml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
+import { validateBlogListQuery, validateBlogPayload, validateBlogSlug, validateBlogUpdatePayload } from "../../validation/blog";
 
 function siteUrl() {
   return env.onlineStoreBaseUrl || "http://localhost:3000";
-}
-
-function readString(value: unknown, fallback = "") {
-  return typeof value === "string" ? value : fallback;
-}
-
-function readDate(value: unknown) {
-  if (value instanceof Date) {
-    return value;
-  }
-  if (typeof value === "string") {
-    const parsed = new Date(value);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
-    }
-  }
-  return null;
 }
 
 export function createBlogController(useCases: BlogUseCases) {
@@ -96,14 +64,10 @@ export function createBlogController(useCases: BlogUseCases) {
     async createPostHandler(req: Request, res: Response) {
       try {
         const payload = validateBlogPayload(req.body ?? {});
-        const readingTimeMinutes = estimateReadingTimeMinutes(payload.contentJson);
-        const post = await useCases.createPost({
-          ...payload,
-          readingTimeMinutes
-        });
+        const post = await useCases.createPost(payload);
         res.status(201).json({ post });
       } catch (error) {
-        const apiError = asApiError(error, ApiErrors.blogInvalidPayload);
+        const apiError = asApiError(error, ApiErrors.blogInternalError);
         res.status(apiError.status).json({ error: apiError.message });
       }
     },
@@ -112,16 +76,10 @@ export function createBlogController(useCases: BlogUseCases) {
       try {
         const id = String(req.params.id || "");
         const payload = validateBlogUpdatePayload(req.body ?? {});
-        const readingTimeMinutes = payload.contentJson
-          ? estimateReadingTimeMinutes(payload.contentJson)
-          : undefined;
-        const post = await useCases.updatePost(id, {
-          ...payload,
-          ...(readingTimeMinutes ? { readingTimeMinutes } : {})
-        });
+        const post = await useCases.updatePost(id, payload);
         res.status(200).json({ post });
       } catch (error) {
-        const apiError = asApiError(error, ApiErrors.blogInvalidPayload);
+        const apiError = asApiError(error, ApiErrors.blogInternalError);
         res.status(apiError.status).json({ error: apiError.message });
       }
     },
@@ -141,6 +99,17 @@ export function createBlogController(useCases: BlogUseCases) {
       try {
         const id = String(req.params.id || "");
         const post = await useCases.unpublishPost(id);
+        res.status(200).json({ post });
+      } catch (error) {
+        const apiError = asApiError(error, ApiErrors.blogInternalError);
+        res.status(apiError.status).json({ error: apiError.message });
+      }
+    },
+
+    async deletePostHandler(req: Request, res: Response) {
+      try {
+        const id = String(req.params.id || "");
+        const post = await useCases.deletePost(id);
         res.status(200).json({ post });
       } catch (error) {
         const apiError = asApiError(error, ApiErrors.blogInternalError);
@@ -197,20 +166,7 @@ export function createBlogController(useCases: BlogUseCases) {
           res.status(ApiErrors.blogInvalidPayload.status).json({ error: ApiErrors.blogInvalidPayload.message });
           return;
         }
-        const posts = await useCases.listPublishedPostsForFeed(locale);
-        const base = siteUrl();
-        const items = posts
-          .map((post) => {
-            const postLocale = readString(post.locale, locale);
-            const postSlug = readString(post.slug);
-            const link = `${base}/${postLocale}/blog/${postSlug}`;
-            const pubDate = readDate(post.publishedAt)?.toUTCString() ?? "";
-            return `\n  <item>\n    <title>${escapeXml(readString(post.title))}</title>\n    <link>${escapeXml(link)}</link>\n    <guid>${escapeXml(link)}</guid>\n    <description>${escapeXml(readString(post.excerpt))}</description>\n    <pubDate>${escapeXml(pubDate)}</pubDate>\n  </item>`;
-          })
-          .join("");
-
-        const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n<channel>\n  <title>DanimeZone Blog</title>\n  <link>${escapeXml(`${base}/${locale}/blog`)}</link>\n  <description>DanimeZone blog feed</description>${items}\n</channel>\n</rss>`;
-
+        const xml = await useCases.buildRss({ locale, siteUrl: siteUrl() });
         res.setHeader("Content-Type", "application/rss+xml; charset=utf-8");
         res.status(200).send(xml);
       } catch (error) {
@@ -226,13 +182,9 @@ export function createBlogController(useCases: BlogUseCases) {
           res.status(ApiErrors.blogInvalidPayload.status).json({ error: ApiErrors.blogInvalidPayload.message });
           return;
         }
-        const posts = await useCases.listPublishedPostsForFeed(locale);
-        const base = siteUrl();
+        const items = await useCases.buildSitemap({ locale, siteUrl: siteUrl() });
         res.status(200).json({
-          items: posts.map((post) => ({
-            url: `${base}/${readString(post.locale, locale)}/blog/${readString(post.slug)}`,
-            lastModified: readDate(post.updatedAt)?.toISOString() ?? new Date().toISOString()
-          }))
+          items
         });
       } catch (error) {
         const apiError = asApiError(error, ApiErrors.blogInternalError);

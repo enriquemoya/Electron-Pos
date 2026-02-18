@@ -884,7 +884,7 @@
         "address": "Interior Plaza Ley, El Vigia, 85440 Guaymas, Son."
       }
     },
-    "copyright": "\u00a9 {year} DanimeZone. All rights reserved."
+    "copyright": "© {year} DanimeZone. All rights reserved."
   },
   "legal": {
     "back": "Back to home",
@@ -1049,7 +1049,9 @@
       "save": "Save draft",
       "publish": "Publish",
       "unpublish": "Unpublish",
-      "uploadImage": "Upload image"
+      "uploadImage": "Upload image",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this post? This action cannot be undone."
     },
     "toolbar": {
       "h2": "H2",
@@ -1072,6 +1074,23 @@
       "uploadOk": "Image uploaded",
       "uploadError": "Could not upload image",
       "autosave": "Draft autosaved"
+    },
+    "status": {
+      "saving": "Saving",
+      "saved": "Saved",
+      "slugLocked": "Slug is locked after publish."
+    },
+    "preview": {
+      "title": "Preview",
+      "untitled": "Untitled"
+    },
+    "prompts": {
+      "link": "https://"
+    },
+    "bubble": {
+      "bold": "B",
+      "italic": "I",
+      "link": "Link"
     }
   },
   "blog": {

@@ -64,6 +64,11 @@ export const ApiErrors = {
   blogSlugConflict: new ApiError(409, "BLOG_SLUG_CONFLICT", "blog slug conflict"),
   blogUnauthorized: new ApiError(401, "BLOG_UNAUTHORIZED", "blog unauthorized"),
   blogInvalidContent: new ApiError(400, "BLOG_INVALID_CONTENT", "blog invalid content"),
+  blogInvalidState: new ApiError(400, "BLOG_INVALID_STATE", "blog invalid state"),
+  blogTooLarge: new ApiError(400, "BLOG_TOO_LARGE", "blog too large"),
+  blogRateLimited: new ApiError(429, "BLOG_RATE_LIMITED", "blog rate limited"),
+  blogMediaInvalidHost: new ApiError(400, "BLOG_MEDIA_INVALID_HOST", "blog media invalid host"),
+  blogMediaNotAllowed: new ApiError(400, "BLOG_MEDIA_NOT_ALLOWED", "blog media not allowed"),
   blogInternalError: new ApiError(500, "BLOG_INTERNAL_ERROR", "blog internal error"),
   orderTransferApprovalRequired: new ApiError(
     400,

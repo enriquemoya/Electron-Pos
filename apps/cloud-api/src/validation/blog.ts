@@ -1,19 +1,51 @@
 import { ApiErrors } from "../errors/api-error";
+import { env } from "../config/env";
 
 const ALLOWED_LOCALES = new Set(["es", "en"]);
+const MAX_CONTENT_BYTES = 1024 * 1024;
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isSafeUrl(value: string) {
-  if (value.startsWith("/")) {
-    return true;
+function isSafeHyperlink(value: string) {
+  if (value.startsWith("/") || value.startsWith("data:")) {
+    return false;
   }
   try {
     const parsed = new URL(value);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
+    return parsed.protocol === "https:";
   } catch {
+    return false;
+  }
+}
+
+function getMediaCdnHost() {
+  if (!env.mediaCdnBaseUrl) {
+    throw ApiErrors.blogMediaNotAllowed;
+  }
+  try {
+    return new URL(env.mediaCdnBaseUrl).host;
+  } catch {
+    throw ApiErrors.blogMediaNotAllowed;
+  }
+}
+
+function isAllowedCdnImageUrl(value: string) {
+  if (value.startsWith("/") || value.startsWith("data:")) {
+    return false;
+  }
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "https:") {
+      return false;
+    }
+    const cdnHost = getMediaCdnHost();
+    return parsed.host === cdnHost;
+  } catch (error) {
+    if (error === ApiErrors.blogMediaNotAllowed) {
+      throw error;
+    }
     return false;
   }
 }
@@ -29,7 +61,7 @@ function sanitizeTextNode(node: Record<string, unknown>) {
       }
       if (mark.type === "link") {
         const attrs = isObject(mark.attrs) ? mark.attrs : {};
-        const href = typeof attrs.href === "string" && isSafeUrl(attrs.href) ? attrs.href : null;
+        const href = typeof attrs.href === "string" && isSafeHyperlink(attrs.href) ? attrs.href : null;
         if (!href) {
           return null;
         }
@@ -91,9 +123,9 @@ function sanitizeNode(node: unknown): Record<string, unknown> | null {
       return { type: "hardBreak" };
     case "image": {
       const attrs = isObject(node.attrs) ? node.attrs : {};
-      const src = typeof attrs.src === "string" && isSafeUrl(attrs.src) ? attrs.src : null;
+      const src = typeof attrs.src === "string" && isAllowedCdnImageUrl(attrs.src) ? attrs.src : null;
       if (!src) {
-        return null;
+        throw ApiErrors.blogMediaInvalidHost;
       }
       return {
         type: "image",
@@ -127,6 +159,13 @@ export function sanitizeTiptapDocument(input: unknown): Record<string, unknown> 
   };
 }
 
+function assertContentSize(contentJson: Record<string, unknown>) {
+  const bytes = Buffer.byteLength(JSON.stringify(contentJson), "utf8");
+  if (bytes > MAX_CONTENT_BYTES) {
+    throw ApiErrors.blogTooLarge;
+  }
+}
+
 export function estimateReadingTimeMinutes(contentJson: Record<string, unknown>) {
   const words: string[] = [];
 
@@ -156,7 +195,6 @@ type BlogPayload = {
   authorName: string;
   seoTitle: string;
   seoDescription: string;
-  isPublished: boolean;
 };
 
 export function validateBlogPayload(input: unknown): BlogPayload {
@@ -172,7 +210,6 @@ export function validateBlogPayload(input: unknown): BlogPayload {
   const seoTitle = typeof input.seoTitle === "string" ? input.seoTitle.trim() : "";
   const seoDescription = typeof input.seoDescription === "string" ? input.seoDescription.trim() : "";
   const coverImageUrlRaw = typeof input.coverImageUrl === "string" ? input.coverImageUrl.trim() : "";
-  const isPublished = Boolean(input.isPublished);
 
   if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
     throw ApiErrors.blogInvalidPayload;
@@ -187,7 +224,14 @@ export function validateBlogPayload(input: unknown): BlogPayload {
   }
 
   const contentJson = sanitizeTiptapDocument(input.contentJson);
-  const coverImageUrl = coverImageUrlRaw ? (isSafeUrl(coverImageUrlRaw) ? coverImageUrlRaw : null) : null;
+  assertContentSize(contentJson);
+  let coverImageUrl: string | null = null;
+  if (coverImageUrlRaw) {
+    if (!isAllowedCdnImageUrl(coverImageUrlRaw)) {
+      throw ApiErrors.blogMediaInvalidHost;
+    }
+    coverImageUrl = coverImageUrlRaw;
+  }
 
   return {
     slug,
@@ -198,8 +242,7 @@ export function validateBlogPayload(input: unknown): BlogPayload {
     coverImageUrl,
     authorName,
     seoTitle,
-    seoDescription,
-    isPublished
+    seoDescription
   };
 }
 
@@ -246,7 +289,10 @@ export function validateBlogUpdatePayload(input: unknown): Partial<BlogPayload> 
     const value = input.coverImageUrl;
     if (value === null || value === "") {
       output.coverImageUrl = null;
-    } else if (typeof value === "string" && isSafeUrl(value.trim())) {
+    } else if (typeof value === "string") {
+      if (!isAllowedCdnImageUrl(value.trim())) {
+        throw ApiErrors.blogMediaInvalidHost;
+      }
       output.coverImageUrl = value.trim();
     } else {
       throw ApiErrors.blogInvalidPayload;
@@ -254,11 +300,9 @@ export function validateBlogUpdatePayload(input: unknown): Partial<BlogPayload> 
   }
 
   if (Object.prototype.hasOwnProperty.call(input, "contentJson")) {
-    output.contentJson = sanitizeTiptapDocument(input.contentJson);
-  }
-
-  if (Object.prototype.hasOwnProperty.call(input, "isPublished")) {
-    output.isPublished = Boolean(input.isPublished);
+    const sanitized = sanitizeTiptapDocument(input.contentJson);
+    assertContentSize(sanitized);
+    output.contentJson = sanitized;
   }
 
   if (Object.keys(output).length === 0) {

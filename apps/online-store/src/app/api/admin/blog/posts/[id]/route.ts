@@ -54,3 +54,26 @@ export async function PATCH(request: Request, context: { params: { id: string } 
     headers: { "content-type": response.headers.get("content-type") || "application/json" }
   });
 }
+
+export async function DELETE(_request: Request, context: { params: { id: string } }) {
+  const baseUrl = getCloudApiUrl();
+  if (!baseUrl) {
+    return NextResponse.json({ error: "missing base url" }, { status: 500 });
+  }
+
+  const headers = authHeaders();
+  const response = await fetch(`${baseUrl}/admin/blog/posts/${context.params.id}`, {
+    method: "DELETE",
+    headers: {
+      authorization: headers.authorization,
+      "x-cloud-secret": headers["x-cloud-secret"]
+    },
+    cache: "no-store"
+  });
+
+  const payload = await response.text();
+  return new NextResponse(payload, {
+    status: response.status,
+    headers: { "content-type": response.headers.get("content-type") || "application/json" }
+  });
+}

@@ -15,22 +15,26 @@
 2. Add blog use cases for admin CRUD and public reads.
 3. Add blog repository implementation using Prisma queries.
 4. Add validators for blog payload and content sanitization.
-5. Add controllers and route wiring for admin and public blog endpoints.
-6. Add RSS endpoint and blog sitemap endpoint.
-7. Add stable error mappings.
+5. Add domain rule module for publish/update/delete invariants.
+6. Add controllers and route wiring for admin and public blog endpoints.
+7. Add admin mutation rate limit middleware (30 req/min per admin).
+8. Add RSS endpoint and blog sitemap endpoint.
+9. Add stable error mappings, including CDN validation errors.
+10. Add soft delete handling for blog posts.
 
 ## Phase 4: Online-store implementation
 1. Add server API client for blog admin and public APIs.
 2. Add admin blog list and editor route under `/{locale}/admin/blog`.
-3. Integrate Tiptap editor with shadcn toolbar controls.
-4. Integrate image upload via existing admin media endpoint.
-5. Add autosave draft flow.
-6. Add public list page `/{locale}/blog` with pagination.
-7. Add public detail page `/{locale}/blog/{slug}` with SSR render.
-8. Add TOC generation and heading anchors.
-9. Inject Article and BreadcrumbList JSON-LD.
-10. Add sitemap route and RSS route integration in online-store.
-11. Add i18n messages for new UI labels.
+3. Refactor editor into components: BlogEditor, BlogToolbar, BlogStatusIndicator, BlogPreviewRenderer.
+4. Integrate Tiptap editor with shadcn toolbar controls and floating quick actions.
+5. Integrate image upload via existing admin media endpoint.
+6. Add autosave draft flow with subtle status indicator (no toast spam).
+7. Add public list page `/{locale}/blog` with pagination.
+8. Add public detail page `/{locale}/blog/{slug}` with SSR render.
+9. Add TOC generation and heading anchors.
+10. Inject Article and BreadcrumbList JSON-LD.
+11. Add sitemap route and RSS route integration in online-store.
+12. Add i18n messages for new UI labels.
 
 ## Phase 5: Validation and audit
 1. Run `npm run prisma:generate -w apps/cloud-api`.

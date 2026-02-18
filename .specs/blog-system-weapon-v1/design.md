@@ -3,6 +3,8 @@
 ## Architecture overview
 Layering:
 - Controller -> Use case -> Repository -> Prisma
+- Validation module is isolated and reused by controllers.
+- Domain rules module enforces publish/update/delete invariants.
 
 Online-store consumes cloud-api responses and does not access Prisma directly.
 
@@ -20,6 +22,8 @@ Prisma model: `BlogPost`
 - seoTitle: String
 - seoDescription: String
 - isPublished: Boolean
+- isDeleted: Boolean
+- deletedAt: DateTime?
 - publishedAt: DateTime?
 - createdAt: DateTime
 - updatedAt: DateTime
@@ -27,6 +31,7 @@ Prisma model: `BlogPost`
 Indexes:
 - unique `[slug, locale]`
 - index `[locale, isPublished, publishedAt(sort: Desc)]`
+- index `[isDeleted, locale, publishedAt(sort: Desc)]`
 
 Optional future extension:
 - BlogTag many-to-many not required in v1 implementation
@@ -50,7 +55,13 @@ Allowed nodes:
 
 Rejected:
 - script, iframe, style, raw HTML nodes, unknown nodes
-- non-http/https image and link URLs
+- image URLs that are not absolute HTTPS on configured CDN host
+- relative image paths and base64 data URLs
+
+## CDN enforcement strategy
+- Validation checks `MEDIA_CDN_BASE_URL` host.
+- Cover image URL and every Tiptap image node must match CDN host.
+- If CDN base URL is missing or invalid, blog mutations fail with stable error.
 
 ## Reading time
 - Compute from sanitized plain text word count
@@ -74,6 +85,10 @@ Admin blog DTO fields:
 - publishedAt
 - createdAt
 - updatedAt
+
+Admin mutation endpoints:
+- create, update, publish, unpublish, delete
+- guarded with admin auth and rate limit middleware (30 req/min per admin)
 
 Public list DTO fields:
 - slug
@@ -107,6 +122,7 @@ Online-store blog detail page:
 - Inject JSON-LD Article
 - Inject JSON-LD BreadcrumbList
 - Generate heading anchors and TOC server-side from `contentJson`
+- Emit BlogPosting JSON-LD plus BreadcrumbList JSON-LD
 
 ## RSS and sitemap design
 Cloud-api provides:
@@ -124,8 +140,10 @@ Online-store root sitemap route merges static URLs and API blog URLs.
 ## Security design
 - Admin routes mounted under existing `requireAdmin` middleware
 - Public endpoints expose only published content
+- Public endpoints filter `isDeleted = false`
 - No internal admin ids in public payload
-- Media URLs accepted only as absolute HTTPS URLs or trusted relative asset paths
+- Media URLs accepted only as absolute HTTPS URLs on the configured CDN host
+- No trusted relative asset paths for blog images; CDN absolute URLs only
 
 ## Edge cases
 - Duplicate slug in same locale returns conflict error
@@ -133,6 +151,8 @@ Online-store root sitemap route merges static URLs and API blog URLs.
 - Empty content or invalid node tree returns validation error
 - Missing cover image still renders post page with fallback metadata image
 - Unpublished post by slug returns not found on public endpoints
+- Published post slug change request is rejected.
+- Deleted post operations are rejected and treated as not found.
 
 ## Observability
 - Log admin create/update/publish actions with post id and locale

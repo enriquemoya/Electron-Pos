@@ -19,6 +19,11 @@ Deliver a production-grade blog system with admin authoring, SSR pages, strong S
 - Public rendering must be server-side for SEO
 - Admin and public routes must preserve existing auth boundaries
 - No breaking API contract changes
+- Architecture must keep strict separation:
+  - controller handles transport only
+  - use case handles blog rules
+  - validation is isolated
+  - repository handles persistence only
 
 ## Content storage
 - Store blog body in Prisma Json field `contentJson`
@@ -32,6 +37,8 @@ Deliver a production-grade blog system with admin authoring, SSR pages, strong S
 - Image upload uses `POST /admin/media/upload` only
 - Autosave draft behavior required
 - Publish and unpublish actions required
+- Delete action required (soft delete)
+- Sticky action bar required for save, publish, unpublish, delete, and status
 
 ## Public experience requirements
 - Public list route: `/{locale}/blog`
@@ -49,6 +56,7 @@ Each public post page must include:
 - Article JSON-LD
 - BreadcrumbList JSON-LD
 - SSR HTML render from sanitized document
+- Target Lighthouse SEO score >= 95 on blog detail pages
 
 List page requirements:
 - Canonical URL
@@ -71,6 +79,15 @@ Feed and discovery requirements:
 - No script tags or event handlers allowed in rendered output
 - Frontend must not receive storage credentials
 - Public payloads must not expose internal admin ids
+- Cover images and Tiptap image nodes must be CDN-only absolute HTTPS URLs
+- Reject relative URLs, base64 data URLs, and non-HTTPS image URLs
+- Add rate limit on admin blog mutations: 30 requests per minute per admin
+
+## State integrity rules
+- Published posts cannot change slug.
+- Deleted posts cannot be updated, published, or unpublished.
+- Unpublished or deleted posts must never appear on public routes, sitemap, or RSS.
+- Publish and unpublish transitions are explicit actions only.
 
 ## API behavior
 Admin endpoints (protected):
@@ -80,6 +97,7 @@ Admin endpoints (protected):
 - `PATCH /admin/blog/posts/:id`
 - `POST /admin/blog/posts/:id/publish`
 - `POST /admin/blog/posts/:id/unpublish`
+- `DELETE /admin/blog/posts/:id`
 
 Public endpoints:
 - `GET /blog/posts?locale=es&page=1&pageSize=10`
@@ -94,6 +112,8 @@ Stable error codes:
 - `BLOG_SLUG_CONFLICT`
 - `BLOG_UNAUTHORIZED`
 - `BLOG_INVALID_CONTENT`
+- `BLOG_MEDIA_INVALID_HOST`
+- `BLOG_MEDIA_NOT_ALLOWED`
 - `BLOG_INTERNAL_ERROR`
 
 ## i18n impact
@@ -109,6 +129,8 @@ Stable error codes:
 - RSS endpoint returns valid XML for published posts
 - Sitemap includes localized blog URLs only for published posts
 - Admin editor uploads images through existing media endpoint
+- CDN-only image validation is enforced for cover image and content images
+- Admin mutation routes enforce 30 req/min rate limit
 - Build passes for cloud-api and online-store
 - Spec audit verdict READY
 - Implementation audit verdict SAFE
