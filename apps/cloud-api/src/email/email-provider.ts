@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 
+import { appLogger } from "../config/app-logger";
 import { env } from "../config/env";
 
 export interface EmailProvider {
@@ -18,12 +19,12 @@ export interface EmailProvider {
 }
 
 function logEvent(event: string, payload: Record<string, unknown>) {
-  const message = JSON.stringify({ event, ...payload });
+  const meta = { event, ...payload };
   if (event === "email_send_fail") {
-    console.error(message);
+    appLogger.error("email event", meta);
     return;
   }
-  console.info(message);
+  appLogger.info("email event", meta);
 }
 
 function createTransporter() {

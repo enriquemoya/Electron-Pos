@@ -6,6 +6,7 @@ import { env } from "../../config/env";
 type JwtPayload = {
   sub: string;
   role: string;
+  email?: string | null;
 };
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
@@ -32,9 +33,10 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
       res.status(403).json({ error: "unauthorized" });
       return;
     }
-    (req as Request & { auth?: { userId: string; role: string } }).auth = {
+    (req as Request & { auth?: { userId: string; role: string; email?: string | null } }).auth = {
       userId: payload.sub,
-      role: payload.role
+      role: payload.role,
+      email: payload.email ?? null
     };
   } catch {
     res.status(401).json({ error: "unauthorized" });

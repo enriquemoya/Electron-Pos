@@ -20,6 +20,7 @@ export type MediaStorage = {
     inputBuffer: Buffer;
     mimeType: string;
   }) => Promise<AdminMediaUploadResult>;
+  deleteObjectByKey?: (key: string) => Promise<void>;
 };
 
 export type MediaUseCases = {

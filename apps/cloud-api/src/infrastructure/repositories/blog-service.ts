@@ -26,6 +26,7 @@ function selectBase() {
     seoDescription: true,
     isPublished: true,
     isDeleted: true,
+    deletedByAdminName: true,
     deletedAt: true,
     publishedAt: true,
     createdAt: true,
@@ -325,7 +326,7 @@ export async function listPublishedPostsForFeed(locale: string) {
   });
 }
 
-export async function deletePost(id: string) {
+export async function deletePost(id: string, options: { deletedByAdminName: string }) {
   const current = await prisma.blogPost.findUnique({
     where: { id },
     select: { id: true, slug: true, isDeleted: true, isPublished: true }
@@ -345,6 +346,7 @@ export async function deletePost(id: string) {
     data: {
       isDeleted: true,
       deletedAt: new Date(),
+      deletedByAdminName: options.deletedByAdminName,
       isPublished: false,
       publishedAt: null
     },

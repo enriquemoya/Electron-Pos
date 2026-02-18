@@ -5,8 +5,16 @@ Layering:
 - Controller -> Use case -> Repository -> Prisma
 - Validation module is isolated and reused by controllers.
 - Domain rules module enforces publish/update/delete invariants.
+- Mutation routes include middleware rate limiting with stable API errors.
 
 Online-store consumes cloud-api responses and does not access Prisma directly.
+
+## Explicit request-to-storage flow
+1. Controller receives request, validates transport fields, and delegates.
+2. Use case enforces domain state rules, media policy, and workflow sequencing.
+3. Repository persists and reads blog records through Prisma.
+4. Storage service (R2 media service) handles media object operations only.
+5. Use case coordinates repository and storage for best-effort media cleanup on delete.
 
 ## Data model
 Prisma model: `BlogPost`
@@ -23,6 +31,7 @@ Prisma model: `BlogPost`
 - seoDescription: String
 - isPublished: Boolean
 - isDeleted: Boolean
+- deletedByAdminName: String?
 - deletedAt: DateTime?
 - publishedAt: DateTime?
 - createdAt: DateTime
@@ -89,6 +98,7 @@ Admin blog DTO fields:
 Admin mutation endpoints:
 - create, update, publish, unpublish, delete
 - guarded with admin auth and rate limit middleware (30 req/min per admin)
+- delete action writes admin snapshot and runs best-effort CDN cleanup
 
 Public list DTO fields:
 - slug
@@ -119,7 +129,7 @@ Online-store blog detail page:
 - Canonical: `/{locale}/blog/{slug}`
 - Alternates: es and en
 - OpenGraph and Twitter with CDN image URL
-- Inject JSON-LD Article
+- Inject JSON-LD BlogPosting
 - Inject JSON-LD BreadcrumbList
 - Generate heading anchors and TOC server-side from `contentJson`
 - Emit BlogPosting JSON-LD plus BreadcrumbList JSON-LD
@@ -141,9 +151,18 @@ Online-store root sitemap route merges static URLs and API blog URLs.
 - Admin routes mounted under existing `requireAdmin` middleware
 - Public endpoints expose only published content
 - Public endpoints filter `isDeleted = false`
+- Admin get-by-id filters `isDeleted = false` by default
 - No internal admin ids in public payload
 - Media URLs accepted only as absolute HTTPS URLs on the configured CDN host
 - No trusted relative asset paths for blog images; CDN absolute URLs only
+- Relative URLs and non-CDN hosts are rejected for `coverImageUrl` and image nodes in `contentJson`
+- Delete cleanup parses keys only from `MEDIA_CDN_BASE_URL` and is non-blocking on R2 errors
+
+## Error taxonomy
+- `BLOG_INVALID_STATE` for invalid publish/unpublish/update/delete transitions
+- `BLOG_TOO_LARGE` when content payload exceeds maximum bytes
+- `BLOG_RATE_LIMITED` when admin mutation limit is exceeded
+- `BLOG_MEDIA_NOT_CDN` when cover or content image URL host is not the configured CDN host
 
 ## Edge cases
 - Duplicate slug in same locale returns conflict error
@@ -152,7 +171,7 @@ Online-store root sitemap route merges static URLs and API blog URLs.
 - Missing cover image still renders post page with fallback metadata image
 - Unpublished post by slug returns not found on public endpoints
 - Published post slug change request is rejected.
-- Deleted post operations are rejected and treated as not found.
+- Deleted post operations are rejected with `BLOG_INVALID_STATE`.
 
 ## Observability
 - Log admin create/update/publish actions with post id and locale

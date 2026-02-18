@@ -125,7 +125,7 @@ function sanitizeNode(node: unknown): Record<string, unknown> | null {
       const attrs = isObject(node.attrs) ? node.attrs : {};
       const src = typeof attrs.src === "string" && isAllowedCdnImageUrl(attrs.src) ? attrs.src : null;
       if (!src) {
-        throw ApiErrors.blogMediaInvalidHost;
+        throw ApiErrors.blogMediaNotCdn;
       }
       return {
         type: "image",
@@ -164,25 +164,6 @@ function assertContentSize(contentJson: Record<string, unknown>) {
   if (bytes > MAX_CONTENT_BYTES) {
     throw ApiErrors.blogTooLarge;
   }
-}
-
-export function estimateReadingTimeMinutes(contentJson: Record<string, unknown>) {
-  const words: string[] = [];
-
-  const walk = (node: unknown) => {
-    if (!isObject(node)) {
-      return;
-    }
-    if (node.type === "text" && typeof node.text === "string") {
-      words.push(...node.text.split(/\s+/).filter(Boolean));
-    }
-    if (Array.isArray(node.content)) {
-      node.content.forEach(walk);
-    }
-  };
-
-  walk(contentJson);
-  return Math.max(1, Math.ceil(words.length / 200));
 }
 
 type BlogPayload = {
@@ -228,7 +209,7 @@ export function validateBlogPayload(input: unknown): BlogPayload {
   let coverImageUrl: string | null = null;
   if (coverImageUrlRaw) {
     if (!isAllowedCdnImageUrl(coverImageUrlRaw)) {
-      throw ApiErrors.blogMediaInvalidHost;
+      throw ApiErrors.blogMediaNotCdn;
     }
     coverImageUrl = coverImageUrlRaw;
   }

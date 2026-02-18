@@ -9,6 +9,40 @@ import { renderBlogContent } from "@/lib/blog-content";
 import { getSiteUrl } from "@/lib/site-url";
 import { BRAND_CONFIG } from "@/config/brand-config";
 
+function normalizeImageUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+function contentContainsImage(contentJson: Record<string, unknown>, targetUrl: string) {
+  const normalizedTarget = normalizeImageUrl(targetUrl);
+  const walk = (node: unknown): boolean => {
+    if (!node || typeof node !== "object") {
+      return false;
+    }
+
+    const typedNode = node as { type?: string; attrs?: { src?: unknown }; content?: unknown[] };
+    if (typedNode.type === "image" && typeof typedNode.attrs?.src === "string") {
+      if (normalizeImageUrl(typedNode.attrs.src) === normalizedTarget) {
+        return true;
+      }
+    }
+
+    if (Array.isArray(typedNode.content)) {
+      return typedNode.content.some(walk);
+    }
+    return false;
+  };
+
+  return walk(contentJson);
+}
+
 export async function generateMetadata({
   params
 }: {
@@ -60,6 +94,8 @@ export default async function BlogDetailPage({ params }: { params: { locale: str
   const rendered = renderBlogContent(post.contentJson);
   const siteUrl = getSiteUrl(BRAND_CONFIG.siteUrl);
   const canonical = `${siteUrl}/${locale}/blog/${post.slug}`;
+  const coverImageUrl = post.coverImageUrl ?? undefined;
+  const showCoverImage = coverImageUrl ? !contentContainsImage(post.contentJson, coverImageUrl) : false;
 
   const articleJsonLd = {
     "@context": "https://schema.org",
@@ -94,8 +130,8 @@ export default async function BlogDetailPage({ params }: { params: { locale: str
         <Link href="/blog" className="text-sm text-amber-300">{t("actions.backToBlog")}</Link>
         <h1 className="text-3xl font-semibold text-white">{post.title}</h1>
         <p className="text-sm text-white/60">{post.authorName} · {post.readingTimeMinutes} min</p>
-        {post.coverImageUrl ? (
-          <img src={post.coverImageUrl} alt={post.title} className="w-full rounded-2xl border border-white/10" />
+        {showCoverImage ? (
+          <img src={coverImageUrl} alt={post.title} className="w-full rounded-2xl border border-white/10" />
         ) : null}
         <p className="text-lg text-white/80">{post.excerpt}</p>
         <div className="space-y-4">{rendered.content}</div>

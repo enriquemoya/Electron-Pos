@@ -10,6 +10,14 @@ function siteUrl() {
 }
 
 export function createBlogController(useCases: BlogUseCases) {
+  const getAdminContext = (req: Request) => {
+    const auth = (req as Request & { auth?: { userId?: string; email?: string | null } }).auth;
+    return {
+      userId: auth?.userId || "system",
+      adminDisplayName: auth?.email || auth?.userId || "admin"
+    };
+  };
+
   return {
     async listAdminPostsHandler(req: Request, res: Response) {
       try {
@@ -109,7 +117,8 @@ export function createBlogController(useCases: BlogUseCases) {
     async deletePostHandler(req: Request, res: Response) {
       try {
         const id = String(req.params.id || "");
-        const post = await useCases.deletePost(id);
+        const actor = getAdminContext(req);
+        const post = await useCases.deletePost(id, { adminDisplayName: actor.adminDisplayName });
         res.status(200).json({ post });
       } catch (error) {
         const apiError = asApiError(error, ApiErrors.blogInternalError);

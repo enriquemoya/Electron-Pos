@@ -38,6 +38,7 @@ export default async function AdminBlogPage({ params }: { params: { locale: stri
         uploadImage: t("actions.uploadImage"),
         delete: t("actions.delete"),
         deleteConfirm: t("actions.deleteConfirm"),
+        cancel: t("actions.cancel"),
         published: blogT("status.published"),
         draft: blogT("status.draft"),
         preview: t("preview.title"),

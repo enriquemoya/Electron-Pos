@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 
+import { appLogger } from "../../config/app-logger";
 import type { MediaUseCases } from "../../application/use-cases/media";
 import { ApiErrors, asApiError } from "../../errors/api-error";
 import { validateMediaFolder } from "../../validation/media";
@@ -43,7 +44,8 @@ export function createMediaController(useCases: MediaUseCases) {
         res.status(201).json(result);
       } catch (error) {
         const debugId = `media-${Date.now().toString(36)}`;
-        console.error(`[${debugId}] admin media upload failed`, {
+        appLogger.error("admin media upload failed", {
+          debugId,
           folder: req.body?.folder,
           mimeType: (req as Request & { file?: Express.Multer.File }).file?.mimetype,
           size: (req as Request & { file?: Express.Multer.File }).file?.size,

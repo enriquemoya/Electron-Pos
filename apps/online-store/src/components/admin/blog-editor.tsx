@@ -16,8 +16,24 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import { BlogToolbar } from "@/components/admin/blog/blog-toolbar";
 import { BlogStatusIndicator } from "@/components/admin/blog/blog-status-indicator";
 import { BlogPreviewRenderer } from "@/components/admin/blog/blog-preview-renderer";
@@ -59,6 +75,7 @@ type BlogEditorLabels = {
   uploadImage: string;
   delete: string;
   deleteConfirm: string;
+  cancel: string;
   published: string;
   draft: string;
   preview: string;
@@ -137,6 +154,7 @@ export function BlogEditor({
   const [query, setQuery] = useState("");
   const [saving, setSaving] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const storageKey = useMemo(() => `blog-editor-draft-${locale}-${selectedId}`, [locale, selectedId]);
@@ -286,10 +304,6 @@ export function BlogEditor({
     if (!model.id) {
       return;
     }
-    const confirmed = window.confirm(labels.deleteConfirm);
-    if (!confirmed) {
-      return;
-    }
     const response = await fetch(`/api/admin/blog/posts/${model.id}`, { method: "DELETE" });
     if (!response.ok) {
       toast.error(labels.toasts.saveError);
@@ -300,6 +314,7 @@ export function BlogEditor({
     setModel(initialPost(locale));
     editor?.commands.setContent(emptyDocument);
     toast.success(labels.toasts.saveOk);
+    setDeleteDialogOpen(false);
   };
 
   const addLink = () => {
@@ -375,10 +390,49 @@ export function BlogEditor({
             />
             <div className="flex flex-wrap gap-2">
               <Button disabled={saving} onClick={() => void save()}>{labels.saveDraft}</Button>
-              <Button disabled={model.isPublished} onClick={() => void publishAction("publish")}>{labels.publish}</Button>
-              <Button disabled={!model.isPublished} variant="outline" onClick={() => void publishAction("unpublish")}>{labels.unpublish}</Button>
+              <Button
+                disabled={!model.id || model.isPublished}
+                onClick={() => void publishAction("publish")}
+              >
+                {labels.publish}
+              </Button>
+              <Button
+                disabled={!model.id || !model.isPublished}
+                variant="outline"
+                onClick={() => void publishAction("unpublish")}
+              >
+                {labels.unpublish}
+              </Button>
               <Button variant="outline" onClick={() => fileInputRef.current?.click()}>{labels.uploadImage}</Button>
-              <Button variant="ghost" disabled={!model.id} onClick={() => void deletePost()}><Trash2 className="mr-1 h-4 w-4" />{labels.delete}</Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" disabled={!model.id} aria-label="post actions">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    disabled={!model.id || model.isPublished}
+                    onClick={() => void publishAction("publish")}
+                  >
+                    {labels.publish}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={!model.id || !model.isPublished}
+                    onClick={() => void publishAction("unpublish")}
+                  >
+                    {labels.unpublish}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={!model.id}
+                    className="text-red-300 focus:text-red-200"
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {labels.delete}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
@@ -480,6 +534,29 @@ export function BlogEditor({
           />
         </Card>
       </div>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{labels.delete}</AlertDialogTitle>
+            <AlertDialogDescription>{labels.deleteConfirm}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button variant="outline">{labels.cancel}</Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                variant="default"
+                className="bg-red-500 text-white hover:bg-red-600"
+                disabled={!model.id}
+                onClick={() => void deletePost()}
+              >
+                {labels.delete}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -71,8 +71,9 @@ export function createApp() {
     emailService
   });
   const branchUseCases = createBranchUseCases({ branchRepository });
-  const mediaUseCases = createMediaUseCases({ mediaStorage: createR2MediaService() });
-  const blogUseCases = createBlogUseCases({ blogRepository });
+  const mediaStorage = createR2MediaService();
+  const mediaUseCases = createMediaUseCases({ mediaStorage });
+  const blogUseCases = createBlogUseCases({ blogRepository, mediaStorage });
 
   app.use(createPublicRoutes({ catalogUseCases, authUseCases, branchUseCases, blogUseCases }));
   app.use(requireSecret);

@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import multer from "multer";
 
+import { appLogger } from "../../config/app-logger";
 import { ApiErrors } from "../../errors/api-error";
 
 const upload = multer({
@@ -24,7 +25,8 @@ export function adminMediaUploadMiddleware(req: Request, res: Response, next: Ne
     }
 
     const debugId = `media-mw-${Date.now().toString(36)}`;
-    console.error(`[${debugId}] media upload middleware failed`, {
+    appLogger.error("media upload middleware failed", {
+      debugId,
       error: error instanceof Error ? error.message : String(error)
     });
     res.status(ApiErrors.invalidRequest.status).json({

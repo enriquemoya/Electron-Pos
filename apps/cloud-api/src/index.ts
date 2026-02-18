@@ -1,12 +1,17 @@
 import "dotenv/config";
+import { appLogger } from "./config/app-logger";
 
 process.on("uncaughtException", (error) => {
-  console.error("uncaughtException", error);
+  appLogger.error("uncaughtException", {
+    error: error instanceof Error ? error.message : String(error)
+  });
 });
 process.on("unhandledRejection", (error) => {
-  console.error("unhandledRejection", error);
+  appLogger.error("unhandledRejection", {
+    error: error instanceof Error ? error.message : String(error)
+  });
 });
-console.log("BOOT OK", new Date().toISOString());
+appLogger.info("boot", { at: new Date().toISOString() });
 
 async function start() {
   const port = Number(process.env.PORT) || 3000;
@@ -16,7 +21,7 @@ async function start() {
     const app = express();
     app.get("/__health", (_req, res) => res.status(200).send("OK"));
     app.listen(port, "0.0.0.0", () => {
-      console.log("LISTENING", port);
+      appLogger.info("listening", { port, mode: "minimal" });
     });
     return;
   }
@@ -24,11 +29,13 @@ async function start() {
   const { createApp } = await import("./app");
   const app = createApp();
   app.listen(port, "0.0.0.0", () => {
-    console.log(`cloud-api: listening on ${port}`);
+    appLogger.info("listening", { port, mode: "full" });
   });
 }
 
 start().catch((error) => {
-  console.error("startup error", error);
+  appLogger.error("startup error", {
+    error: error instanceof Error ? error.message : String(error)
+  });
   process.exit(1);
 });

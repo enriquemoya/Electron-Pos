@@ -319,7 +319,10 @@ export type BlogRepository = {
   }) => Promise<Record<string, unknown>>;
   publishPost: (id: string) => Promise<Record<string, unknown>>;
   unpublishPost: (id: string) => Promise<Record<string, unknown>>;
-  deletePost: (id: string) => Promise<Record<string, unknown>>;
+  deletePost: (
+    id: string,
+    options: { deletedByAdminName: string }
+  ) => Promise<Record<string, unknown>>;
   listPublicPosts: (params: {
     locale: string;
     page: number;

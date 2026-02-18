@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 
+import { appLogger } from "../../config/app-logger";
 import { env } from "../../config/env";
 import { ApiErrors } from "../../errors/api-error";
 import type { AdminMediaUploadResult, MediaFolder, MediaStorage } from "../../application/use-cases/media";
@@ -80,7 +81,7 @@ export function createR2MediaService(): MediaStorage {
           throw ApiErrors.mediaProcessingFailed;
         }
       } catch (error) {
-        console.error("[media] processing failed", {
+        appLogger.warn("media processing failed", {
           mimeType: params.mimeType,
           inputSize: params.inputBuffer.length,
           folder: params.folder,
@@ -91,7 +92,7 @@ export function createR2MediaService(): MediaStorage {
 
       try {
         if (!s3 || !env.r2Bucket) {
-          console.error("[media] upload failed: missing R2 configuration", {
+          appLogger.error("media upload failed: missing R2 configuration", {
             hasEndpoint: Boolean(env.r2Endpoint),
             hasAccessKey: Boolean(env.r2AccessKeyId),
             hasSecret: Boolean(env.r2SecretAccessKey),
@@ -110,7 +111,7 @@ export function createR2MediaService(): MediaStorage {
           })
         );
       } catch (error) {
-        console.error("[media] upload failed", {
+        appLogger.error("media upload failed", {
           key,
           folder: params.folder,
           outputSize: output.length,
@@ -125,6 +126,18 @@ export function createR2MediaService(): MediaStorage {
         height,
         sizeBytes: output.length
       };
+    },
+
+    async deleteObjectByKey(key: string): Promise<void> {
+      if (!s3 || !env.r2Bucket) {
+        return;
+      }
+      await s3.send(
+        new DeleteObjectCommand({
+          Bucket: env.r2Bucket,
+          Key: key
+        })
+      );
     }
   };
 }

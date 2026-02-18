@@ -67,6 +67,7 @@ export const ApiErrors = {
   blogInvalidState: new ApiError(400, "BLOG_INVALID_STATE", "blog invalid state"),
   blogTooLarge: new ApiError(400, "BLOG_TOO_LARGE", "blog too large"),
   blogRateLimited: new ApiError(429, "BLOG_RATE_LIMITED", "blog rate limited"),
+  blogMediaNotCdn: new ApiError(400, "BLOG_MEDIA_NOT_CDN", "blog media not cdn"),
   blogMediaInvalidHost: new ApiError(400, "BLOG_MEDIA_INVALID_HOST", "blog media invalid host"),
   blogMediaNotAllowed: new ApiError(400, "BLOG_MEDIA_NOT_ALLOWED", "blog media not allowed"),
   blogInternalError: new ApiError(500, "BLOG_INTERNAL_ERROR", "blog internal error"),

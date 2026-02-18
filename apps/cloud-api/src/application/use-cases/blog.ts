@@ -1,25 +1,9 @@
 import type { BlogRepository } from "../ports";
 import { buildBlogRssXml, buildBlogSitemapItems } from "../services/blog-feed";
-
-function estimateReadingTimeMinutes(contentJson: Record<string, unknown>) {
-  const words: string[] = [];
-
-  const walk = (node: unknown) => {
-    if (!node || typeof node !== "object") {
-      return;
-    }
-    const tiptapNode = node as { type?: string; text?: string; content?: unknown[] };
-    if (tiptapNode.type === "text" && typeof tiptapNode.text === "string") {
-      words.push(...tiptapNode.text.split(/\s+/).filter(Boolean));
-    }
-    if (Array.isArray(tiptapNode.content)) {
-      tiptapNode.content.forEach(walk);
-    }
-  };
-
-  walk(contentJson);
-  return Math.max(1, Math.ceil(words.length / 200));
-}
+import { appLogger } from "../../config/app-logger";
+import { env } from "../../config/env";
+import { estimateReadingTimeMinutes } from "../../domain/blog/reading-time";
+import type { MediaStorage } from "./media";
 
 export type BlogUseCases = {
   listAdminPosts: (params: {
@@ -54,7 +38,7 @@ export type BlogUseCases = {
   }) => Promise<Record<string, unknown>>;
   publishPost: (id: string) => Promise<Record<string, unknown>>;
   unpublishPost: (id: string) => Promise<Record<string, unknown>>;
-  deletePost: (id: string) => Promise<Record<string, unknown>>;
+  deletePost: (id: string, actor: { adminDisplayName: string }) => Promise<Record<string, unknown>>;
   listPublicPosts: (params: {
     locale: string;
     page: number;
@@ -66,7 +50,50 @@ export type BlogUseCases = {
   buildSitemap: (params: { locale: string; siteUrl: string }) => Promise<Array<{ url: string; lastModified: string }>>;
 };
 
-export function createBlogUseCases(deps: { blogRepository: BlogRepository }): BlogUseCases {
+function collectImageUrlsFromContent(contentJson: unknown) {
+  const urls = new Set<string>();
+  const walk = (node: unknown) => {
+    if (!node || typeof node !== "object") {
+      return;
+    }
+    const typedNode = node as { type?: string; attrs?: { src?: unknown }; content?: unknown[] };
+    if (typedNode.type === "image" && typeof typedNode.attrs?.src === "string") {
+      urls.add(typedNode.attrs.src);
+    }
+    if (Array.isArray(typedNode.content)) {
+      typedNode.content.forEach(walk);
+    }
+  };
+  walk(contentJson);
+  return [...urls];
+}
+
+function getMediaKeyFromUrl(url: string) {
+  if (!env.mediaCdnBaseUrl) {
+    return null;
+  }
+  let base: URL;
+  let parsed: URL;
+  try {
+    base = new URL(env.mediaCdnBaseUrl);
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  if (parsed.host !== base.host || parsed.protocol !== "https:") {
+    return null;
+  }
+  const key = parsed.pathname.replace(/^\/+/, "");
+  if (!key) {
+    return null;
+  }
+  if (!/^(prod|staging|dev)\/(products|categories|blog|banners)\/[a-z0-9-]+\.webp$/i.test(key)) {
+    return null;
+  }
+  return key;
+}
+
+export function createBlogUseCases(deps: { blogRepository: BlogRepository; mediaStorage?: MediaStorage }): BlogUseCases {
   return {
     listAdminPosts: (params) => deps.blogRepository.listAdminPosts(params),
     getAdminPostById: (id) => deps.blogRepository.getAdminPostById(id),
@@ -82,7 +109,41 @@ export function createBlogUseCases(deps: { blogRepository: BlogRepository }): Bl
       }),
     publishPost: (id) => deps.blogRepository.publishPost(id),
     unpublishPost: (id) => deps.blogRepository.unpublishPost(id),
-    deletePost: (id) => deps.blogRepository.deletePost(id),
+    deletePost: async (id, actor) => {
+      const deletedPost = await deps.blogRepository.deletePost(id, {
+        deletedByAdminName: actor.adminDisplayName
+      });
+
+      const cleanupUrls = new Set<string>();
+      const coverImageUrl =
+        typeof deletedPost.coverImageUrl === "string" && deletedPost.coverImageUrl
+          ? deletedPost.coverImageUrl
+          : null;
+      if (coverImageUrl) {
+        cleanupUrls.add(coverImageUrl);
+      }
+      collectImageUrlsFromContent(deletedPost.contentJson).forEach((url) => cleanupUrls.add(url));
+
+      await Promise.all(
+        [...cleanupUrls].map(async (url) => {
+          const key = getMediaKeyFromUrl(url);
+          if (!key || !deps.mediaStorage?.deleteObjectByKey) {
+            return;
+          }
+          try {
+            await deps.mediaStorage.deleteObjectByKey(key);
+          } catch (error) {
+            appLogger.warn("blog image cleanup failed", {
+              postId: deletedPost.id,
+              key,
+              error: error instanceof Error ? error.message : String(error)
+            });
+          }
+        })
+      );
+
+      return deletedPost;
+    },
     listPublicPosts: (params) => deps.blogRepository.listPublicPosts(params),
     getPublicPostBySlug: (params) => deps.blogRepository.getPublicPostBySlug(params),
     listPublishedPostsForFeed: (locale) => deps.blogRepository.listPublishedPostsForFeed(locale),

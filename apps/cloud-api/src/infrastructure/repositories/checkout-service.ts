@@ -1,6 +1,7 @@
 import { OnlineOrderStatus, Prisma } from "@prisma/client";
 
 import { prisma } from "../db/prisma";
+import { appLogger } from "../../config/app-logger";
 import { ApiErrors } from "../../errors/api-error";
 import { normalizeOnlineOrderStatus, toApiStatus } from "../../domain/order-status";
 
@@ -1560,7 +1561,7 @@ export async function expirePendingOrders() {
       results.push(transitioned);
     } catch (error) {
       const message = error instanceof Error ? error.message : "unknown";
-      console.error("expiration transition failed", {
+      appLogger.error("expiration transition failed", {
         orderId: item.id,
         error: message
       });

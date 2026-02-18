@@ -20,7 +20,8 @@
 7. Add admin mutation rate limit middleware (30 req/min per admin).
 8. Add RSS endpoint and blog sitemap endpoint.
 9. Add stable error mappings, including CDN validation errors.
-10. Add soft delete handling for blog posts.
+10. Add soft delete handling for blog posts with `deletedByAdminName` snapshot.
+11. Add best-effort R2 object cleanup during delete for cover and content image nodes.
 
 ## Phase 4: Online-store implementation
 1. Add server API client for blog admin and public APIs.
@@ -32,9 +33,11 @@
 7. Add public list page `/{locale}/blog` with pagination.
 8. Add public detail page `/{locale}/blog/{slug}` with SSR render.
 9. Add TOC generation and heading anchors.
-10. Inject Article and BreadcrumbList JSON-LD.
+10. Inject BlogPosting and BreadcrumbList JSON-LD.
 11. Add sitemap route and RSS route integration in online-store.
 12. Add i18n messages for new UI labels.
+13. Add admin home navigation entry to blog editor.
+14. Route home community teaser to localized public blog list.
 
 ## Phase 5: Validation and audit
 1. Run `npm run prisma:generate -w apps/cloud-api`.
@@ -42,3 +45,6 @@
 3. Run `npm run build -w apps/online-store`.
 4. Run strict implementation audit workflow.
 5. Fix blockers until SAFE.
+6. Validate admin mutation endpoints with curl for publish, unpublish, and delete.
+7. Generate Lighthouse artifacts for `/{locale}/blog` and a representative `/{locale}/blog/{slug}` page and verify SEO >= 95.
+8. Validate BlogPosting and BreadcrumbList structured data with Rich Results test.

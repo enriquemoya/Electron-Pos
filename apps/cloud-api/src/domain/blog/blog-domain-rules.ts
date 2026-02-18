@@ -13,7 +13,7 @@ type BlogUpdatePayload = {
 
 export function assertCanUpdate(state: BlogState, payload: BlogUpdatePayload) {
   if (state.isDeleted) {
-    throw ApiErrors.blogNotFound;
+    throw ApiErrors.blogInvalidState;
   }
   if (state.isPublished && payload.slug && payload.slug !== state.slug) {
     throw ApiErrors.blogInvalidState;
@@ -22,7 +22,7 @@ export function assertCanUpdate(state: BlogState, payload: BlogUpdatePayload) {
 
 export function assertCanPublish(state: BlogState) {
   if (state.isDeleted) {
-    throw ApiErrors.blogNotFound;
+    throw ApiErrors.blogInvalidState;
   }
   if (state.isPublished) {
     throw ApiErrors.blogInvalidState;
@@ -31,7 +31,7 @@ export function assertCanPublish(state: BlogState) {
 
 export function assertCanUnpublish(state: BlogState) {
   if (state.isDeleted) {
-    throw ApiErrors.blogNotFound;
+    throw ApiErrors.blogInvalidState;
   }
   if (!state.isPublished) {
     throw ApiErrors.blogInvalidState;
@@ -40,6 +40,6 @@ export function assertCanUnpublish(state: BlogState) {
 
 export function assertCanDelete(state: BlogState) {
   if (state.isDeleted) {
-    throw ApiErrors.blogNotFound;
+    throw ApiErrors.blogInvalidState;
   }
 }

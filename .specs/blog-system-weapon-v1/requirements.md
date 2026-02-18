@@ -53,7 +53,7 @@ Each public post page must include:
 - Canonical URL
 - Hreflang alternates for `es` and `en`
 - OpenGraph and Twitter metadata
-- Article JSON-LD
+- BlogPosting JSON-LD
 - BreadcrumbList JSON-LD
 - SSR HTML render from sanitized document
 - Target Lighthouse SEO score >= 95 on blog detail pages
@@ -82,12 +82,17 @@ Feed and discovery requirements:
 - Cover images and Tiptap image nodes must be CDN-only absolute HTTPS URLs
 - Reject relative URLs, base64 data URLs, and non-HTTPS image URLs
 - Add rate limit on admin blog mutations: 30 requests per minute per admin
+- Rate-limit responses must use stable API error taxonomy.
 
 ## State integrity rules
 - Published posts cannot change slug.
 - Deleted posts cannot be updated, published, or unpublished.
 - Unpublished or deleted posts must never appear on public routes, sitemap, or RSS.
 - Publish and unpublish transitions are explicit actions only.
+- Delete uses soft-delete semantics only.
+- Admin get-by-id excludes deleted posts by default.
+- Delete triggers best-effort R2 cleanup for cover and content image keys.
+- R2 cleanup failures are non-blocking and do not rollback soft-delete.
 
 ## API behavior
 Admin endpoints (protected):
@@ -112,6 +117,10 @@ Stable error codes:
 - `BLOG_SLUG_CONFLICT`
 - `BLOG_UNAUTHORIZED`
 - `BLOG_INVALID_CONTENT`
+- `BLOG_INVALID_STATE`
+- `BLOG_TOO_LARGE`
+- `BLOG_RATE_LIMITED`
+- `BLOG_MEDIA_NOT_CDN`
 - `BLOG_MEDIA_INVALID_HOST`
 - `BLOG_MEDIA_NOT_ALLOWED`
 - `BLOG_INTERNAL_ERROR`
@@ -125,12 +134,24 @@ Stable error codes:
 - Prisma migration applies cleanly
 - `(slug, locale)` uniqueness enforced
 - Draft posts hidden from public API and routes
-- Post page includes valid Article and BreadcrumbList JSON-LD
+- Post page includes valid BlogPosting and BreadcrumbList JSON-LD
 - RSS endpoint returns valid XML for published posts
 - Sitemap includes localized blog URLs only for published posts
 - Admin editor uploads images through existing media endpoint
 - CDN-only image validation is enforced for cover image and content images
 - Admin mutation routes enforce 30 req/min rate limit
+- Admin publish, unpublish, and delete endpoints are validated with curl.
+- Lighthouse SEO score is >= 95 for `/{locale}/blog` and a representative post page with saved artifacts.
+- Structured data is validated with Rich Results testing for BlogPosting and BreadcrumbList.
+- Delete operation completes even if R2 cleanup fails.
 - Build passes for cloud-api and online-store
 - Spec audit verdict READY
 - Implementation audit verdict SAFE
+
+## Validation commands
+- Publish: `curl -X POST "$CLOUD_API_URL/admin/blog/posts/{id}/publish" -H "authorization: Bearer <admin_token>" -H "x-cloud-secret: <secret>"`
+- Unpublish: `curl -X POST "$CLOUD_API_URL/admin/blog/posts/{id}/unpublish" -H "authorization: Bearer <admin_token>" -H "x-cloud-secret: <secret>"`
+- Delete: `curl -X DELETE "$CLOUD_API_URL/admin/blog/posts/{id}" -H "authorization: Bearer <admin_token>" -H "x-cloud-secret: <secret>"`
+- Lighthouse artifact generation: `npx lighthouse "http://localhost:3000/es/blog" --output=json --output-path=./reports/lighthouse/blog-list-es.json --chrome-flags=\"--headless\"`
+- Lighthouse artifact generation: `npx lighthouse "http://localhost:3000/es/blog/{slug}" --output=json --output-path=./reports/lighthouse/blog-detail-es.json --chrome-flags=\"--headless\"`
+- Structured data verification: run Google Rich Results Test against blog detail URL and confirm BlogPosting and BreadcrumbList are valid.

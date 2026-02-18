@@ -28,7 +28,8 @@ export default async function AdminHomePage({ params }: { params: { locale: stri
     { href: `/${params.locale}/admin/inventory`, label: t("links.inventory") },
     { href: `/${params.locale}/admin/products`, label: t("links.products") },
     { href: `/${params.locale}/admin/taxonomies`, label: t("links.taxonomies") },
-    { href: `/${params.locale}/admin/branches`, label: t("links.branches") }
+    { href: `/${params.locale}/admin/branches`, label: t("links.branches") },
+    { href: `/${params.locale}/admin/blog`, label: t("links.blog") }
   ];
 
   return (

@@ -408,7 +408,8 @@
       "products": "Gestion de productos",
       "taxonomies": "Taxonomias del catalogo",
       "branches": "Sucursales",
-      "orders": "Gestion de pedidos"
+      "orders": "Gestion de pedidos",
+      "blog": "Editor de blog"
     }
   },
   "adminInventory": {
@@ -1051,6 +1052,7 @@
       "unpublish": "Despublicar",
       "uploadImage": "Subir imagen",
       "delete": "Eliminar",
+      "cancel": "Cancelar",
       "deleteConfirm": "Eliminar esta publicacion? Esta accion no se puede revertir."
     },
     "toolbar": {
@@ -1072,8 +1074,7 @@
       "publishOk": "Estado de publicacion actualizado",
       "publishError": "No se pudo actualizar el estado",
       "uploadOk": "Imagen subida",
-      "uploadError": "No se pudo subir la imagen",
-      "autosave": "Borrador autoguardado"
+      "uploadError": "No se pudo subir la imagen"
     },
     "status": {
       "saving": "Guardando",

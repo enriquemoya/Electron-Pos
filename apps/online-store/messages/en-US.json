@@ -408,7 +408,8 @@
       "products": "Product management",
       "taxonomies": "Catalog taxonomies",
       "branches": "Pickup branches",
-      "orders": "Order management"
+      "orders": "Order management",
+      "blog": "Blog editor"
     }
   },
   "adminInventory": {
@@ -1051,6 +1052,7 @@
       "unpublish": "Unpublish",
       "uploadImage": "Upload image",
       "delete": "Delete",
+      "cancel": "Cancel",
       "deleteConfirm": "Delete this post? This action cannot be undone."
     },
     "toolbar": {
@@ -1072,8 +1074,7 @@
       "publishOk": "Post state updated",
       "publishError": "Could not update publish state",
       "uploadOk": "Image uploaded",
-      "uploadError": "Could not upload image",
-      "autosave": "Draft autosaved"
+      "uploadError": "Could not upload image"
     },
     "status": {
       "saving": "Saving",
