@@ -726,7 +726,7 @@
       "amountLabel": "Monto",
       "amountHelp": "Monto maximo disponible:",
       "methodLabel": "Metodo de reembolso",
-      "messageLabel": "Mensaje administrativo",
+      "messageLabel": "Comentario del administrador",
       "messagePlaceholder": "Motivo o notas del reembolso",
       "submit": "Confirmar reembolso",
       "cancel": "Cancelar",
@@ -744,15 +744,17 @@
       "states": {
         "NONE": "Sin reembolso",
         "PARTIAL": "Reembolso parcial",
-        "FULL": "Reembolso total"
-      }
+        "FULL": "Reembolso completo"
+      },
+      "reasonLabel": "Motivo del reembolso"
     },
     "totals": {
       "subtotal": "Subtotal",
       "refunds": "Reembolsos",
       "finalTotal": "Total final",
       "paidTotal": "Total pagado",
-      "balanceDue": "Saldo pendiente"
+      "balanceDue": "Saldo pendiente",
+      "total": "Total"
     },
     "qtyShort": "Cant.",
     "refunds": {
@@ -805,24 +807,34 @@
       "CANCELLED_MANUAL": "Cancelado manualmente",
       "CANCELED": "Cancelado",
       "PAID_BY_TRANSFER": "Transferencia validada",
-      "CANCELLED_REFUNDED": "Cancelled refunded"
+      "CANCELLED_REFUNDED": "Cancelada con reembolso"
     },
     "refund": {
-      "historyTitle": "Refund history",
-      "byAdmin": "Refund processed by {name}",
+      "historyTitle": "Historial de reembolsos",
+      "byAdmin": "Reembolso procesado por {name}",
       "states": {
-        "NONE": "No refund",
-        "PARTIAL": "Partial refund",
-        "FULL": "Full refund"
+        "NONE": "Sin reembolso",
+        "PARTIAL": "Reembolsado parcialmente",
+        "FULL": "Reembolsado"
+      },
+      "methods": {
+        "CASH": "Efectivo",
+        "CARD": "Tarjeta",
+        "STORE_CREDIT": "Credito de tienda",
+        "TRANSFER": "Transferencia",
+        "OTHER": "Otro"
       }
     },
     "totals": {
       "subtotal": "Subtotal",
-      "refunds": "Refunds",
-      "finalTotal": "Final total",
-      "paidTotal": "Paid total",
-      "balanceDue": "Balance due"
-    }
+      "refunds": "Reembolsos",
+      "finalTotal": "Total final",
+      "paidTotal": "Total pagado",
+      "balanceDue": "Saldo pendiente",
+      "total": "Total",
+      "pending": "Totales pendientes"
+    },
+    "qtyShort": "Cant."
   },
   "footer": {
     "brand": {

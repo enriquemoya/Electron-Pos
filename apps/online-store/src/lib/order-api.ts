@@ -15,6 +15,21 @@ export type CustomerOrderListItem = {
   createdAt: string;
   statusUpdatedAt: string;
   pickupBranch: { name: string; city: string } | null;
+  totals?: {
+    subtotalCents: number;
+    refundsCents: number;
+    totalCents: number;
+    currency: string;
+  };
+  totalsBreakdown?: {
+    items: Array<{ productName: string; qty: number; lineTotalCents: number }>;
+    refunds: Array<{
+      productName: string;
+      amountCents: number;
+      type: "FULL" | "PARTIAL";
+      method: "CASH" | "CARD" | "STORE_CREDIT" | "TRANSFER" | "OTHER";
+    }>;
+  };
 };
 
 export type CustomerOrderDetail = {

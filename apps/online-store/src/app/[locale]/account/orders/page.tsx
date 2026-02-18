@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/navigation";
 import { fetchCustomerOrders } from "@/lib/order-api";
 import { BackButton } from "@/components/common/back-button";
+import { OrderTotalPopover } from "@/components/orders/order-total-popover";
 
 function parsePositiveInt(value: string | undefined, fallback: number) {
   const parsed = Number(value ?? fallback);
@@ -82,7 +83,31 @@ export default async function AccountOrdersPage({
                         <p className="text-xs text-white/50">{new Date(item.createdAt).toLocaleString()}</p>
                       </td>
                       <td className="px-4 py-3">{t(`statuses.${item.status}`)}</td>
-                      <td className="px-4 py-3">{item.currency} {item.subtotal.toFixed(2)}</td>
+                      <td className="px-4 py-3">
+                        <OrderTotalPopover
+                          currency={item.totals?.currency || item.currency}
+                          subtotalCents={item.totals?.subtotalCents ?? Math.round(item.subtotal * 100)}
+                          refundsCents={item.totals?.refundsCents ?? 0}
+                          totalCents={item.totals?.totalCents ?? Math.round(item.subtotal * 100)}
+                          breakdown={item.totalsBreakdown}
+                          labels={{
+                            subtotal: t("totals.subtotal"),
+                            refunds: t("totals.refunds"),
+                            total: t("totals.total"),
+                            quantityShort: t("qtyShort"),
+                            full: t("refund.states.FULL"),
+                            partial: t("refund.states.PARTIAL"),
+                            totalsPending: t("totals.pending"),
+                            methods: {
+                              CASH: t("refund.methods.CASH"),
+                              CARD: t("refund.methods.CARD"),
+                              STORE_CREDIT: t("refund.methods.STORE_CREDIT"),
+                              TRANSFER: t("refund.methods.TRANSFER"),
+                              OTHER: t("refund.methods.OTHER")
+                            }
+                          }}
+                        />
+                      </td>
                       <td className="px-4 py-3">{new Date(item.expiresAt).toLocaleDateString()}</td>
                       <td className="px-4 py-3">
                         <Link

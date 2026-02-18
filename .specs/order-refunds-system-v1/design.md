@@ -71,6 +71,22 @@ Existing customer order detail responses include:
 
 Customer refunds entry shape excludes `adminId` and `actorUserId`.
 
+### Existing Customer Orders List Endpoint (Additive)
+`GET /orders`
+
+Each list item keeps existing fields and adds:
+- `totals`:
+  - `subtotalCents`
+  - `refundsCents`
+  - `totalCents`
+  - `currency`
+- `totalsBreakdown`:
+  - `items[]`: `productName`, `qty`, `lineTotalCents`
+  - `refunds[]`: `productName`, `amountCents`, `type` (`FULL` or `PARTIAL`), `method`
+
+Privacy rule:
+- no admin IDs, actor IDs, or internal UUIDs in customer list payload additions.
+
 ## State and Transition Rules
 
 ### Refund Eligibility
@@ -105,6 +121,12 @@ No manual transition from terminal statuses:
 2. Mapper includes refund rows redacted for customer fields.
 3. Mapper computes item refund state and totals summary.
 
+### Customer List Read Flow
+1. List query fetches paginated orders with item and refund relations.
+2. Service computes additive cent-based totals and totalsBreakdown per order.
+3. Product names for breakdown use read model product display name fallback to product ID.
+4. UI renders final total and popover, with fallback when totalsBreakdown is missing.
+
 ### Admin Orders List Popover
 1. User clicks displayed total in list row.
 2. Popover renders item subtotal lines, refund lines, and final total.
@@ -127,6 +149,7 @@ No manual transition from terminal statuses:
 - Admin list total breakdown uses shadcn `Popover` and grid/table layout.
 - Item refund state uses shadcn `Badge`.
 - All user-visible copy is sourced from i18n messages.
+- Customer list total popover uses shadcn `Popover` and compact table-like grid layout.
 
 ## Edge Cases
 - Multiple partial refunds on same item across time.
@@ -134,3 +157,4 @@ No manual transition from terminal statuses:
 - Full order refund after mixed partial item refunds.
 - Refund amount precision mismatch handling according to existing money type.
 - Concurrent refunds on same order: transaction and invariant checks prevent over-refund.
+- Missing totalsBreakdown from legacy payload: list row falls back to subtotal with localized `totalsPending` hint.

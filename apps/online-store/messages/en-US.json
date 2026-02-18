@@ -726,7 +726,7 @@
       "amountLabel": "Amount",
       "amountHelp": "Maximum available amount:",
       "methodLabel": "Refund method",
-      "messageLabel": "Admin message",
+      "messageLabel": "Admin comment",
       "messagePlaceholder": "Reason or refund notes",
       "submit": "Confirm refund",
       "cancel": "Cancel",
@@ -745,14 +745,16 @@
         "NONE": "No refund",
         "PARTIAL": "Partial refund",
         "FULL": "Full refund"
-      }
+      },
+      "reasonLabel": "Refund reason"
     },
     "totals": {
       "subtotal": "Subtotal",
       "refunds": "Refunds",
       "finalTotal": "Final total",
       "paidTotal": "Paid total",
-      "balanceDue": "Balance due"
+      "balanceDue": "Balance due",
+      "total": "Total"
     },
     "qtyShort": "Qty.",
     "refunds": {
@@ -812,8 +814,15 @@
       "byAdmin": "Refund processed by {name}",
       "states": {
         "NONE": "No refund",
-        "PARTIAL": "Partial refund",
-        "FULL": "Full refund"
+        "PARTIAL": "Partially refunded",
+        "FULL": "Refunded"
+      },
+      "methods": {
+        "CASH": "Cash",
+        "CARD": "Card",
+        "STORE_CREDIT": "Store credit",
+        "TRANSFER": "Bank transfer",
+        "OTHER": "Other"
       }
     },
     "totals": {
@@ -821,8 +830,11 @@
       "refunds": "Refunds",
       "finalTotal": "Final total",
       "paidTotal": "Paid total",
-      "balanceDue": "Balance due"
-    }
+      "balanceDue": "Balance due",
+      "total": "Total",
+      "pending": "Totals pending"
+    },
+    "qtyShort": "Qty."
   },
   "footer": {
     "brand": {

@@ -7,6 +7,7 @@ Add a full and partial refunds system on top of existing order and payment ledge
 - Cloud API: refund domain rules, admin refund endpoint, additive order detail fields, terminal transition guards.
 - Data: additive Prisma schema and migration for refunds and status extension.
 - Online store: admin refund modal, admin list totals popover, customer and admin totals and refund state display.
+- Customer orders history list: additive totals and totals breakdown payload with popover UI.
 
 ## Non-Goals
 - No checkout or cart redesign.
@@ -20,6 +21,7 @@ Add a full and partial refunds system on top of existing order and payment ledge
 - Existing payment ledger semantics for create order and transfer approval remain intact.
 - Existing orders must remain valid after migration.
 - Spec documents must be English only and ASCII only.
+- All refund UI copy must be localized in both `es-MX` and `en-US` message catalogs.
 
 ## Refund Capabilities
 - Admin can issue refunds only for orders in `COMPLETED` by default.
@@ -68,11 +70,25 @@ Order detail for customer and admin must expose additive totals:
 - `paidTotal` (from payment ledger)
 - `balanceDue` (from payment ledger, never negative)
 
+Customer order history list items must include additive totals fields:
+- `totals: { subtotalCents, refundsCents, totalCents, currency }`
+- `totalsBreakdown: { items: [{ productName, qty, lineTotalCents }], refunds: [{ productName, amountCents, type, method }] }`
+- Existing list fields remain unchanged.
+
 ## Admin List Totals Popover
 Admin orders list must expose a UI popover for totals breakdown:
 - Item lines with quantity and line totals.
 - Refunded lines with amount and refund state label.
 - Final total.
+
+## Customer List Totals Popover
+Customer order history list must show final total after refunds.
+- Total cell shows `totals.totalCents` when available.
+- Click total opens shadcn popover with:
+  - item subtotal rows (`productName`, `qty`, `lineTotal`)
+  - refund rows (`productName`, `amount`, `type`, `method`)
+  - final total row
+- Popover uses premium dark layout and aligned columns.
 
 ## API Rules
 - Customer payloads cannot include internal admin IDs.
@@ -80,6 +96,7 @@ Admin orders list must expose a UI popover for totals breakdown:
   - `adminDisplayName`
   - `adminMessage`
 - Admin payloads may include internal IDs for audit use.
+- Customer list payload must not expose admin IDs, actor IDs, or internal actor UUIDs.
 
 ## Error Handling
 Stable errors:
@@ -92,6 +109,15 @@ Additional behavior:
 - Full-order refund with remaining refundable amount equal to zero returns `REFUND_INVALID_AMOUNT`.
 - Multiple partial refunds cannot exceed item refundable remaining or order paid remaining.
 - Transaction failures must rollback refund record and ledger entry together.
+- If customer list `totalsBreakdown` is unavailable, UI falls back to existing subtotal display and a localized muted label (`totalsPending`).
+
+## i18n Completeness
+Refund UI key sets must exist in both locales (`es-MX`, `en-US`) with matching structure.
+Required groups:
+- refund labels: refund/refunds, full/partial, refunded states
+- refund form labels: reason, admin comment, method labels
+- totals labels: subtotal, refunds, total
+- fallback label: totals pending
 
 ## Acceptance Criteria
 1) Admin refund endpoint supports full and partial refunds.
@@ -101,5 +127,6 @@ Additional behavior:
 5) Full paid refund transitions status to `CANCELLED_REFUNDED`.
 6) Terminal orders cannot be manually revived.
 7) Admin list total popover renders item and refund breakdown.
-8) Builds pass for `apps/cloud-api` and `apps/online-store`.
-9) Spec audit is READY and implementation audit is SAFE.
+8) Customer order history list total uses final total after refunds and shows popover breakdown.
+9) Builds pass for `apps/cloud-api` and `apps/online-store`.
+10) Spec audit is READY and implementation audit is SAFE.

@@ -3,6 +3,7 @@
 ## Phase 1 - Spec and Audit
 - Create requirements, design, and tasks docs for `order-refunds-system-v1`.
 - Run strict spec audit and resolve blockers until READY.
+- Update existing spec with i18n completeness and customer list totals popover requirements.
 
 ## Phase 2 - Data and Prisma
 - Extend Prisma enums:
@@ -35,6 +36,11 @@
   - `totals`
   - item `refundState`
 - Redact internal admin IDs from customer payloads.
+- Extend customer orders list payload additively with:
+  - `totals` in cents
+  - `totalsBreakdown` item and refund rows
+- Keep existing customer list contract fields unchanged.
+- Ensure no internal actor/admin IDs are exposed in customer list additions.
 
 ## Phase 5 - Online Store UI
 - Admin order detail:
@@ -46,6 +52,9 @@
 - Customer and admin detail:
   - Render item refund badges and totals section.
 - Disable and hide transition controls for terminal statuses.
+- Add customer order history total popover with final total and breakdown rows.
+- Add fallback rendering when breakdown is absent (`totalsPending`, localized).
+- Verify refund-related translations are complete in both locales with matching keys.
 
 ## Phase 6 - Validation
 - Run `npm run gov:spec:audit -- "order-refunds-system-v1"`.

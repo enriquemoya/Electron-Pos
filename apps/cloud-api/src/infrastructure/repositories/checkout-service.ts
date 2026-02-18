@@ -1072,20 +1072,89 @@ export async function listCustomerOrders(params: {
       take: params.pageSize,
       orderBy: { createdAt: "desc" },
       include: {
-        pickupBranch: { select: { name: true, city: true } }
+        pickupBranch: { select: { name: true, city: true } },
+        items: { select: { id: true, productId: true, quantity: true, priceSnapshot: true } },
+        refunds: { select: { orderItemId: true, amount: true, refundMethod: true } },
+        paymentLedger: { select: { totalPaid: true, balanceDue: true } }
       }
     }),
     prisma.onlineOrder.count({ where })
   ]);
 
+  const allProductIds = Array.from(
+    new Set(items.flatMap((order) => order.items.map((orderItem) => orderItem.productId)))
+  );
+  const productNames = allProductIds.length
+    ? await prisma.readModelInventory.findMany({
+        where: { productId: { in: allProductIds } },
+        select: { productId: true, displayName: true }
+      })
+    : [];
+  const productNameById = new Map(productNames.map((row) => [row.productId, row.displayName || row.productId]));
+
   return {
     items: items.map((item) => ({
+      ...(() => {
+        const subtotal = toMoney(item.subtotal);
+        const refundsTotal = item.refunds.reduce((sum, refund) => sum + toMoney(refund.amount), 0);
+        const finalTotal = Math.max(0, subtotal - refundsTotal);
+        const itemLineTotalById = new Map(
+          item.items.map((orderItem) => [orderItem.id, toMoney(orderItem.priceSnapshot) * orderItem.quantity])
+        );
+        const totalsBreakdownItems = item.items.map((orderItem) => ({
+          productName: productNameById.get(orderItem.productId) ?? orderItem.productId,
+          qty: orderItem.quantity,
+          lineTotalCents: Math.round(toMoney(orderItem.priceSnapshot) * orderItem.quantity * 100)
+        }));
+        const groupedRefunds = new Map<
+          string,
+          { orderItemId: string | null; amount: number; method: string; productName: string; type: "FULL" | "PARTIAL" }
+        >();
+        for (const refund of item.refunds) {
+          const key = `${refund.orderItemId ?? "FULL_ORDER"}:${refund.refundMethod}`;
+          const existing = groupedRefunds.get(key);
+          const lineTotal = refund.orderItemId ? itemLineTotalById.get(refund.orderItemId) ?? 0 : 0;
+          const nextAmount = (existing?.amount ?? 0) + toMoney(refund.amount);
+          const type: "FULL" | "PARTIAL" = refund.orderItemId
+            ? nextAmount >= lineTotal
+              ? "FULL"
+              : "PARTIAL"
+            : "FULL";
+          groupedRefunds.set(key, {
+            orderItemId: refund.orderItemId,
+            amount: nextAmount,
+            method: refund.refundMethod,
+            productName: refund.orderItemId
+              ? productNameById.get(item.items.find((orderItem) => orderItem.id === refund.orderItemId)?.productId ?? "") ??
+                (item.items.find((orderItem) => orderItem.id === refund.orderItemId)?.productId ?? refund.orderItemId)
+              : "FULL_ORDER",
+            type
+          });
+        }
+        return {
+          totals: {
+            subtotalCents: Math.round(subtotal * 100),
+            refundsCents: Math.round(refundsTotal * 100),
+            totalCents: Math.round(finalTotal * 100),
+            currency: item.currency
+          },
+          totalsBreakdown: {
+            items: totalsBreakdownItems,
+            refunds: Array.from(groupedRefunds.values()).map((refund) => ({
+              productName: refund.productName,
+              amountCents: Math.round(refund.amount * 100),
+              type: refund.type,
+              method: refund.method
+            }))
+          }
+        };
+      })(),
       id: item.id,
       orderNumber: item.orderNumber,
       orderCode: item.orderCode,
       status: normalizeStatus(item.status),
       paymentStatus: item.paymentStatus,
-      subtotal: Number(item.subtotal),
+      subtotal: toMoney(item.subtotal),
       currency: item.currency,
       paymentMethod: item.paymentMethod,
       expiresAt: item.expiresAt.toISOString(),
