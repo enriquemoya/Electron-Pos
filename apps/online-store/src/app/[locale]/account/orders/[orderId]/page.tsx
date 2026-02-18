@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { fetchCustomerOrder } from "@/lib/order-api";
 import { BackButton } from "@/components/common/back-button";
+import { Badge } from "@/components/ui/badge";
 
 export default async function AccountOrderDetailPage({
   params
@@ -32,7 +33,7 @@ export default async function AccountOrderDetailPage({
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <BackButton
           label={t("backToList")}
-          fallbackHref="/account/orders"
+          fallbackHref={`/${params.locale}/account/orders`}
           className="px-0 text-sm text-white/70 hover:text-white"
         />
         <div>
@@ -50,12 +51,39 @@ export default async function AccountOrderDetailPage({
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
       <BackButton
         label={t("backToList")}
-        fallbackHref="/account/orders"
+        fallbackHref={`/${params.locale}/account/orders`}
         className="px-0 text-sm text-white/70 hover:text-white"
       />
       <div>
         <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>
         <p className="text-sm text-white/60">{order.orderCode}</p>
+      </div>
+
+      <div className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 md:grid-cols-2">
+        <div>
+          <p className="text-xs uppercase text-white/50">{t("totals.subtotal")}</p>
+          <p className="text-white">
+            {order.currency} {(order.totals?.subtotal ?? order.subtotal).toFixed(2)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs uppercase text-white/50">{t("totals.refunds")}</p>
+          <p className="text-rose-300">
+            - {order.currency} {(order.totals?.refundsTotal ?? 0).toFixed(2)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs uppercase text-white/50">{t("totals.finalTotal")}</p>
+          <p className="text-white">
+            {order.currency} {(order.totals?.finalTotal ?? order.subtotal).toFixed(2)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs uppercase text-white/50">{t("totals.paidTotal")}</p>
+          <p className="text-white">
+            {order.currency} {(order.totals?.paidTotal ?? 0).toFixed(2)}
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 md:grid-cols-2">
@@ -91,10 +119,34 @@ export default async function AccountOrderDetailPage({
               <p className="text-sm text-white/70">{t("qty", { value: item.quantity })}</p>
               <p className="text-sm text-white/70">{item.currency} {item.priceSnapshot.toFixed(2)}</p>
               <p className="text-sm text-white/70">{item.availabilitySnapshot}</p>
+              {item.refundState ? (
+                <Badge state={item.refundState === "FULL" ? "LOW_STOCK" : item.refundState === "PARTIAL" ? "PENDING_SYNC" : "AVAILABLE"}>
+                  {t(`refund.states.${item.refundState}`)}
+                </Badge>
+              ) : null}
             </div>
           ))}
         </div>
       </div>
+
+      {order.refunds?.length ? (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <h2 className="text-lg font-semibold text-white">{t("refund.historyTitle")}</h2>
+          <div className="mt-4 space-y-3">
+            {order.refunds.map((refund) => (
+              <div key={refund.id} className="rounded-xl border border-white/10 bg-base-800/60 p-3">
+                <p className="text-sm text-white">
+                  {refund.refundMethod} - {refund.currency} {refund.amount.toFixed(2)}
+                </p>
+                <p className="text-xs text-white/60">
+                  {t("refund.byAdmin", { name: refund.adminDisplayName })}
+                </p>
+                <p className="text-xs text-white/60">{refund.adminMessage}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
         <h2 className="text-lg font-semibold text-white">{t("timelineTitle")}</h2>

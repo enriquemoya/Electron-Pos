@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 
 import { ApiErrors, asApiError } from "../../errors/api-error";
 import type { OrderFulfillmentUseCases } from "../../application/use-cases/order-fulfillment";
-import { validateOrderListQuery, validateTransitionBody } from "../../validation/order-fulfillment";
+import { validateOrderListQuery, validateRefundBody, validateTransitionBody } from "../../validation/order-fulfillment";
 
 type AuthRequest = Request & { auth?: { userId: string; role: string } };
 
@@ -74,6 +74,35 @@ export function createOrderFulfillmentController(useCases: OrderFulfillmentUseCa
           adminMessage: payload.adminMessage
         });
         res.status(200).json(result);
+      } catch (error) {
+        const apiError = asApiError(error, ApiErrors.serverError);
+        res.status(apiError.status).json({ error: apiError.message });
+      }
+    },
+    async createRefundHandler(req: Request, res: Response) {
+      const auth = (req as AuthRequest).auth;
+      if (!auth) {
+        res.status(ApiErrors.unauthorized.status).json({ error: ApiErrors.unauthorized.message });
+        return;
+      }
+
+      try {
+        const orderId = String(req.params.orderId || "").trim();
+        if (!orderId) {
+          res.status(ApiErrors.invalidRequest.status).json({ error: ApiErrors.invalidRequest.message });
+          return;
+        }
+
+        const payload = validateRefundBody(req.body ?? {});
+        const order = await useCases.createRefund({
+          orderId,
+          actorUserId: auth.userId,
+          orderItemId: payload.orderItemId,
+          amount: payload.amount,
+          refundMethod: payload.refundMethod,
+          adminMessage: payload.adminMessage
+        });
+        res.status(200).json({ order });
       } catch (error) {
         const apiError = asApiError(error, ApiErrors.serverError);
         res.status(apiError.status).json({ error: apiError.message });

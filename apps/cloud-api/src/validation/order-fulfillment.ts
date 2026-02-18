@@ -4,6 +4,7 @@ import { normalizeOnlineOrderStatus } from "../domain/order-status";
 const PAGE_SIZE_VALUES = new Set([20, 50, 100]);
 const ORDER_SORT_VALUES = new Set(["createdAt", "status", "expiresAt", "subtotal"]);
 const ORDER_DIRECTION_VALUES = new Set(["asc", "desc"]);
+const REFUND_METHOD_VALUES = new Set(["CASH", "CARD", "STORE_CREDIT", "TRANSFER", "OTHER"]);
 
 function parsePositiveInt(value: unknown, fallback: number) {
   const parsed = Number(value ?? fallback);
@@ -60,5 +61,32 @@ export function validateTransitionBody(payload: unknown) {
     toStatus: toStatus,
     reason: reason || null,
     adminMessage: adminMessage || null
+  };
+}
+
+export function validateRefundBody(payload: unknown) {
+  const orderItemIdRaw = (payload as { orderItemId?: unknown })?.orderItemId;
+  const orderItemId = orderItemIdRaw === undefined || orderItemIdRaw === null ? null : String(orderItemIdRaw).trim();
+
+  const amountRaw = Number((payload as { amount?: unknown })?.amount);
+  if (!Number.isFinite(amountRaw) || amountRaw <= 0) {
+    throw ApiErrors.refundInvalidAmount;
+  }
+
+  const refundMethodRaw = String((payload as { refundMethod?: unknown })?.refundMethod ?? "").trim().toUpperCase();
+  if (!REFUND_METHOD_VALUES.has(refundMethodRaw)) {
+    throw ApiErrors.invalidRequest;
+  }
+
+  const adminMessageRaw = String((payload as { adminMessage?: unknown })?.adminMessage ?? "").trim();
+  if (!adminMessageRaw) {
+    throw ApiErrors.refundMessageRequired;
+  }
+
+  return {
+    orderItemId: orderItemId || null,
+    amount: amountRaw,
+    refundMethod: refundMethodRaw as "CASH" | "CARD" | "STORE_CREDIT" | "TRANSFER" | "OTHER",
+    adminMessage: adminMessageRaw
   };
 }

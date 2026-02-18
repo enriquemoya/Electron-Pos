@@ -121,6 +121,7 @@ enum OnlineOrderStatus {
   CANCELED
   CANCELLED_EXPIRED
   CANCELLED_MANUAL
+  CANCELLED_REFUNDED
 }
 
 enum PaymentMethod {
@@ -149,6 +150,15 @@ enum PaymentEntryMethod {
   BANK_TRANSFER
   STORE_CREDIT
   PROVIDER_EXTERNAL
+  REFUND
+}
+
+enum RefundMethod {
+  CASH
+  CARD
+  STORE_CREDIT
+  TRANSFER
+  OTHER
 }
 
 enum PaymentEntryStatus {
@@ -203,6 +213,7 @@ model User {
   cancelledOrders OnlineOrder[] @relation("OnlineOrderCancelledBy")
   orderStatusLogs OnlineOrderStatusLog[] @relation("OnlineOrderStatusLogActor")
   paymentEntries OrderPaymentEntry[] @relation("OrderPaymentEntryActor")
+  refunds      OnlineOrderRefund[]   @relation("OnlineOrderRefundAdmin")
 
   @@map("users")
 }
@@ -350,6 +361,7 @@ model OnlineOrder {
   statusLogs     OnlineOrderStatusLog[]
   paymentLedger  OrderPaymentLedger?
   paymentEntries OrderPaymentEntry[]
+  refunds        OnlineOrderRefund[]
 
   @@index([userId], name: "idx_online_orders_user")
   @@index([status], name: "idx_online_orders_status")
@@ -415,9 +427,30 @@ model OnlineOrderItem {
   availabilitySnapshot String  @map("availability_snapshot")
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   order               OnlineOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  refunds             OnlineOrderRefund[]
 
   @@index([orderId], name: "idx_online_order_items_order")
   @@map("online_order_items")
+}
+
+model OnlineOrderRefund {
+  id           String          @id @default(uuid()) @db.Uuid
+  orderId      String          @map("order_id") @db.Uuid
+  orderItemId  String?         @map("order_item_id") @db.Uuid
+  amount       Decimal
+  currency     String          @default("MXN")
+  refundMethod RefundMethod    @map("refund_method")
+  adminId      String?         @map("admin_id") @db.Uuid
+  adminName    String          @map("admin_name")
+  adminMessage String          @map("admin_message")
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  order        OnlineOrder     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem    OnlineOrderItem? @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+  admin        User?           @relation("OnlineOrderRefundAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([orderId], name: "idx_online_order_refunds_order")
+  @@index([orderItemId], name: "idx_online_order_refunds_item")
+  @@map("online_order_refunds")
 }
 
 model InventoryReservation {

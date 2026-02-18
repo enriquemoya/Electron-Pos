@@ -25,7 +25,8 @@ export const ORDER_STATUS_TRANSITIONS: Record<OnlineOrderStatus, readonly Online
   [OnlineOrderStatus.SHIPPED]: [],
   [OnlineOrderStatus.CANCELED]: [],
   [OnlineOrderStatus.CANCELLED_EXPIRED]: [],
-  [OnlineOrderStatus.CANCELLED_MANUAL]: []
+  [OnlineOrderStatus.CANCELLED_MANUAL]: [],
+  [OnlineOrderStatus.CANCELLED_REFUNDED]: []
 };
 
 export function normalizeOnlineOrderStatus(value: string): OnlineOrderStatus | null {

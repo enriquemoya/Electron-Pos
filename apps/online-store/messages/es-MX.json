@@ -697,7 +697,8 @@
       "error": "No se pudo actualizar el estado.",
       "toastSuccess": "Estado actualizado",
       "toastError": "No se pudo actualizar el estado",
-      "adminMessage": "Mensaje del administrador (opcional para transferencias)"
+      "adminMessage": "Mensaje del administrador (opcional para transferencias)",
+      "disabledForTerminal": "No se permiten cambios de estado para pedidos terminales."
     },
     "timeline": {
       "initial": "Inicial",
@@ -713,7 +714,51 @@
       "CANCELLED_EXPIRED": "Cancelado por expiracion",
       "CANCELLED_MANUAL": "Cancelado manualmente",
       "CANCELED": "Cancelado",
-      "PAID_BY_TRANSFER": "Transferencia validada"
+      "PAID_BY_TRANSFER": "Transferencia validada",
+      "CANCELLED_REFUNDED": "Cancelada con reembolso"
+    },
+    "refund": {
+      "trigger": "Emitir reembolso",
+      "title": "Emitir reembolso",
+      "subtitle": "Registra reembolsos parciales o totales con trazabilidad administrativa.",
+      "itemLabel": "Producto objetivo",
+      "fullOrder": "Pedido completo",
+      "amountLabel": "Monto",
+      "amountHelp": "Monto maximo disponible:",
+      "methodLabel": "Metodo de reembolso",
+      "messageLabel": "Mensaje administrativo",
+      "messagePlaceholder": "Motivo o notas del reembolso",
+      "submit": "Confirmar reembolso",
+      "cancel": "Cancelar",
+      "toastSuccess": "Reembolso aplicado correctamente.",
+      "toastError": "No se pudo aplicar el reembolso.",
+      "historyTitle": "Historial de reembolsos",
+      "byAdmin": "Reembolso aplicado por {name}",
+      "methods": {
+        "CASH": "Efectivo",
+        "CARD": "Tarjeta",
+        "STORE_CREDIT": "Credito en tienda",
+        "TRANSFER": "Transferencia",
+        "OTHER": "Otro"
+      },
+      "states": {
+        "NONE": "Sin reembolso",
+        "PARTIAL": "Reembolso parcial",
+        "FULL": "Reembolso total"
+      }
+    },
+    "totals": {
+      "subtotal": "Subtotal",
+      "refunds": "Reembolsos",
+      "finalTotal": "Total final",
+      "paidTotal": "Total pagado",
+      "balanceDue": "Saldo pendiente"
+    },
+    "qtyShort": "Cant.",
+    "refunds": {
+      "fullOrder": "Pedido completo",
+      "full": "Total",
+      "partial": "Parcial"
     }
   },
   "accountOrders": {
@@ -759,7 +804,24 @@
       "CANCELLED_EXPIRED": "Cancelado por expiracion",
       "CANCELLED_MANUAL": "Cancelado manualmente",
       "CANCELED": "Cancelado",
-      "PAID_BY_TRANSFER": "Transferencia validada"
+      "PAID_BY_TRANSFER": "Transferencia validada",
+      "CANCELLED_REFUNDED": "Cancelled refunded"
+    },
+    "refund": {
+      "historyTitle": "Refund history",
+      "byAdmin": "Refund processed by {name}",
+      "states": {
+        "NONE": "No refund",
+        "PARTIAL": "Partial refund",
+        "FULL": "Full refund"
+      }
+    },
+    "totals": {
+      "subtotal": "Subtotal",
+      "refunds": "Refunds",
+      "finalTotal": "Final total",
+      "paidTotal": "Paid total",
+      "balanceDue": "Balance due"
     }
   },
   "footer": {

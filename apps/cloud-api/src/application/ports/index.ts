@@ -243,6 +243,14 @@ export type OrderFulfillmentRepository = {
     customerEmailLocale: "ES_MX" | "EN_US" | null;
     customerId: string | null;
   }>;
+  createRefund: (params: {
+    orderId: string;
+    orderItemId: string | null;
+    amount: number;
+    refundMethod: "CASH" | "CARD" | "STORE_CREDIT" | "TRANSFER" | "OTHER";
+    adminId: string | null;
+    adminMessage: string;
+  }) => Promise<Record<string, unknown>>;
   expirePendingOrders: () => Promise<Array<{
     orderId: string;
     orderNumber: number;

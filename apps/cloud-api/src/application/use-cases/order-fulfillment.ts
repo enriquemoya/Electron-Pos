@@ -50,6 +50,14 @@ export type OrderFulfillmentUseCases = {
     fromStatus: string | null;
     toStatus: string;
   }>;
+  createRefund: (params: {
+    orderId: string;
+    actorUserId: string;
+    orderItemId: string | null;
+    amount: number;
+    refundMethod: "CASH" | "CARD" | "STORE_CREDIT" | "TRANSFER" | "OTHER";
+    adminMessage: string;
+  }) => Promise<Record<string, unknown>>;
   runExpirationSweep: () => Promise<{ expired: number }>;
 };
 
@@ -162,6 +170,16 @@ export function createOrderFulfillmentUseCases(deps: {
         fromStatus: updated.fromStatus,
         toStatus: updated.toStatus
       };
+    },
+    async createRefund(params) {
+      return deps.orderFulfillmentRepository.createRefund({
+        orderId: params.orderId,
+        orderItemId: params.orderItemId,
+        amount: params.amount,
+        refundMethod: params.refundMethod,
+        adminId: params.actorUserId,
+        adminMessage: params.adminMessage
+      });
     },
     async runExpirationSweep() {
       const expired = await deps.orderFulfillmentRepository.expirePendingOrders();

@@ -89,6 +89,7 @@ export function createProtectedRoutes(params: {
   router.get("/admin/orders", orderFulfillmentController.listAdminOrdersHandler);
   router.get("/admin/orders/:orderId", orderFulfillmentController.getAdminOrderHandler);
   router.post("/admin/orders/:orderId/status", orderFulfillmentController.transitionOrderStatusHandler);
+  router.post("/admin/orders/:orderId/refunds", orderFulfillmentController.createRefundHandler);
   router.post("/admin/orders/expire", orderFulfillmentController.runExpirationSweepHandler);
   router.get("/admin/users", usersController.listUsersHandler);
   router.get("/admin/users/:id", usersController.getUserHandler);

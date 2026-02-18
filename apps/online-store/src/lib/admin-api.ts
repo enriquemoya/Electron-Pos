@@ -109,9 +109,12 @@ type OrderStatus =
   | "READY_FOR_PICKUP"
   | "COMPLETED"
   | "SHIPPED"
+  | "CANCELLED_REFUNDED"
   | "CANCELLED_EXPIRED"
   | "CANCELLED_MANUAL"
   | "CANCELED";
+
+type RefundMethod = "CASH" | "CARD" | "STORE_CREDIT" | "TRANSFER" | "OTHER";
 
 type AdminOrderListItem = {
   id: string;
@@ -127,6 +130,17 @@ type AdminOrderListItem = {
   updatedAt: string;
   statusUpdatedAt: string;
   customer: { email: string | null; name: string | null };
+  totals?: {
+    subtotal: number;
+    refundsTotal: number;
+    finalTotal: number;
+    paidTotal: number;
+    balanceDue: number;
+  };
+  totalsBreakdown?: {
+    items: Array<{ id: string; label: string; quantity: number; amount: number; currency: string }>;
+    refunds: Array<{ orderItemId: string | null; label: string; state: "FULL" | "PARTIAL"; amount: number }>;
+  };
   pickupBranch: { name: string; city: string } | null;
 };
 
@@ -157,7 +171,26 @@ type AdminOrderDetail = {
     priceSnapshot: number;
     currency: string;
     availabilitySnapshot: string;
+    refundState?: "NONE" | "PARTIAL" | "FULL";
   }>;
+  refunds?: Array<{
+    id: string;
+    orderItemId: string | null;
+    amount: number;
+    currency: string;
+    refundMethod: RefundMethod;
+    adminId?: string | null;
+    adminDisplayName: string;
+    adminMessage: string;
+    createdAt: string;
+  }>;
+  totals?: {
+    subtotal: number;
+    refundsTotal: number;
+    finalTotal: number;
+    paidTotal: number;
+    balanceDue: number;
+  };
   timeline: Array<{
     id: string;
     fromStatus: OrderStatus | null;
@@ -686,6 +719,30 @@ export async function transitionAdminOrderStatus(
   return response.json() as Promise<{ orderId: string; fromStatus: string | null; toStatus: string }>;
 }
 
+export async function createAdminRefund(
+  orderId: string,
+  data: { orderItemId?: string; amount: number; refundMethod: RefundMethod; adminMessage: string }
+) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/orders/${orderId}/refunds`, {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`order refund failed (${response.status}): ${message}`);
+  }
+
+  return response.json() as Promise<{ order: AdminOrderDetail }>;
+}
+
 export type {
   AdminUser,
   AdminSummary,
@@ -694,5 +751,6 @@ export type {
   Taxonomy,
   AdminOrderListItem,
   AdminOrderDetail,
-  OrderStatus
+  OrderStatus,
+  RefundMethod
 };

@@ -7,12 +7,21 @@ import { normalizeOnlineOrderStatus, toApiStatus } from "../../domain/order-stat
 const LOW_STOCK_THRESHOLD = 3;
 const EXPIRATION_DAYS = 10;
 
-type EntryMethod = "PAY_IN_STORE" | "BANK_TRANSFER" | "STORE_CREDIT" | "PROVIDER_EXTERNAL";
+type EntryMethod = "PAY_IN_STORE" | "BANK_TRANSFER" | "STORE_CREDIT" | "PROVIDER_EXTERNAL" | "REFUND";
 type EntryStatus = "PENDING" | "CONFIRMED" | "FAILED" | "REFUNDED" | "VOIDED";
 type LedgerState = "UNPAID" | "PARTIALLY_PAID" | "PAID" | "OVERPAID" | "FAILED" | "REFUNDED";
+type RefundMethod = "CASH" | "CARD" | "STORE_CREDIT" | "TRANSFER" | "OTHER";
 
 function mapPaymentMethodToEntryMethod(method: "PAY_IN_STORE" | "BANK_TRANSFER"): EntryMethod {
   return method === "BANK_TRANSFER" ? "BANK_TRANSFER" : "PAY_IN_STORE";
+}
+
+function toMoney(value: Prisma.Decimal | number) {
+  return Number(value);
+}
+
+function roundMoney(value: number) {
+  return Number(value.toFixed(2));
 }
 
 function mapPaymentStatusToEntryStatus(status: "PENDING_TRANSFER" | "PAID" | "FAILED" | "REFUNDED"): EntryStatus {
@@ -254,6 +263,9 @@ function toDbStatus(value: string): OnlineOrderStatus {
   if (value === "SHIPPED") {
     return "SHIPPED";
   }
+  if (value === "CANCELLED_REFUNDED") {
+    return "CANCELLED_REFUNDED";
+  }
   throw ApiErrors.orderStatusInvalid;
 }
 
@@ -374,14 +386,66 @@ function mapStatusTimeline(statusLogs: Array<{
       fromStatus: row.fromStatus ? normalizeStatus(row.fromStatus) : null,
       toStatus: normalizeStatus(row.toStatus),
       reason: row.reason,
-      approvedByAdminId: null,
       approvedByAdminName: row.approvedByAdminName ?? null,
       adminMessage: row.adminMessage ?? null,
-      actorUserId: null,
       actorDisplayName: row.approvedByAdminName ?? (row.actorUserId ? "Admin" : "System"),
       actorType: row.actorUserId ? "ADMIN" : "SYSTEM",
       createdAt: row.createdAt.toISOString()
     }));
+}
+
+function deriveRefundStateByItem(
+  items: Array<{ id: string; quantity: number; priceSnapshot: Prisma.Decimal | number }>,
+  refunds: Array<{ orderItemId: string | null; amount: Prisma.Decimal | number }>
+) {
+  const refundedByItem = new Map<string, number>();
+  let orderLevelRefundTotal = 0;
+  for (const refund of refunds) {
+    if (!refund.orderItemId) {
+      orderLevelRefundTotal += toMoney(refund.amount);
+      continue;
+    }
+    refundedByItem.set(refund.orderItemId, (refundedByItem.get(refund.orderItemId) ?? 0) + toMoney(refund.amount));
+  }
+
+  const subtotal = items.reduce((sum, item) => sum + toMoney(item.priceSnapshot) * item.quantity, 0);
+  const totalRefunded = refunds.reduce((sum, refund) => sum + toMoney(refund.amount), 0);
+  const fullOrderRefund = orderLevelRefundTotal > 0 && totalRefunded >= subtotal;
+  const partialOrderRefund = orderLevelRefundTotal > 0 && !fullOrderRefund;
+
+  return new Map(
+    items.map((item) => {
+      const lineTotal = toMoney(item.priceSnapshot) * item.quantity;
+      const refunded = refundedByItem.get(item.id) ?? 0;
+      let state: "NONE" | "PARTIAL" | "FULL" = refunded <= 0 ? "NONE" : refunded >= lineTotal ? "FULL" : "PARTIAL";
+      if (fullOrderRefund) {
+        state = "FULL";
+      } else if (partialOrderRefund && state === "NONE") {
+        state = "PARTIAL";
+      }
+      return [item.id, state as "NONE" | "PARTIAL" | "FULL"];
+    })
+  );
+}
+
+function buildOrderTotals(params: {
+  subtotal: number;
+  refundsTotal: number;
+  paidTotal: number;
+  balanceDue: number;
+}) {
+  const refundsTotal = roundMoney(Math.max(0, params.refundsTotal));
+  const subtotal = roundMoney(Math.max(0, params.subtotal));
+  const finalTotal = roundMoney(Math.max(0, subtotal - refundsTotal));
+  const paidTotal = roundMoney(Math.max(0, params.paidTotal));
+  const balanceDue = roundMoney(Math.max(0, params.balanceDue));
+  return {
+    subtotal,
+    refundsTotal,
+    finalTotal,
+    paidTotal,
+    balanceDue
+  };
 }
 
 export async function createOrUpdateDraft(params: {
@@ -684,12 +748,29 @@ export async function createOrder(params: {
 export async function getOrder(params: { userId: string; orderId: string }) {
   const order = await prisma.onlineOrder.findFirst({
     where: { id: params.orderId, userId: params.userId },
-    include: { items: true, pickupBranch: true, statusLogs: true }
+    include: {
+      items: true,
+      pickupBranch: true,
+      statusLogs: true,
+      paymentLedger: { select: { totalPaid: true, balanceDue: true } },
+      refunds: { orderBy: { createdAt: "asc" } }
+    }
   });
 
   if (!order) {
     return null;
   }
+
+  const refundsTotal = order.refunds.reduce((sum, refund) => sum + toMoney(refund.amount), 0);
+  const paidTotal = order.paymentLedger ? toMoney(order.paymentLedger.totalPaid) : 0;
+  const balanceDue = order.paymentLedger ? toMoney(order.paymentLedger.balanceDue) : 0;
+  const totals = buildOrderTotals({
+    subtotal: toMoney(order.subtotal),
+    refundsTotal,
+    paidTotal,
+    balanceDue
+  });
+  const refundStateByItem = deriveRefundStateByItem(order.items, order.refunds);
 
   return {
     id: order.id,
@@ -697,15 +778,27 @@ export async function getOrder(params: { userId: string; orderId: string }) {
     orderCode: order.orderCode,
     status: normalizeStatus(order.status),
     paymentMethod: order.paymentMethod,
-    subtotal: Number(order.subtotal),
+    subtotal: toMoney(order.subtotal),
     currency: order.currency,
     expiresAt: order.expiresAt.toISOString(),
     statusUpdatedAt: order.statusUpdatedAt.toISOString(),
     pickupBranch: order.pickupBranch,
     items: order.items.map((item) => ({
       ...item,
-      priceSnapshot: Number(item.priceSnapshot)
+      priceSnapshot: toMoney(item.priceSnapshot),
+      refundState: refundStateByItem.get(item.id) ?? "NONE"
     })),
+    refunds: order.refunds.map((refund) => ({
+      id: refund.id,
+      orderItemId: refund.orderItemId,
+      amount: toMoney(refund.amount),
+      currency: refund.currency,
+      refundMethod: refund.refundMethod,
+      adminDisplayName: refund.adminName,
+      adminMessage: refund.adminMessage,
+      createdAt: refund.createdAt.toISOString()
+    })),
+    totals,
     timeline: mapStatusTimeline(order.statusLogs)
   };
 }
@@ -764,7 +857,10 @@ export async function listAdminOrders(params: {
       orderBy: { [sortField]: sortDirection },
       include: {
         user: { select: { email: true, firstName: true, lastName: true } },
-        pickupBranch: { select: { name: true, city: true } }
+        pickupBranch: { select: { name: true, city: true } },
+        items: { select: { id: true, productId: true, quantity: true, priceSnapshot: true, currency: true } },
+        refunds: { select: { orderItemId: true, amount: true } },
+        paymentLedger: { select: { totalPaid: true, balanceDue: true } }
       }
     }),
     prisma.onlineOrder.count({ where })
@@ -772,12 +868,60 @@ export async function listAdminOrders(params: {
 
   return {
     items: items.map((item) => ({
+      ...(() => {
+        const itemLineTotals = new Map(
+          item.items.map((orderItem) => [orderItem.id, toMoney(orderItem.priceSnapshot) * orderItem.quantity])
+        );
+        const refundsByKey = new Map<string, { orderItemId: string | null; amount: number }>();
+        for (const refund of item.refunds) {
+          const key = refund.orderItemId ?? "__FULL_ORDER__";
+          const current = refundsByKey.get(key);
+          refundsByKey.set(key, {
+            orderItemId: refund.orderItemId,
+            amount: (current?.amount ?? 0) + toMoney(refund.amount)
+          });
+        }
+        return {
+          totalsBreakdown: {
+            items: item.items.map((orderItem) => ({
+              id: orderItem.id,
+              label: orderItem.productId,
+              quantity: orderItem.quantity,
+              amount: toMoney(orderItem.priceSnapshot) * orderItem.quantity,
+              currency: orderItem.currency
+            })),
+            refunds: Array.from(refundsByKey.values()).map((refund) => {
+              const itemTotal = refund.orderItemId ? itemLineTotals.get(refund.orderItemId) ?? 0 : 0;
+              const state = refund.orderItemId
+                ? refund.amount >= itemTotal
+                  ? "FULL"
+                  : "PARTIAL"
+                : "FULL";
+              const label = refund.orderItemId
+                ? item.items.find((orderItem) => orderItem.id === refund.orderItemId)?.productId ?? refund.orderItemId
+                : "FULL_ORDER";
+              return {
+                orderItemId: refund.orderItemId,
+                label,
+                state,
+                amount: roundMoney(refund.amount)
+              };
+            })
+          }
+        };
+      })(),
+      totals: buildOrderTotals({
+        subtotal: toMoney(item.subtotal),
+        refundsTotal: item.refunds.reduce((sum, refund) => sum + toMoney(refund.amount), 0),
+        paidTotal: item.paymentLedger ? toMoney(item.paymentLedger.totalPaid) : 0,
+        balanceDue: item.paymentLedger ? toMoney(item.paymentLedger.balanceDue) : 0
+      }),
       id: item.id,
       orderNumber: item.orderNumber,
       orderCode: item.orderCode,
       status: normalizeStatus(item.status),
       paymentStatus: item.paymentStatus,
-      subtotal: Number(item.subtotal),
+      subtotal: toMoney(item.subtotal),
       currency: item.currency,
       paymentMethod: item.paymentMethod,
       expiresAt: item.expiresAt.toISOString(),
@@ -830,6 +974,8 @@ export async function getAdminOrder(params: { orderId: string }) {
       user: { select: { id: true, email: true, firstName: true, lastName: true } },
       pickupBranch: true,
       items: true,
+      refunds: { orderBy: { createdAt: "asc" } },
+      paymentLedger: { select: { totalPaid: true, balanceDue: true } },
       statusLogs: {
         include: { actor: { select: { id: true, email: true, firstName: true, lastName: true } } },
         orderBy: { createdAt: "asc" }
@@ -841,13 +987,24 @@ export async function getAdminOrder(params: { orderId: string }) {
     return null;
   }
 
+  const refundsTotal = order.refunds.reduce((sum, refund) => sum + toMoney(refund.amount), 0);
+  const paidTotal = order.paymentLedger ? toMoney(order.paymentLedger.totalPaid) : 0;
+  const balanceDue = order.paymentLedger ? toMoney(order.paymentLedger.balanceDue) : 0;
+  const totals = buildOrderTotals({
+    subtotal: toMoney(order.subtotal),
+    refundsTotal,
+    paidTotal,
+    balanceDue
+  });
+  const refundStateByItem = deriveRefundStateByItem(order.items, order.refunds);
+
   return {
     id: order.id,
     orderNumber: order.orderNumber,
     orderCode: order.orderCode,
     status: normalizeStatus(order.status),
     paymentStatus: order.paymentStatus,
-    subtotal: Number(order.subtotal),
+    subtotal: toMoney(order.subtotal),
     currency: order.currency,
     paymentMethod: order.paymentMethod,
     expiresAt: order.expiresAt.toISOString(),
@@ -865,10 +1022,23 @@ export async function getAdminOrder(params: { orderId: string }) {
       id: item.id,
       productId: item.productId,
       quantity: item.quantity,
-      priceSnapshot: Number(item.priceSnapshot),
+      priceSnapshot: toMoney(item.priceSnapshot),
       currency: item.currency,
-      availabilitySnapshot: item.availabilitySnapshot
+      availabilitySnapshot: item.availabilitySnapshot,
+      refundState: refundStateByItem.get(item.id) ?? "NONE"
     })),
+    refunds: order.refunds.map((refund) => ({
+      id: refund.id,
+      orderItemId: refund.orderItemId,
+      amount: toMoney(refund.amount),
+      currency: refund.currency,
+      refundMethod: refund.refundMethod,
+      adminId: refund.adminId,
+      adminDisplayName: refund.adminName,
+      adminMessage: refund.adminMessage,
+      createdAt: refund.createdAt.toISOString()
+    })),
+    totals,
     timeline: order.statusLogs.map((row) => ({
       id: row.id,
       fromStatus: row.fromStatus ? normalizeStatus(row.fromStatus) : null,
@@ -935,6 +1105,8 @@ export async function getCustomerOrder(params: { userId: string; orderId: string
     include: {
       pickupBranch: true,
       items: true,
+      refunds: { orderBy: { createdAt: "asc" } },
+      paymentLedger: { select: { totalPaid: true, balanceDue: true } },
       statusLogs: { orderBy: { createdAt: "asc" } }
     }
   });
@@ -947,13 +1119,24 @@ export async function getCustomerOrder(params: { userId: string; orderId: string
     throw ApiErrors.orderForbidden;
   }
 
+  const refundsTotal = order.refunds.reduce((sum, refund) => sum + toMoney(refund.amount), 0);
+  const paidTotal = order.paymentLedger ? toMoney(order.paymentLedger.totalPaid) : 0;
+  const balanceDue = order.paymentLedger ? toMoney(order.paymentLedger.balanceDue) : 0;
+  const totals = buildOrderTotals({
+    subtotal: toMoney(order.subtotal),
+    refundsTotal,
+    paidTotal,
+    balanceDue
+  });
+  const refundStateByItem = deriveRefundStateByItem(order.items, order.refunds);
+
   return {
     id: order.id,
     orderNumber: order.orderNumber,
     orderCode: order.orderCode,
     status: normalizeStatus(order.status),
     paymentStatus: order.paymentStatus,
-    subtotal: Number(order.subtotal),
+    subtotal: toMoney(order.subtotal),
     currency: order.currency,
     paymentMethod: order.paymentMethod,
     expiresAt: order.expiresAt.toISOString(),
@@ -965,10 +1148,22 @@ export async function getCustomerOrder(params: { userId: string; orderId: string
       id: item.id,
       productId: item.productId,
       quantity: item.quantity,
-      priceSnapshot: Number(item.priceSnapshot),
+      priceSnapshot: toMoney(item.priceSnapshot),
       currency: item.currency,
-      availabilitySnapshot: item.availabilitySnapshot
+      availabilitySnapshot: item.availabilitySnapshot,
+      refundState: refundStateByItem.get(item.id) ?? "NONE"
     })),
+    refunds: order.refunds.map((refund) => ({
+      id: refund.id,
+      orderItemId: refund.orderItemId,
+      amount: toMoney(refund.amount),
+      currency: refund.currency,
+      refundMethod: refund.refundMethod,
+      adminDisplayName: refund.adminName,
+      adminMessage: refund.adminMessage,
+      createdAt: refund.createdAt.toISOString()
+    })),
+    totals,
     timeline: mapStatusTimeline(order.statusLogs)
   };
 }
@@ -1118,6 +1313,147 @@ export async function transitionOrderStatus(params: {
       customerEmailLocale: order.user.emailLocale ?? null
     };
   });
+}
+
+export async function createRefund(params: {
+  orderId: string;
+  orderItemId: string | null;
+  amount: number;
+  refundMethod: RefundMethod;
+  adminId: string | null;
+  adminMessage: string;
+}) {
+  await prisma.$transaction(async (tx) => {
+    const order = await tx.onlineOrder.findUnique({
+      where: { id: params.orderId },
+      include: {
+        items: true,
+        paymentLedger: { select: { id: true, totalPaid: true, balanceDue: true } },
+        refunds: true
+      }
+    });
+
+    if (!order) {
+      throw ApiErrors.checkoutOrderNotFound;
+    }
+
+    if (order.status !== "COMPLETED") {
+      throw ApiErrors.refundNotAllowedForStatus;
+    }
+
+    const admin = params.adminId
+      ? await tx.user.findUnique({
+          where: { id: params.adminId },
+          select: { firstName: true, lastName: true, email: true }
+        })
+      : null;
+    const adminName = [admin?.firstName, admin?.lastName].filter(Boolean).join(" ") || admin?.email || "Admin";
+
+    const subtotal = toMoney(order.subtotal);
+    const paidLimit = order.paymentLedger ? toMoney(order.paymentLedger.totalPaid) : subtotal;
+    const refundedTotal = order.refunds.reduce((sum, row) => sum + toMoney(row.amount), 0);
+    const refundableRemainingOrder = roundMoney(Math.max(0, paidLimit - refundedTotal));
+
+    if (refundableRemainingOrder <= 0) {
+      throw ApiErrors.refundInvalidAmount;
+    }
+
+    let maxAllowed = refundableRemainingOrder;
+    if (params.orderItemId) {
+      const orderItem = order.items.find((item) => item.id === params.orderItemId);
+      if (!orderItem) {
+        throw ApiErrors.refundItemNotFound;
+      }
+      const itemLineTotal = roundMoney(toMoney(orderItem.priceSnapshot) * orderItem.quantity);
+      const refundedForItem = order.refunds
+        .filter((row) => row.orderItemId === params.orderItemId)
+        .reduce((sum, row) => sum + toMoney(row.amount), 0);
+      maxAllowed = roundMoney(Math.min(refundableRemainingOrder, Math.max(0, itemLineTotal - refundedForItem)));
+    }
+
+    const amount = roundMoney(params.amount);
+    if (!Number.isFinite(amount) || amount <= 0 || amount > maxAllowed) {
+      throw ApiErrors.refundInvalidAmount;
+    }
+
+    const ledgerId =
+      order.paymentLedger?.id ??
+      (await ensurePaymentLedger(tx, {
+        orderId: order.id,
+        subtotal,
+        currency: order.currency,
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt
+      }));
+
+    await tx.onlineOrderRefund.create({
+      data: {
+        orderId: order.id,
+        orderItemId: params.orderItemId,
+        amount: new Prisma.Decimal(amount),
+        currency: order.currency,
+        refundMethod: params.refundMethod,
+        adminId: params.adminId,
+        adminName,
+        adminMessage: params.adminMessage
+      }
+    });
+
+    await tx.orderPaymentEntry.create({
+      data: {
+        ledgerId,
+        orderId: order.id,
+        method: "REFUND",
+        provider: "NONE",
+        providerRef: null,
+        amount: new Prisma.Decimal(amount),
+        currency: order.currency,
+        entryStatus: "REFUNDED",
+        isStoreCredit: params.refundMethod === "STORE_CREDIT",
+        notes: "order_refund",
+        actorId: params.adminId,
+        actorType: params.adminId ? "ADMIN" : "SYSTEM",
+        sourceChannel: "ADMIN_PANEL"
+      }
+    });
+
+    await recomputePaymentLedger(tx, {
+      orderId: order.id,
+      fallbackPaymentStatus: order.paymentStatus
+    });
+
+    const newRefundedTotal = roundMoney(refundedTotal + amount);
+    const isFullyRefunded = paidLimit > 0 && newRefundedTotal >= roundMoney(paidLimit);
+    if (isFullyRefunded) {
+      await tx.onlineOrder.update({
+        where: { id: order.id },
+        data: {
+          status: "CANCELLED_REFUNDED",
+          statusUpdatedAt: new Date()
+        }
+      });
+      await tx.onlineOrderStatusLog.create({
+        data: {
+          orderId: order.id,
+          fromStatus: "COMPLETED",
+          toStatus: "CANCELLED_REFUNDED",
+          reason: "order_refunded",
+          actorUserId: params.adminId,
+          approvedByAdminId: params.adminId,
+          approvedByAdminName: adminName,
+          adminMessage: params.adminMessage
+        }
+      });
+    }
+  });
+
+  const result = await getAdminOrder({ orderId: params.orderId });
+  if (!result) {
+    throw ApiErrors.checkoutOrderNotFound;
+  }
+  return result;
 }
 
 export async function expirePendingOrders() {

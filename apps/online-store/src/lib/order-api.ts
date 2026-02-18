@@ -46,16 +46,32 @@ export type CustomerOrderDetail = {
     priceSnapshot: number;
     currency: string;
     availabilitySnapshot: string;
+    refundState?: "NONE" | "PARTIAL" | "FULL";
   }>;
+  refunds?: Array<{
+    id: string;
+    orderItemId: string | null;
+    amount: number;
+    currency: string;
+    refundMethod: "CASH" | "CARD" | "STORE_CREDIT" | "TRANSFER" | "OTHER";
+    adminDisplayName: string;
+    adminMessage: string;
+    createdAt: string;
+  }>;
+  totals?: {
+    subtotal: number;
+    refundsTotal: number;
+    finalTotal: number;
+    paidTotal: number;
+    balanceDue: number;
+  };
   timeline: Array<{
     id: string;
     fromStatus: string | null;
     toStatus: string;
     reason: string | null;
-    approvedByAdminId?: string | null;
     approvedByAdminName?: string | null;
     adminMessage?: string | null;
-    actorUserId: string | null;
     actorDisplayName?: string | null;
     actorType?: "ADMIN" | "SYSTEM" | null;
     createdAt: string;

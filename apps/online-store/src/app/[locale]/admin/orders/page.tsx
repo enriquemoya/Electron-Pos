@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { fetchAdminOrders } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
 import { BackButton } from "@/components/common/back-button";
+import { OrderTotalPopover } from "@/components/admin/order-total-popover";
 
 const PAGE_SIZE_VALUES = new Set([20, 50, 100]);
 
@@ -118,6 +119,7 @@ export default async function AdminOrdersPage({
           <option value="COMPLETED">{t("statuses.COMPLETED")}</option>
           <option value="CANCELLED_EXPIRED">{t("statuses.CANCELLED_EXPIRED")}</option>
           <option value="CANCELLED_MANUAL">{t("statuses.CANCELLED_MANUAL")}</option>
+          <option value="CANCELLED_REFUNDED">{t("statuses.CANCELLED_REFUNDED")}</option>
           <option value="CANCELED">{t("statuses.CANCELED")}</option>
         </select>
         <select
@@ -180,7 +182,35 @@ export default async function AdminOrdersPage({
                     <p className="text-xs text-white/50">{item.customer.email || t("emailFallback")}</p>
                   </td>
                   <td className="px-4 py-3">{t(`statuses.${item.status}`)}</td>
-                  <td className="px-4 py-3">{item.currency} {item.subtotal.toFixed(2)}</td>
+                  <td className="px-4 py-3">
+                    <OrderTotalPopover
+                      currency={item.currency}
+                      subtotal={item.totals?.subtotal ?? item.subtotal}
+                      refundsTotal={item.totals?.refundsTotal ?? 0}
+                      finalTotal={item.totals?.finalTotal ?? item.subtotal}
+                      items={(item.totalsBreakdown?.items ?? []).map((entry) => ({
+                        id: entry.id,
+                        label: entry.label,
+                        quantity: entry.quantity,
+                        amount: entry.amount
+                      }))}
+                      refunds={(item.totalsBreakdown?.refunds ?? []).map((entry) => ({
+                        orderItemId: entry.orderItemId,
+                        label: entry.label,
+                        state: entry.state,
+                        amount: entry.amount
+                      }))}
+                      labels={{
+                        subtotal: t("totals.subtotal"),
+                        refunds: t("totals.refunds"),
+                        finalTotal: t("totals.finalTotal"),
+                        qty: t("qtyShort"),
+                        full: t("refunds.fullOrder"),
+                        fullTag: t("refunds.full"),
+                        partialTag: t("refunds.partial")
+                      }}
+                    />
+                  </td>
                   <td className="px-4 py-3">{new Date(item.expiresAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
                     <Link

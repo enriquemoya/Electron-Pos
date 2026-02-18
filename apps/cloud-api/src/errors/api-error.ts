@@ -49,6 +49,10 @@ export const ApiErrors = {
   orderTransitionInvalid: new ApiError(400, "ORDER_TRANSITION_INVALID", "order transition invalid"),
   orderTransitionReasonRequired: new ApiError(400, "ORDER_TRANSITION_REASON_REQUIRED", "order transition reason required"),
   paymentOverpayNotAllowed: new ApiError(400, "PAYMENT_OVERPAY_NOT_ALLOWED", "payment overpay not allowed"),
+  refundInvalidAmount: new ApiError(400, "REFUND_INVALID_AMOUNT", "refund invalid amount"),
+  refundNotAllowedForStatus: new ApiError(400, "REFUND_NOT_ALLOWED_FOR_STATUS", "refund not allowed for status"),
+  refundItemNotFound: new ApiError(400, "REFUND_ITEM_NOT_FOUND", "refund item not found"),
+  refundMessageRequired: new ApiError(400, "REFUND_MESSAGE_REQUIRED", "refund message required"),
   orderTransferApprovalRequired: new ApiError(
     400,
     "ORDER_TRANSFER_APPROVAL_REQUIRED",
