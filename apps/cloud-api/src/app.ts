@@ -17,6 +17,8 @@ import { createProfileUseCases } from "./application/use-cases/profile";
 import { createSyncUseCases } from "./application/use-cases/sync";
 import { createUsersUseCases } from "./application/use-cases/users";
 import { createBranchUseCases } from "./application/use-cases/branches";
+import { createMediaUseCases } from "./application/use-cases/media";
+import { createBlogUseCases } from "./application/use-cases/blog";
 import { env, envChecks } from "./config/env";
 import * as adminDashboardRepository from "./infrastructure/repositories/admin-dashboard-service";
 import * as authRepository from "./infrastructure/repositories/auth-service";
@@ -29,7 +31,9 @@ import * as syncRepository from "./infrastructure/repositories/sync-service";
 import * as usersRepository from "./infrastructure/repositories/user-service";
 import * as branchRepository from "./infrastructure/repositories/branch-service";
 import * as emailService from "./infrastructure/adapters/email-service";
+import { createR2MediaService } from "./infrastructure/storage/r2-media.service";
 import { startOrderExpirationJob } from "./infrastructure/jobs/order-expiration-job";
+import * as blogRepository from "./infrastructure/repositories/blog-service";
 
 export function createApp() {
   const app = express();
@@ -67,8 +71,10 @@ export function createApp() {
     emailService
   });
   const branchUseCases = createBranchUseCases({ branchRepository });
+  const mediaUseCases = createMediaUseCases({ mediaStorage: createR2MediaService() });
+  const blogUseCases = createBlogUseCases({ blogRepository });
 
-  app.use(createPublicRoutes({ catalogUseCases, authUseCases, branchUseCases }));
+  app.use(createPublicRoutes({ catalogUseCases, authUseCases, branchUseCases, blogUseCases }));
   app.use(requireSecret);
   app.use(
     createProtectedRoutes({
@@ -81,7 +87,9 @@ export function createApp() {
       inventoryUseCases,
       syncUseCases,
       profileUseCases,
-      usersUseCases
+      usersUseCases,
+      mediaUseCases,
+      blogUseCases
     })
   );
 

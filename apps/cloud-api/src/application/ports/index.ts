@@ -284,6 +284,55 @@ export type BranchRepository = {
   deleteBranch: (id: string) => Promise<Record<string, unknown> | null>;
 };
 
+export type BlogRepository = {
+  listAdminPosts: (params: {
+    locale?: string;
+    page: number;
+    pageSize: number;
+    query?: string;
+    isPublished?: boolean;
+  }) => Promise<{ items: Array<Record<string, unknown>>; total: number }>;
+  getAdminPostById: (id: string) => Promise<Record<string, unknown> | null>;
+  createPost: (payload: {
+    slug: string;
+    locale: string;
+    title: string;
+    excerpt: string;
+    contentJson: Record<string, unknown>;
+    coverImageUrl: string | null;
+    authorName: string;
+    readingTimeMinutes: number;
+    seoTitle: string;
+    seoDescription: string;
+    isPublished: boolean;
+  }) => Promise<Record<string, unknown>>;
+  updatePost: (id: string, payload: {
+    slug?: string;
+    locale?: string;
+    title?: string;
+    excerpt?: string;
+    contentJson?: Record<string, unknown>;
+    coverImageUrl?: string | null;
+    authorName?: string;
+    readingTimeMinutes?: number;
+    seoTitle?: string;
+    seoDescription?: string;
+    isPublished?: boolean;
+  }) => Promise<Record<string, unknown>>;
+  publishPost: (id: string) => Promise<Record<string, unknown>>;
+  unpublishPost: (id: string) => Promise<Record<string, unknown>>;
+  listPublicPosts: (params: {
+    locale: string;
+    page: number;
+    pageSize: number;
+  }) => Promise<{ items: Array<Record<string, unknown>>; total: number }>;
+  getPublicPostBySlug: (params: {
+    locale: string;
+    slug: string;
+  }) => Promise<Record<string, unknown> | null>;
+  listPublishedPostsForFeed: (locale: string) => Promise<Array<Record<string, unknown>>>;
+};
+
 export type SyncRepository = {
   recordEvents: (events: any[]) => Promise<{ accepted: string[]; duplicates: string[] }>;
   getPendingEvents: (posId: string, since: string | null) => Promise<any[]>;

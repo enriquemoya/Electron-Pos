@@ -286,6 +286,28 @@ model CatalogTaxonomy {
   @@map("catalog_taxonomies")
 }
 
+model BlogPost {
+  id                 String   @id @default(uuid()) @db.Uuid
+  slug               String
+  locale             String
+  title              String
+  excerpt            String
+  contentJson        Json     @map("content_json")
+  coverImageUrl      String?  @map("cover_image_url")
+  authorName         String   @map("author_name")
+  readingTimeMinutes Int      @map("reading_time_minutes")
+  seoTitle           String   @map("seo_title")
+  seoDescription     String   @map("seo_description")
+  isPublished        Boolean  @default(false) @map("is_published")
+  publishedAt        DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([slug, locale], name: "ux_blog_posts_slug_locale")
+  @@index([locale, isPublished, publishedAt(sort: Desc)], name: "idx_blog_posts_locale_published")
+  @@map("blog_posts")
+}
+
 model PickupBranch {
   id        String   @id @default(uuid()) @db.Uuid
   name      String

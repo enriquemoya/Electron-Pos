@@ -10,6 +10,8 @@ import type { ProfileUseCases } from "../../application/use-cases/profile";
 import type { SyncUseCases } from "../../application/use-cases/sync";
 import type { UsersUseCases } from "../../application/use-cases/users";
 import type { BranchUseCases } from "../../application/use-cases/branches";
+import type { MediaUseCases } from "../../application/use-cases/media";
+import type { BlogUseCases } from "../../application/use-cases/blog";
 import { createCatalogController } from "../controllers/catalog-controller";
 import { createAdminDashboardController } from "../controllers/admin-dashboard-controller";
 import { createCatalogAdminController } from "../controllers/catalog-admin-controller";
@@ -22,6 +24,9 @@ import { createUsersController } from "../controllers/users-controller";
 import { createCheckoutController } from "../controllers/checkout-controller";
 import { createBranchesController } from "../controllers/branches-controller";
 import { createOrderFulfillmentController } from "../controllers/order-fulfillment-controller";
+import { createMediaController } from "../controllers/media-controller";
+import { adminMediaUploadMiddleware } from "../middleware/admin-media-upload";
+import { createBlogController } from "../controllers/blog-controller";
 
 export function createProtectedRoutes(params: {
   adminDashboardUseCases: AdminDashboardUseCases;
@@ -34,6 +39,8 @@ export function createProtectedRoutes(params: {
   checkoutUseCases: CheckoutUseCases;
   branchUseCases: BranchUseCases;
   orderFulfillmentUseCases: OrderFulfillmentUseCases;
+  mediaUseCases: MediaUseCases;
+  blogUseCases: BlogUseCases;
 }) {
   const router = Router();
   const catalogController = createCatalogController(params.catalogUseCases);
@@ -46,6 +53,8 @@ export function createProtectedRoutes(params: {
   const checkoutController = createCheckoutController(params.checkoutUseCases);
   const branchesController = createBranchesController(params.branchUseCases);
   const orderFulfillmentController = createOrderFulfillmentController(params.orderFulfillmentUseCases);
+  const mediaController = createMediaController(params.mediaUseCases);
+  const blogController = createBlogController(params.blogUseCases);
 
   router.post("/sync/events", syncController.recordEventsHandler);
   router.get("/sync/pending", syncController.getPendingHandler);
@@ -91,6 +100,13 @@ export function createProtectedRoutes(params: {
   router.post("/admin/orders/:orderId/status", orderFulfillmentController.transitionOrderStatusHandler);
   router.post("/admin/orders/:orderId/refunds", orderFulfillmentController.createRefundHandler);
   router.post("/admin/orders/expire", orderFulfillmentController.runExpirationSweepHandler);
+  router.post("/admin/media/upload", adminMediaUploadMiddleware, mediaController.uploadAdminMediaHandler);
+  router.get("/admin/blog/posts", blogController.listAdminPostsHandler);
+  router.get("/admin/blog/posts/:id", blogController.getAdminPostHandler);
+  router.post("/admin/blog/posts", blogController.createPostHandler);
+  router.patch("/admin/blog/posts/:id", blogController.updatePostHandler);
+  router.post("/admin/blog/posts/:id/publish", blogController.publishPostHandler);
+  router.post("/admin/blog/posts/:id/unpublish", blogController.unpublishPostHandler);
   router.get("/admin/users", usersController.listUsersHandler);
   router.get("/admin/users/:id", usersController.getUserHandler);
   router.post("/admin/users", usersController.createUserHandler);

@@ -884,7 +884,7 @@
         "address": "Interior Plaza Ley, El Vigia, 85440 Guaymas, Son."
       }
     },
-    "copyright": "© {year} DanimeZone. All rights reserved."
+    "copyright": "\u00a9 {year} DanimeZone. All rights reserved."
   },
   "legal": {
     "back": "Back to home",
@@ -1028,5 +1028,76 @@
     "cartReserve": "Your order is reserved once checkout is completed.",
     "payInStore": "Pay in store available.",
     "pickupWindow": "You have 10 calendar days to pick up your order."
+  },
+  "adminBlog": {
+    "title": "Blog editor",
+    "subtitle": "Create and publish SEO-focused articles.",
+    "listTitle": "Posts",
+    "search": "Search posts",
+    "fields": {
+      "slug": "Slug",
+      "locale": "Locale",
+      "title": "Title",
+      "excerpt": "Excerpt",
+      "authorName": "Author name",
+      "coverImageUrl": "Cover image URL",
+      "seoTitle": "SEO title",
+      "seoDescription": "SEO description"
+    },
+    "actions": {
+      "new": "New post",
+      "save": "Save draft",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "uploadImage": "Upload image"
+    },
+    "toolbar": {
+      "h2": "H2",
+      "h3": "H3",
+      "h4": "H4",
+      "bold": "Bold",
+      "italic": "Italic",
+      "bullet": "Bullet",
+      "ordered": "Ordered",
+      "code": "Code",
+      "quote": "Quote",
+      "link": "Link",
+      "image": "Image"
+    },
+    "toasts": {
+      "saveOk": "Draft saved",
+      "saveError": "Could not save post",
+      "publishOk": "Post state updated",
+      "publishError": "Could not update publish state",
+      "uploadOk": "Image uploaded",
+      "uploadError": "Could not upload image",
+      "autosave": "Draft autosaved"
+    }
+  },
+  "blog": {
+    "meta": {
+      "listTitle": "DanimeZone Blog",
+      "listDescription": "Articles, guides, and updates from DanimeZone."
+    },
+    "list": {
+      "title": "Blog",
+      "subtitle": "Guides, news, and competitive TCG insights.",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft"
+    },
+    "actions": {
+      "backToBlog": "Back to blog"
+    },
+    "breadcrumbs": {
+      "home": "Home",
+      "blog": "Blog"
+    },
+    "toc": {
+      "title": "Table of contents"
+    }
   }
 }

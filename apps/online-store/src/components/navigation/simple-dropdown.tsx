@@ -74,13 +74,18 @@ export function SimpleDropdown({ isOpen, items, sections, onClose }: SimpleDropd
           {sections.map((section) => (
             <div key={section.id} className="space-y-2">
               {section.href ? (
-                <MenuLink href={section.href} label={section.title} />
+                <MenuLink href={section.href} label={section.title} onSelect={onClose} />
               ) : (
                 <p className="px-2 text-xs uppercase tracking-wide text-white/50">{section.title}</p>
               )}
               <div className="ml-3 flex flex-col gap-1 border-l border-white/10 pl-3">
                 {section.items.map((item) => (
-                  <MenuLink key={`${item.href}-${item.label}`} href={item.href} label={item.label} />
+                  <MenuLink
+                    key={`${item.href}-${item.label}`}
+                    href={item.href}
+                    label={item.label}
+                    onSelect={onClose}
+                  />
                 ))}
               </div>
             </div>
@@ -89,7 +94,12 @@ export function SimpleDropdown({ isOpen, items, sections, onClose }: SimpleDropd
       ) : (
         <div className="flex flex-col gap-1">
           {items.map((item) => (
-            <MenuLink key={`${item.href}-${item.label}`} href={item.href} label={item.label} />
+            <MenuLink
+              key={`${item.href}-${item.label}`}
+              href={item.href}
+              label={item.label}
+              onSelect={onClose}
+            />
           ))}
         </div>
       )}
