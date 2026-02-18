@@ -1,13 +1,7 @@
 services:
   traefik:
-    command:
-      - --providers.docker=true
-      - --providers.docker.endpoint=unix:///var/run/docker.sock
-      - --providers.docker.exposedbydefault=false
-      - --providers.docker.watch=true
-      - --log.level=INFO
-      - --entrypoints.web.address=:80
     ports:
       - "80:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./deploy/traefik/dynamic:/dynamic:ro

@@ -12,6 +12,7 @@ services:
       - --providers.docker.watch=true
       - --providers.file.directory=/dynamic
       - --providers.file.watch=true
+      - --api.dashboard=true
       - --log.level=INFO
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
@@ -21,7 +22,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./deploy/traefik/dynamic:/dynamic:ro
-      - ./deploy/traefik/certs:/certs:ro
+      - /etc/ssl/cloudflare/origin.crt:/certs/origin.crt:ro
+      - /etc/ssl/cloudflare/origin.key:/certs/origin.key:ro
     networks:
       - web
 

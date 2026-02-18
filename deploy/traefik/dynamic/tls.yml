@@ -1,4 +1,4 @@
 tls:
   certificates:
-    - certFile: /certs/origin.pem
+    - certFile: /certs/origin.crt
       keyFile: /certs/origin.key

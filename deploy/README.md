@@ -34,13 +34,22 @@ Create a Cloudflare Origin Certificate for:
 Place certificate files on VPS:
 
 ```bash
-mkdir -p deploy/traefik/certs deploy/traefik/dynamic
+sudo mkdir -p /etc/ssl/cloudflare
 # copy your files to:
-# deploy/traefik/certs/origin.pem
-# deploy/traefik/certs/origin.key
+# /etc/ssl/cloudflare/origin.crt
+# /etc/ssl/cloudflare/origin.key
+# recommended permissions:
+sudo chmod 600 /etc/ssl/cloudflare/origin.key
+sudo chmod 644 /etc/ssl/cloudflare/origin.crt
 ```
 
 `deploy/traefik/dynamic/tls.yml` is committed and loaded by Traefik.
+It references `/certs/origin.crt` and `/certs/origin.key` inside the container.
+
+Requirements:
+- Cloudflare SSL mode: `Full (strict)`
+- DNS records must be proxied (orange cloud)
+- VPS must allow inbound `80` and `443`
 
 ## Environment File
 
