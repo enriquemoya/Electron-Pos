@@ -4,7 +4,8 @@ This repo deploys two services on a VPS:
 - `danimezone-site` (Next.js online store)
 - `danimezone-api` (Express API)
 
-Traefik provides reverse proxy + HTTPS.
+Traefik provides reverse proxy + origin HTTPS.
+Public TLS is managed by Cloudflare.
 
 ## One-time VPS Setup (Ubuntu 24.04)
 
@@ -17,12 +18,29 @@ sudo usermod -aG docker $USER
 
 Log out/in to apply group changes.
 
-## DNS
+## Cloudflare DNS and SSL
 
-Point these to your VPS IP:
+Set these DNS records in Cloudflare (proxied):
 - `danimezone.com`
 - `www.danimezone.com`
 - `api.danimezone.com`
+
+Set SSL mode to `Full (strict)`.
+
+Create a Cloudflare Origin Certificate for:
+- `danimezone.com`
+- `*.danimezone.com`
+
+Place certificate files on VPS:
+
+```bash
+mkdir -p deploy/traefik/certs deploy/traefik/dynamic
+# copy your files to:
+# deploy/traefik/certs/origin.pem
+# deploy/traefik/certs/origin.key
+```
+
+`deploy/traefik/dynamic/tls.yml` is committed and loaded by Traefik.
 
 ## Environment File
 
@@ -31,7 +49,6 @@ Create `deploy/.env` (same format as `deploy/.env.example`).
 Minimal required values:
 
 ```bash
-TRAEFIK_EMAIL=you@domain.com
 GHCR_OWNER=github-username-or-org
 
 NEXT_PUBLIC_API_URL=https://api.danimezone.com
@@ -55,6 +72,7 @@ ENVIROMENT=production
 cd /opt/danimezone
 docker compose -f docker-compose.prod.yml --env-file deploy/.env pull
 docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d
+docker compose -f docker-compose.traefik.yml --env-file deploy/.env up -d
 ```
 
 ## Logs
@@ -62,13 +80,14 @@ docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d
 ```bash
 docker compose logs -f danimezone-api
 docker compose logs -f danimezone-site
-docker compose logs -f traefik
+docker compose logs -f danimezone-traefik
 ```
 
 ## Health Check
 
 ```bash
-curl https://api.danimezone.com/__health
+curl -I https://danimezone.com
+curl -I https://api.danimezone.com/__health
 ```
 
 ## GitHub Actions Deploy

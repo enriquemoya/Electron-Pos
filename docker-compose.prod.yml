@@ -17,14 +17,13 @@ services:
       - traefik.enable=true
       - traefik.http.routers.danimezone-site.rule=Host(`danimezone.com`) || Host(`www.danimezone.com`)
       - traefik.http.routers.danimezone-site.entrypoints=websecure
-      - traefik.http.routers.danimezone-site.tls.certresolver=letsencrypt
+      - traefik.http.routers.danimezone-site.tls=true
       - traefik.http.services.danimezone-site.loadbalancer.server.port=3000
       - traefik.http.routers.danimezone-site-http.rule=Host(`danimezone.com`) || Host(`www.danimezone.com`)
       - traefik.http.routers.danimezone-site-http.entrypoints=web
       - traefik.http.routers.danimezone-site-http.middlewares=redirect-to-https
-      - traefik.http.middlewares.redirect-to-https.redirectregex.regex=^http://(.*)/(?!\\.well-known/acme-challenge/)(.*)
-      - traefik.http.middlewares.redirect-to-https.redirectregex.replacement=https://$${1}/$${2}
-      - traefik.http.middlewares.redirect-to-https.redirectregex.permanent=true
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
     networks:
       - web
 
@@ -55,14 +54,13 @@ services:
       - traefik.enable=true
       - traefik.http.routers.danimezone-api.rule=Host(`api.danimezone.com`)
       - traefik.http.routers.danimezone-api.entrypoints=websecure
-      - traefik.http.routers.danimezone-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.danimezone-api.tls=true
       - traefik.http.services.danimezone-api.loadbalancer.server.port=4000
       - traefik.http.routers.danimezone-api-http.rule=Host(`api.danimezone.com`)
       - traefik.http.routers.danimezone-api-http.entrypoints=web
       - traefik.http.routers.danimezone-api-http.middlewares=redirect-to-https
-      - traefik.http.middlewares.redirect-to-https.redirectregex.regex=^http://(.*)/(?!\\.well-known/acme-challenge/)(.*)
-      - traefik.http.middlewares.redirect-to-https.redirectregex.replacement=https://$${1}/$${2}
-      - traefik.http.middlewares.redirect-to-https.redirectregex.permanent=true
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
     networks:
       - web
 

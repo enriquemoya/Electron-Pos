@@ -35,3 +35,7 @@ backups/
 
 
 .env.development.bak
+
+# Traefik origin certificates (Cloudflare)
+deploy/traefik/certs/*.pem
+deploy/traefik/certs/*.key

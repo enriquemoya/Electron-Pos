@@ -135,15 +135,36 @@ Behavior:
 - Recreates `danimezone-site` and `danimezone-api` only.
 - Traefik is not restarted on every deploy.
 
-### Traefik (SSL)
+### Traefik (Cloudflare Origin SSL)
 
-Traefik is a separate stack to avoid unnecessary certificate re-issuance.
+Traefik is a separate stack and does not use Let's Encrypt/ACME.
+Cloudflare handles public certificates, and Traefik serves origin HTTPS
+with a Cloudflare Origin Certificate.
+
+1. In Cloudflare, create an Origin Certificate for:
+   - `danimezone.com`
+   - `*.danimezone.com`
+2. Save files on VPS:
+   - `deploy/traefik/certs/origin.pem`
+   - `deploy/traefik/certs/origin.key`
+3. Set Cloudflare SSL/TLS mode to `Full (strict)`.
+4. Set DNS records (proxied/orange cloud):
+   - `A @ -> 187.77.17.4`
+   - `CNAME www -> @`
+   - `A api -> 187.77.17.4`
+5. Ensure VPS firewall allows ports `80` and `443`.
 
 Initial setup on VPS:
 
 ```bash
 cd /docker/electron-pos
 docker compose -f docker-compose.traefik.yml --env-file deploy/.env up -d
+```
+
+Local Traefik (HTTP-only, no Cloudflare cert files required):
+
+```bash
+docker compose -f docker-compose.traefik.yml -f docker-compose.traefik.local.yml --env-file deploy/.env up -d
 ```
 
 Normal app deploy (no Traefik restart):
@@ -159,6 +180,15 @@ GitHub Secret `FORCE_TRAEFIK_UPDATE` controls Traefik updates.
 
 - Set to `true` to force recreate Traefik on next deploy.
 - Omit or set `false` to skip.
+
+### Production verification checklist
+
+```bash
+curl -I https://danimezone.com
+curl -I https://api.danimezone.com/__health
+```
+
+Cloudflare dashboard should show SSL mode `Full (strict)`.
 
 ### Required GitHub Secrets
 
