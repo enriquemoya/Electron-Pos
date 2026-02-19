@@ -45,7 +45,14 @@ Page -> Admin table/filter component -> Next route handler -> Cloud API admin en
 - No employee-facing endpoint can list proofs globally.
 
 ## Storage Rules
-- Key format: `<env>/proofs/<uuid>.<ext or webp>`.
+- Key format is mandatory and must include environment and ownership segments:
+  - `{appEnv}/proofs/{branchId}/{terminalId}/{saleId}/{proofId}.{ext}`
+  - or `{appEnv}/proofs/{branchId}/{terminalId}/{proofId}.{ext}`
+- Key segments `appEnv`, `branchId`, and `terminalId` are required.
+- This key format is required for:
+  - admin browsing and branch filtering
+  - incident forensics and traceability
+  - cross-environment collision prevention
 - Image files are re-encoded to webp where applicable.
 - PDF files remain PDF.
 - EXIF metadata is stripped for image transformations.
