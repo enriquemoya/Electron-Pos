@@ -3,12 +3,14 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { requireAdmin } from "@/lib/admin-guard";
 import { fetchAdminSummary } from "@/lib/admin-api";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 export default async function AdminHomePage({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale);
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
   const summary = await fetchAdminSummary();
 
   const cards = [
@@ -28,12 +30,14 @@ export default async function AdminHomePage({ params }: { params: { locale: stri
     { href: `/${params.locale}/admin/inventory`, label: t("links.inventory") },
     { href: `/${params.locale}/admin/products`, label: t("links.products") },
     { href: `/${params.locale}/admin/taxonomies`, label: t("links.taxonomies") },
-    { href: `/${params.locale}/admin/branches`, label: t("links.branches") }
+    { href: `/${params.locale}/admin/branches`, label: t("links.branches") },
+    { href: `/${params.locale}/admin/blog`, label: t("links.blog") }
   ];
 
   return (
     <div className="space-y-8">
       <div>
+        <AdminBreadcrumb locale={params.locale} homeLabel={tSeo("home")} adminLabel={t("title")} className="mb-2" />
         <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
         <p className="text-sm text-white/60">{t("subtitle")}</p>
       </div>

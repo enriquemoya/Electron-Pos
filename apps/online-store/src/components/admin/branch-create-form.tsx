@@ -4,6 +4,7 @@ import { useFormState, useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MediaSelector } from "@/components/admin/media/media-selector";
 
 type CreateBranchState = { error?: string | null };
 
@@ -12,6 +13,46 @@ type BranchCreateLabels = {
   city: string;
   address: string;
   imageUrl: string;
+  media: {
+    openLibrary: string;
+    selectedLabel: string;
+    emptyLabel: string;
+    remove: string;
+    hiddenInputLabel: string;
+    dialog: {
+      title: string;
+      description: string;
+      empty: string;
+      loading: string;
+      close: string;
+      folder: string;
+      folders: {
+        products: string;
+        categories: string;
+        blog: string;
+        banners: string;
+      };
+      paginationPrev: string;
+      paginationNext: string;
+      uploadTitle: string;
+      uploadSubtitle: string;
+      uploadChoose: string;
+      uploadUploading: string;
+      toasts: {
+        listError: string;
+        uploadSuccess: string;
+        uploadError: string;
+        deleteSuccess: string;
+        deleteError: string;
+      };
+      grid: {
+        select: string;
+        selected: string;
+        delete: string;
+        dimensionsUnknown: string;
+      };
+    };
+  };
   latitude: string;
   longitude: string;
   submit: string;
@@ -44,7 +85,14 @@ export function BranchCreateForm({ locale, action, labels }: BranchCreateFormPro
         <Input name="name" placeholder={labels.name} required />
         <Input name="city" placeholder={labels.city} required />
         <Input name="address" placeholder={labels.address} required />
-        <Input name="imageUrl" placeholder={labels.imageUrl} />
+        <div className="md:col-span-2">
+          <MediaSelector
+            name="imageUrl"
+            folder="banners"
+            defaultValue={null}
+            labels={labels.media}
+          />
+        </div>
         <Input name="latitude" type="text" placeholder={labels.latitude} required />
         <Input name="longitude" type="text" placeholder={labels.longitude} required />
       </div>

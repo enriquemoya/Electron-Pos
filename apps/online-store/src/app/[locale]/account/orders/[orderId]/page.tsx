@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { fetchCustomerOrder } from "@/lib/order-api";
-import { BackButton } from "@/components/common/back-button";
 import { Badge } from "@/components/ui/badge";
+import { AppBreadcrumb } from "@/components/common/app-breadcrumb";
 
 export default async function AccountOrderDetailPage({
   params
@@ -19,6 +19,7 @@ export default async function AccountOrderDetailPage({
   }
 
   const t = await getTranslations({ locale: params.locale, namespace: "accountOrders" });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
   let order: Awaited<ReturnType<typeof fetchCustomerOrder>>["order"] | null = null;
   let loadError = false;
   try {
@@ -31,10 +32,12 @@ export default async function AccountOrderDetailPage({
   if (loadError || !order) {
     return (
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <BackButton
-          label={t("backToList")}
-          fallbackHref={`/${params.locale}/account/orders`}
-          className="px-0 text-sm text-white/70 hover:text-white"
+        <AppBreadcrumb
+          items={[
+            { label: tSeo("home"), href: `/${params.locale}` },
+            { label: t("title"), href: `/${params.locale}/account/orders` },
+            { label: t("detailTitle") }
+          ]}
         />
         <div>
           <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>
@@ -49,10 +52,12 @@ export default async function AccountOrderDetailPage({
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <BackButton
-        label={t("backToList")}
-        fallbackHref={`/${params.locale}/account/orders`}
-        className="px-0 text-sm text-white/70 hover:text-white"
+      <AppBreadcrumb
+        items={[
+          { label: tSeo("home"), href: `/${params.locale}` },
+          { label: t("title"), href: `/${params.locale}/account/orders` },
+          { label: t("detailTitle") }
+        ]}
       />
       <div>
         <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>

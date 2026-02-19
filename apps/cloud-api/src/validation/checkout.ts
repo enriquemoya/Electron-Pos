@@ -1,4 +1,5 @@
 import { ApiErrors } from "../errors/api-error";
+import { assertAllowedMediaCdnUrl } from "./media-source";
 
 const AVAILABILITY_VALUES = ["in_stock", "low_stock", "out_of_stock", "pending_sync", "unknown"];
 
@@ -119,6 +120,9 @@ export function validateBranchCreate(payload: unknown) {
   if (!name || !address || !city || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
     throw ApiErrors.checkoutInvalid;
   }
+  if (imageUrl) {
+    assertAllowedMediaCdnUrl(imageUrl);
+  }
 
   return { name, address, city, latitude, longitude, imageUrl };
 }
@@ -164,6 +168,9 @@ export function validateBranchUpdate(payload: unknown) {
   }
   if (data.longitude !== undefined && !Number.isFinite(data.longitude)) {
     throw ApiErrors.checkoutInvalid;
+  }
+  if (data.imageUrl) {
+    assertAllowedMediaCdnUrl(data.imageUrl);
   }
 
   return data;

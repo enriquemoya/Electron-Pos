@@ -3,8 +3,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { fetchAdminOrders } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
-import { BackButton } from "@/components/common/back-button";
 import { OrderTotalPopover } from "@/components/admin/order-total-popover";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 const PAGE_SIZE_VALUES = new Set([20, 50, 100]);
 
@@ -61,7 +61,8 @@ export default async function AdminOrdersPage({
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminOrders" });
-  const tNav = await getTranslations({ locale: params.locale, namespace: "navigation" });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const page = parsePositiveInt(searchParams?.page, 1);
   const pageSizeCandidate = parsePositiveInt(searchParams?.pageSize, 20);
   const pageSize = PAGE_SIZE_VALUES.has(pageSizeCandidate) ? pageSizeCandidate : 20;
@@ -88,10 +89,11 @@ export default async function AdminOrdersPage({
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <BackButton
-          label={tNav("back")}
-          fallbackHref={`/${params.locale}/admin/home`}
-          className="text-white/70"
+        <AdminBreadcrumb
+          locale={params.locale}
+          homeLabel={tSeo("home")}
+          adminLabel={tAdmin("title")}
+          items={[{ label: t("title") }]}
         />
         <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
         <p className="text-sm text-white/60">{t("subtitle")}</p>

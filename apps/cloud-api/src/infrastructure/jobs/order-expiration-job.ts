@@ -1,4 +1,5 @@
 import type { OrderFulfillmentUseCases } from "../../application/use-cases/order-fulfillment";
+import { appLogger } from "../../config/app-logger";
 
 const DEFAULT_INTERVAL_MS = 15 * 60 * 1000;
 
@@ -15,10 +16,10 @@ export function startOrderExpirationJob(params: {
     try {
       const result = await params.orderFulfillmentUseCases.runExpirationSweep();
       if (result.expired > 0) {
-        console.log("order expiration sweep completed", { expired: result.expired });
+        appLogger.info("order expiration sweep completed", { expired: result.expired });
       }
     } catch (error) {
-      console.error("order expiration sweep failed", {
+      appLogger.error("order expiration sweep failed", {
         error: error instanceof Error ? error.message : "unknown"
       });
     }

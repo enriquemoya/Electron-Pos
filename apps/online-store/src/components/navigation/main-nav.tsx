@@ -50,6 +50,11 @@ export function MainNav({ groups, miscLink }: MainNavProps) {
     });
   };
 
+  const closeAllMenus = () => {
+    setOpenId(null);
+    setLockedId(null);
+  };
+
   return (
     <div className="flex items-center gap-2">
       <nav role="menubar" className="flex items-center gap-2">
@@ -78,7 +83,7 @@ export function MainNav({ groups, miscLink }: MainNavProps) {
                 isOpen={isOpen}
                 items={group.items}
                 sections={group.sections}
-                onClose={() => closeMenu(group.id)}
+                onClose={closeAllMenus}
               />
             </div>
           );
@@ -87,6 +92,7 @@ export function MainNav({ groups, miscLink }: MainNavProps) {
       <Link
         href={miscLink.href}
         className="rounded-full px-4 py-2 text-sm text-white/70 transition hover:text-white"
+        onClick={closeAllMenus}
       >
         {miscLink.label}
       </Link>

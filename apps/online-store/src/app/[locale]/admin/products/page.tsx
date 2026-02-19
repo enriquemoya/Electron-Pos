@@ -5,7 +5,7 @@ import { fetchCatalogProducts } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
 import { AdminTableControls } from "@/components/admin/admin-table-controls";
 import { AdminSaveToast } from "@/components/admin/admin-save-toast";
-import { BackButton } from "@/components/common/back-button";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 export default async function ProductsPage({
   params,
@@ -25,7 +25,8 @@ export default async function ProductsPage({
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminProducts" });
-  const tNav = await getTranslations({ locale: params.locale, namespace: "navigation" });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const page = Number(searchParams?.page ?? 1) || 1;
   const pageSize = Number(searchParams?.pageSize ?? 20) || 20;
   const query = searchParams?.query ?? "";
@@ -43,10 +44,12 @@ export default async function ProductsPage({
       />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <BackButton
-            label={tNav("back")}
-            fallbackHref={`/${params.locale}/admin/home`}
-            className="text-white/70"
+          <AdminBreadcrumb
+            locale={params.locale}
+            homeLabel={tSeo("home")}
+            adminLabel={tAdmin("title")}
+            items={[{ label: t("title") }]}
+            className="mb-2"
           />
           <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
           <p className="text-sm text-white/60">{t("subtitle")}</p>

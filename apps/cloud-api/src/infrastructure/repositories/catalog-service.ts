@@ -1,4 +1,5 @@
 import { prisma } from "../db/prisma";
+import { appLogger } from "../../config/app-logger";
 
 const LOW_STOCK_THRESHOLD = 3;
 
@@ -10,9 +11,7 @@ function logIgnoredTaxonomyRelation(params: {
   source: string;
 }) {
   try {
-    console.warn({
-      level: "warn",
-      event: "taxonomy_relation_ignored",
+    appLogger.warn("taxonomy relation ignored", {
       productId: params.productId ?? null,
       expansionId: params.expansionId ?? null,
       expectedGameId: params.expectedGameId ?? null,

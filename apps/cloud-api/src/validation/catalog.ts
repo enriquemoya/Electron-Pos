@@ -1,5 +1,6 @@
 import { ApiErrors } from "../errors/api-error";
 import { isUuid } from "./common";
+import { assertAllowedMediaCdnUrl } from "./media-source";
 
 const TAXONOMY_TYPES = ["CATEGORY", "GAME", "EXPANSION", "OTHER"] as const;
 type TaxonomyType = typeof TAXONOMY_TYPES[number];
@@ -154,6 +155,7 @@ export function validateProductCreate(payload: unknown) {
   if (!name || !slug || !categoryId || !imageUrl || !reason) {
     throw ApiErrors.productInvalid;
   }
+  assertAllowedMediaCdnUrl(imageUrl);
   if (!isUuid(categoryId)) {
     throw ApiErrors.productInvalid;
   }
@@ -256,7 +258,11 @@ export function validateProductUpdate(payload: unknown) {
     result.gameId = value;
   }
   if (data.imageUrl === null || typeof data.imageUrl === "string") {
-    result.imageUrl = data.imageUrl === null ? null : data.imageUrl.trim() || null;
+    const value = data.imageUrl === null ? null : data.imageUrl.trim() || null;
+    if (value) {
+      assertAllowedMediaCdnUrl(value);
+    }
+    result.imageUrl = value;
   }
   if (data.shortDescription === null || typeof data.shortDescription === "string") {
     result.shortDescription =

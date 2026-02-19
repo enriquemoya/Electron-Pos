@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { fetchCatalogProduct, fetchTaxonomies, updateCatalogProduct } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
 import { ProductEditForm } from "@/components/admin/product-edit-form";
-import { BackButton } from "@/components/common/back-button";
 import { AdminSaveToast } from "@/components/admin/admin-save-toast";
 import { redirect } from "next/navigation";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 async function updateProductAction(formData: FormData) {
   "use server";
@@ -61,6 +61,8 @@ export default async function ProductDetailPage({
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminProducts" });
   const commonT = await getTranslations({ locale: params.locale });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const games = await fetchTaxonomies({ type: "GAME", page: 1, pageSize: 100 });
   const result = await fetchCatalogProduct(params.id);
   const product = result.product;
@@ -72,10 +74,14 @@ export default async function ProductDetailPage({
         successMessage={t("toast.saveSuccess")}
         errorMessage={t("toast.saveError")}
       />
-      <BackButton
-        label={t("actions.back")}
-        fallbackHref={`/${params.locale}/admin/products`}
-        className="px-0 text-sm text-white/70 hover:text-white"
+      <AdminBreadcrumb
+        locale={params.locale}
+        homeLabel={tSeo("home")}
+        adminLabel={tAdmin("title")}
+        items={[
+          { label: t("title"), href: `/${params.locale}/admin/products` },
+          { label: t("detailTitle") }
+        ]}
       />
       <div>
         <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>
@@ -98,6 +104,46 @@ export default async function ProductDetailPage({
           expansionNone: t("fields.expansionNone"),
           price: t("fields.price"),
           imageUrl: t("fields.imageUrl"),
+          media: {
+            openLibrary: t("media.openLibrary"),
+            selectedLabel: t("media.selectedLabel"),
+            emptyLabel: t("media.emptyLabel"),
+            remove: t("media.remove"),
+            hiddenInputLabel: t("media.hiddenInputLabel"),
+            dialog: {
+              title: t("media.dialog.title"),
+              description: t("media.dialog.description"),
+              empty: t("media.dialog.empty"),
+              loading: t("media.dialog.loading"),
+              close: t("media.dialog.close"),
+              folder: t("media.dialog.folder"),
+              folders: {
+                products: t("media.dialog.folders.products"),
+                categories: t("media.dialog.folders.categories"),
+                blog: t("media.dialog.folders.blog"),
+                banners: t("media.dialog.folders.banners")
+              },
+              paginationPrev: t("media.dialog.paginationPrev"),
+              paginationNext: t("media.dialog.paginationNext"),
+              uploadTitle: t("media.dialog.uploadTitle"),
+              uploadSubtitle: t("media.dialog.uploadSubtitle"),
+              uploadChoose: t("media.dialog.uploadChoose"),
+              uploadUploading: t("media.dialog.uploadUploading"),
+              toasts: {
+                listError: t("media.dialog.toasts.listError"),
+                uploadSuccess: t("media.dialog.toasts.uploadSuccess"),
+                uploadError: t("media.dialog.toasts.uploadError"),
+                deleteSuccess: t("media.dialog.toasts.deleteSuccess"),
+                deleteError: t("media.dialog.toasts.deleteError")
+              },
+              grid: {
+                select: t("media.dialog.grid.select"),
+                selected: t("media.dialog.grid.selected"),
+                delete: t("media.dialog.grid.delete"),
+                dimensionsUnknown: t("media.dialog.grid.dimensionsUnknown")
+              }
+            }
+          },
           shortDescription: t("fields.shortDescription"),
           description: t("fields.description"),
           rarity: t("fields.rarity"),

@@ -81,7 +81,7 @@ export function MobileNav({ isOpen, onClose, groups, miscLink }: MobileNavProps)
                         {group.sections.map((section) => (
                           <div key={section.id} className="space-y-1">
                             {section.href ? (
-                              <MenuLink href={section.href} label={section.title} />
+                              <MenuLink href={section.href} label={section.title} onSelect={onClose} />
                             ) : (
                               <p className="px-2 text-xs uppercase tracking-wide text-white/50">
                                 {section.title}
@@ -93,6 +93,7 @@ export function MobileNav({ isOpen, onClose, groups, miscLink }: MobileNavProps)
                                   key={`${group.id}-${section.id}-${link.href}-${link.label}`}
                                   href={link.href}
                                   label={link.label}
+                                  onSelect={onClose}
                                 />
                               ))}
                             </div>
@@ -105,6 +106,7 @@ export function MobileNav({ isOpen, onClose, groups, miscLink }: MobileNavProps)
                           key={`${group.id}-${link.href}-${link.label}`}
                           href={link.href}
                           label={link.label}
+                          onSelect={onClose}
                         />
                       ))
                     )}
@@ -114,7 +116,7 @@ export function MobileNav({ isOpen, onClose, groups, miscLink }: MobileNavProps)
             ))}
 
             <div className="border-t border-white/10 pt-4">
-              <MenuLink href={miscLink.href} label={miscLink.label} />
+              <MenuLink href={miscLink.href} label={miscLink.label} onSelect={onClose} />
             </div>
           </div>
         </div>

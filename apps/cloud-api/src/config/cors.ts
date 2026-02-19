@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { appLogger } from "./app-logger";
 
 const allowedOrigins = [
   "https://danimezone.com",
@@ -16,7 +17,7 @@ const maxAgeSeconds = 86400;
 export function logCorsConfig() {
   const env = process.env.ENVIROMENT || process.env.NODE_ENV || "undefined";
   const originList = allowedOrigins.join(", ");
-  console.log(`[cors] ENVIROMENT=${env} allowedOrigins=${originList}`);
+  appLogger.info("cors config", { env, allowedOrigins: originList });
 }
 
 export function corsMiddleware(req: Request, res: Response, next: NextFunction) {

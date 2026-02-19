@@ -18,6 +18,13 @@ const smtpSecure = smtpSecureRaw ? smtpSecureRaw === "true" : undefined;
 const fromEmail = process.env.FROM_EMAIL || process.env.SMTP_FROM;
 const appName = process.env.APP_NAME;
 const supportEmail = process.env.SUPPORT_EMAIL;
+const appEnv = process.env.APP_ENV || process.env.ENVIROMENT || process.env.NODE_ENV;
+const r2Endpoint = process.env.R2_ENDPOINT;
+const r2AccessKeyId = process.env.R2_ACCESS_KEY_ID;
+const r2SecretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+const r2Bucket = process.env.R2_BUCKET;
+const r2Region = process.env.R2_REGION;
+const mediaCdnBaseUrl = process.env.MEDIA_CDN_BASE_URL;
 const orderExpirationIntervalMs = process.env.ORDER_EXPIRATION_INTERVAL_MS
   ? Number(process.env.ORDER_EXPIRATION_INTERVAL_MS)
   : undefined;
@@ -36,7 +43,13 @@ const envStatus = {
   smtpFrom: Boolean(fromEmail),
   smtpSecure: Boolean(smtpSecureRaw),
   appName: Boolean(appName),
-  supportEmail: Boolean(supportEmail)
+  supportEmail: Boolean(supportEmail),
+  appEnv: Boolean(appEnv),
+  r2Endpoint: Boolean(r2Endpoint),
+  r2AccessKeyId: Boolean(r2AccessKeyId),
+  r2SecretAccessKey: Boolean(r2SecretAccessKey),
+  r2Bucket: Boolean(r2Bucket),
+  mediaCdnBaseUrl: Boolean(mediaCdnBaseUrl)
 };
 
 export const env = {
@@ -54,6 +67,13 @@ export const env = {
   fromEmail,
   appName,
   supportEmail,
+  appEnv,
+  r2Endpoint,
+  r2AccessKeyId,
+  r2SecretAccessKey,
+  r2Bucket,
+  r2Region,
+  mediaCdnBaseUrl,
   orderExpirationIntervalMs
 };
 
