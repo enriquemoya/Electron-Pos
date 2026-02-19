@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MediaSelector } from "@/components/admin/media/media-selector";
 
 type Taxonomy = { id: string; name: string };
 
@@ -42,6 +43,46 @@ type Props = {
     expansionNone: string;
     price: string;
     imageUrl: string;
+    media: {
+      openLibrary: string;
+      selectedLabel: string;
+      emptyLabel: string;
+      remove: string;
+      hiddenInputLabel: string;
+      dialog: {
+        title: string;
+        description: string;
+        empty: string;
+        loading: string;
+        close: string;
+        folder: string;
+        folders: {
+          products: string;
+          categories: string;
+          blog: string;
+          banners: string;
+        };
+        paginationPrev: string;
+        paginationNext: string;
+        uploadTitle: string;
+        uploadSubtitle: string;
+        uploadChoose: string;
+        uploadUploading: string;
+        toasts: {
+          listError: string;
+          uploadSuccess: string;
+          uploadError: string;
+          deleteSuccess: string;
+          deleteError: string;
+        };
+        grid: {
+          select: string;
+          selected: string;
+          delete: string;
+          dimensionsUnknown: string;
+        };
+      };
+    };
     shortDescription: string;
     description: string;
     rarity: string;
@@ -78,6 +119,7 @@ export function ProductEditForm({ locale, action, product, games, labels }: Prop
   const [categoryId, setCategoryId] = useState(product.categoryId ?? "");
   const [categories, setCategories] = useState<TaxonomyItem[]>([]);
   const [expansions, setExpansions] = useState<TaxonomyItem[]>([]);
+  const [imageUrl, setImageUrl] = useState<string | null>(product.imageUrl ?? null);
 
   useEffect(() => {
     let ignore = false;
@@ -203,7 +245,15 @@ export function ProductEditForm({ locale, action, product, games, labels }: Prop
       </label>
       <label className="block text-sm text-white/70">
         {labels.imageUrl}
-        <Input name="imageUrl" defaultValue={product.imageUrl ?? ""} className="mt-1" />
+        <div className="mt-1">
+          <MediaSelector
+            name="imageUrl"
+            value={imageUrl}
+            folder="products"
+            onChange={setImageUrl}
+            labels={labels.media}
+          />
+        </div>
       </label>
       <label className="block text-sm text-white/70">
         {labels.shortDescription}

@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/admin-guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminTableControls } from "@/components/admin/admin-table-controls";
-import { BackButton } from "@/components/common/back-button";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 async function adjustInventoryAction(formData: FormData) {
   "use server";
@@ -34,7 +34,8 @@ export default async function InventoryPage({
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminInventory" });
-  const tNav = await getTranslations({ locale: params.locale, namespace: "navigation" });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const page = Number(searchParams?.page ?? 1) || 1;
   const pageSize = Number(searchParams?.pageSize ?? 20) || 20;
   const query = searchParams?.query ?? "";
@@ -46,10 +47,11 @@ export default async function InventoryPage({
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <BackButton
-          label={tNav("back")}
-          fallbackHref={`/${params.locale}/admin/home`}
-          className="text-white/70"
+        <AdminBreadcrumb
+          locale={params.locale}
+          homeLabel={tSeo("home")}
+          adminLabel={tAdmin("title")}
+          items={[{ label: t("title") }]}
         />
         <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
         <p className="text-sm text-white/60">{t("subtitle")}</p>

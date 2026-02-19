@@ -1,0 +1,823 @@
+{
+  "lighthouseVersion": "12.8.2",
+  "requestedUrl": "https://danimezone.com/es/blog/test-post",
+  "mainDocumentUrl": "https://danimezone.com/es/blog/test-post",
+  "finalDisplayedUrl": "https://danimezone.com/es/blog/test-post",
+  "finalUrl": "https://danimezone.com/es/blog/test-post",
+  "fetchTime": "2026-02-18T20:43:29.757Z",
+  "gatherMode": "navigation",
+  "runtimeError": {
+    "code": "ERRORED_DOCUMENT_REQUEST",
+    "message": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+    "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1",
+    "artifactKey": "PageLoadError"
+  },
+  "runWarnings": [
+    "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)"
+  ],
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36",
+  "environment": {
+    "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36",
+    "benchmarkIndex": 3760,
+    "credits": {}
+  },
+  "audits": {
+    "document-title": {
+      "id": "document-title",
+      "title": "Document has a `<title>` element",
+      "description": "The title gives screen reader users an overview of the page, and search engine users rely on it heavily to determine if a page is relevant to their search. [Learn more about document titles](https://dequeuniversity.com/rules/axe/4.10/document-title).",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    },
+    "image-alt": {
+      "id": "image-alt",
+      "title": "Image elements have `[alt]` attributes",
+      "description": "Informative elements should aim for short, descriptive alternate text. Decorative elements can be ignored with an empty alt attribute. [Learn more about the `alt` attribute](https://dequeuniversity.com/rules/axe/4.10/image-alt).",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    },
+    "meta-description": {
+      "id": "meta-description",
+      "title": "Document has a meta description",
+      "description": "Meta descriptions may be included in search results to concisely summarize page content. [Learn more about the meta description](https://developer.chrome.com/docs/lighthouse/seo/meta-description/).",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    },
+    "http-status-code": {
+      "id": "http-status-code",
+      "title": "Page has successful HTTP status code",
+      "description": "Pages with unsuccessful HTTP status codes may not be indexed properly. [Learn more about HTTP status codes](https://developer.chrome.com/docs/lighthouse/seo/http-status-code/).",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    },
+    "link-text": {
+      "id": "link-text",
+      "title": "Links have descriptive text",
+      "description": "Descriptive link text helps search engines understand your content. [Learn how to make links more accessible](https://developer.chrome.com/docs/lighthouse/seo/link-text/).",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    },
+    "crawlable-anchors": {
+      "id": "crawlable-anchors",
+      "title": "Links are crawlable",
+      "description": "Search engines may use `href` attributes on links to crawl websites. Ensure that the `href` attribute of anchor elements links to an appropriate destination, so more pages of the site can be discovered. [Learn how to make links crawlable](https://support.google.com/webmasters/answer/9112205)",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    },
+    "is-crawlable": {
+      "id": "is-crawlable",
+      "title": "Page isn’t blocked from indexing",
+      "description": "Search engines are unable to include your pages in search results if they don't have permission to crawl them. [Learn more about crawler directives](https://developer.chrome.com/docs/lighthouse/seo/is-crawlable/).",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    },
+    "robots-txt": {
+      "id": "robots-txt",
+      "title": "robots.txt is valid",
+      "description": "If your robots.txt file is malformed, crawlers may not be able to understand how you want your website to be crawled or indexed. [Learn more about robots.txt](https://developer.chrome.com/docs/lighthouse/seo/invalid-robots-txt/).",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    },
+    "hreflang": {
+      "id": "hreflang",
+      "title": "Document has a valid `hreflang`",
+      "description": "hreflang links tell search engines what version of a page they should list in search results for a given language or region. [Learn more about `hreflang`](https://developer.chrome.com/docs/lighthouse/seo/hreflang/).",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    },
+    "canonical": {
+      "id": "canonical",
+      "title": "Document has a valid `rel=canonical`",
+      "description": "Canonical links suggest which URL to show in search results. [Learn more about canonical links](https://developer.chrome.com/docs/lighthouse/seo/canonical/).",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    },
+    "structured-data": {
+      "id": "structured-data",
+      "title": "Structured data is valid",
+      "description": "Run the [Structured Data Testing Tool](https://search.google.com/structured-data/testing-tool/) and the [Structured Data Linter](http://linter.structured-data.org/) to validate structured data. [Learn more about Structured Data](https://developer.chrome.com/docs/lighthouse/seo/structured-data/).",
+      "score": null,
+      "scoreDisplayMode": "error",
+      "errorMessage": "Lighthouse was unable to reliably load the page you requested. Make sure you are testing the correct URL and that the server is properly responding to all requests. (Status code: 404)",
+      "errorStack": "LighthouseError: ERRORED_DOCUMENT_REQUEST\n    at getNetworkError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:61:14)\n    at getPageLoadError (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/lib/navigation-error.js:162:24)\n    at _computeNavigationResult (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:146:7)\n    at async gatherFn (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:300:23)\n    at async Runner.gather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/runner.js:211:25)\n    at async navigationGather (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/gather/navigation-runner.js:306:21)\n    at async navigation (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/core/index.js:58:24)\n    at async runLighthouse (file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/run.js:210:26)\n    at async file:///Users/enriquemoya/.npm/_npx/0f94ee7615faf582/node_modules/lighthouse/cli/index.js:10:1"
+    }
+  },
+  "configSettings": {
+    "output": [
+      "json"
+    ],
+    "maxWaitForFcp": 30000,
+    "maxWaitForLoad": 45000,
+    "pauseAfterFcpMs": 1000,
+    "pauseAfterLoadMs": 1000,
+    "networkQuietThresholdMs": 1000,
+    "cpuQuietThresholdMs": 1000,
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "throttlingMethod": "simulate",
+    "screenEmulation": {
+      "mobile": true,
+      "width": 412,
+      "height": 823,
+      "deviceScaleFactor": 1.75,
+      "disabled": false
+    },
+    "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+    "auditMode": false,
+    "gatherMode": false,
+    "clearStorageTypes": [
+      "file_systems",
+      "shader_cache",
+      "service_workers",
+      "cache_storage"
+    ],
+    "disableStorageReset": false,
+    "debugNavigation": false,
+    "channel": "cli",
+    "usePassiveGathering": false,
+    "disableFullPageScreenshot": false,
+    "skipAboutBlank": false,
+    "blankPage": "about:blank",
+    "ignoreStatusCode": false,
+    "locale": "en-US",
+    "blockedUrlPatterns": null,
+    "additionalTraceCategories": null,
+    "extraHeaders": null,
+    "precomputedLanternData": null,
+    "onlyAudits": null,
+    "onlyCategories": [
+      "seo"
+    ],
+    "skipAudits": null
+  },
+  "categories": {
+    "seo": {
+      "title": "SEO",
+      "description": "These checks ensure that your page is following basic search engine optimization advice. There are many additional factors Lighthouse does not score here that may affect your search ranking, including performance on [Core Web Vitals](https://web.dev/explore/vitals). [Learn more about Google Search Essentials](https://support.google.com/webmasters/answer/35769).",
+      "manualDescription": "Run these additional validators on your site to check additional SEO best practices.",
+      "supportedModes": [
+        "navigation",
+        "snapshot"
+      ],
+      "auditRefs": [
+        {
+          "id": "is-crawlable",
+          "weight": 4.043478260869565,
+          "group": "seo-crawl"
+        },
+        {
+          "id": "document-title",
+          "weight": 1,
+          "group": "seo-content"
+        },
+        {
+          "id": "meta-description",
+          "weight": 1,
+          "group": "seo-content"
+        },
+        {
+          "id": "http-status-code",
+          "weight": 1,
+          "group": "seo-crawl"
+        },
+        {
+          "id": "link-text",
+          "weight": 1,
+          "group": "seo-content"
+        },
+        {
+          "id": "crawlable-anchors",
+          "weight": 1,
+          "group": "seo-crawl"
+        },
+        {
+          "id": "robots-txt",
+          "weight": 1,
+          "group": "seo-crawl"
+        },
+        {
+          "id": "image-alt",
+          "weight": 1,
+          "group": "seo-content"
+        },
+        {
+          "id": "hreflang",
+          "weight": 1,
+          "group": "seo-content"
+        },
+        {
+          "id": "canonical",
+          "weight": 1,
+          "group": "seo-content"
+        },
+        {
+          "id": "structured-data",
+          "weight": 0
+        }
+      ],
+      "id": "seo",
+      "score": null
+    }
+  },
+  "categoryGroups": {
+    "metrics": {
+      "title": "Metrics"
+    },
+    "insights": {
+      "title": "Insights",
+      "description": "These insights are also available in the Chrome DevTools Performance Panel - [record a trace](https://developer.chrome.com/docs/devtools/performance/reference) to view more detailed information."
+    },
+    "diagnostics": {
+      "title": "Diagnostics",
+      "description": "More information about the performance of your application. These numbers don't [directly affect](https://developer.chrome.com/docs/lighthouse/performance/performance-scoring/) the Performance score."
+    },
+    "a11y-best-practices": {
+      "title": "Best practices",
+      "description": "These items highlight common accessibility best practices."
+    },
+    "a11y-color-contrast": {
+      "title": "Contrast",
+      "description": "These are opportunities to improve the legibility of your content."
+    },
+    "a11y-names-labels": {
+      "title": "Names and labels",
+      "description": "These are opportunities to improve the semantics of the controls in your application. This may enhance the experience for users of assistive technology, like a screen reader."
+    },
+    "a11y-navigation": {
+      "title": "Navigation",
+      "description": "These are opportunities to improve keyboard navigation in your application."
+    },
+    "a11y-aria": {
+      "title": "ARIA",
+      "description": "These are opportunities to improve the usage of ARIA in your application which may enhance the experience for users of assistive technology, like a screen reader."
+    },
+    "a11y-language": {
+      "title": "Internationalization and localization",
+      "description": "These are opportunities to improve the interpretation of your content by users in different locales."
+    },
+    "a11y-audio-video": {
+      "title": "Audio and video",
+      "description": "These are opportunities to provide alternative content for audio and video. This may improve the experience for users with hearing or vision impairments."
+    },
+    "a11y-tables-lists": {
+      "title": "Tables and lists",
+      "description": "These are opportunities to improve the experience of reading tabular or list data using assistive technology, like a screen reader."
+    },
+    "seo-mobile": {
+      "title": "Mobile Friendly",
+      "description": "Make sure your pages are mobile friendly so users don’t have to pinch or zoom in order to read the content pages. [Learn how to make pages mobile-friendly](https://developers.google.com/search/mobile-sites/)."
+    },
+    "seo-content": {
+      "title": "Content Best Practices",
+      "description": "Format your HTML in a way that enables crawlers to better understand your app’s content."
+    },
+    "seo-crawl": {
+      "title": "Crawling and Indexing",
+      "description": "To appear in search results, crawlers need access to your app."
+    },
+    "best-practices-trust-safety": {
+      "title": "Trust and Safety"
+    },
+    "best-practices-ux": {
+      "title": "User Experience"
+    },
+    "best-practices-browser-compat": {
+      "title": "Browser Compatibility"
+    },
+    "best-practices-general": {
+      "title": "General"
+    },
+    "hidden": {
+      "title": ""
+    }
+  },
+  "stackPacks": [],
+  "timing": {
+    "entries": [
+      {
+        "startTime": 1008.33,
+        "name": "lh:config",
+        "duration": 312.46,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 1009.88,
+        "name": "lh:config:resolveArtifactsToDefns",
+        "duration": 59.99,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 1320.91,
+        "name": "lh:runner:gather",
+        "duration": 4933.57,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 1408.99,
+        "name": "lh:driver:connect",
+        "duration": 3.2,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 1412.29,
+        "name": "lh:driver:navigate",
+        "duration": 36.1,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 1448.65,
+        "name": "lh:gather:getBenchmarkIndex",
+        "duration": 1001.51,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 2450.34,
+        "name": "lh:gather:getVersion",
+        "duration": 0.52,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 2450.91,
+        "name": "lh:gather:getDevicePixelRatio",
+        "duration": 0.53,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 2451.51,
+        "name": "lh:prepare:navigationMode",
+        "duration": 42.58,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 2461.51,
+        "name": "lh:storage:clearDataForOrigin",
+        "duration": 22.71,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 2484.33,
+        "name": "lh:storage:clearBrowserCaches",
+        "duration": 8.74,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 2493.59,
+        "name": "lh:gather:prepareThrottlingAndNetwork",
+        "duration": 0.49,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 2501.05,
+        "name": "lh:driver:navigate",
+        "duration": 3739.98,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6242.35,
+        "name": "lh:computed:NetworkRecords",
+        "duration": 0.51,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6254.64,
+        "name": "lh:runner:audit",
+        "duration": 10.71,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6254.7,
+        "name": "lh:runner:auditing",
+        "duration": 10.37,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6255.86,
+        "name": "lh:audit:document-title",
+        "duration": 0.91,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6256.91,
+        "name": "lh:audit:image-alt",
+        "duration": 0.44,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6257.76,
+        "name": "lh:audit:meta-description",
+        "duration": 0.55,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6258.44,
+        "name": "lh:audit:http-status-code",
+        "duration": 1.81,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6260.5,
+        "name": "lh:audit:link-text",
+        "duration": 0.47,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6261.09,
+        "name": "lh:audit:crawlable-anchors",
+        "duration": 0.48,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6261.68,
+        "name": "lh:audit:is-crawlable",
+        "duration": 0.5,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6262.4,
+        "name": "lh:audit:robots-txt",
+        "duration": 0.39,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6262.9,
+        "name": "lh:audit:hreflang",
+        "duration": 0.65,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6264.07,
+        "name": "lh:audit:canonical",
+        "duration": 0.47,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6264.65,
+        "name": "lh:audit:structured-data",
+        "duration": 0.42,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 6265.08,
+        "name": "lh:runner:generate",
+        "duration": 0.26,
+        "entryType": "measure"
+      }
+    ],
+    "total": 4944.28
+  },
+  "i18n": {
+    "rendererFormattedStrings": {
+      "calculatorLink": "See calculator.",
+      "collapseView": "Collapse view",
+      "crcInitialNavigation": "Initial Navigation",
+      "crcLongestDurationLabel": "Maximum critical path latency:",
+      "dropdownCopyJSON": "Copy JSON",
+      "dropdownDarkTheme": "Toggle Dark Theme",
+      "dropdownPrintExpanded": "Print Expanded",
+      "dropdownPrintSummary": "Print Summary",
+      "dropdownSaveGist": "Save as Gist",
+      "dropdownSaveHTML": "Save as HTML",
+      "dropdownSaveJSON": "Save as JSON",
+      "dropdownViewUnthrottledTrace": "View Unthrottled Trace",
+      "dropdownViewer": "Open in Viewer",
+      "errorLabel": "Error!",
+      "errorMissingAuditInfo": "Report error: no audit information",
+      "expandView": "Expand view",
+      "firstPartyChipLabel": "1st party",
+      "footerIssue": "File an issue",
+      "goBackToAudits": "Go back to audits",
+      "hide": "Hide",
+      "insightsNotice": "Later this year, insights will replace performance audits. [Learn more and provide feedback here](https://github.com/GoogleChrome/lighthouse/discussions/16462).",
+      "labDataTitle": "Lab Data",
+      "lsPerformanceCategoryDescription": "[Lighthouse](https://developers.google.com/web/tools/lighthouse/) analysis of the current page on an emulated mobile network. Values are estimated and may vary.",
+      "manualAuditsGroupTitle": "Additional items to manually check",
+      "notApplicableAuditsGroupTitle": "Not applicable",
+      "openInANewTabTooltip": "Open in a new tab",
+      "opportunityResourceColumnLabel": "Opportunity",
+      "opportunitySavingsColumnLabel": "Estimated Savings",
+      "passedAuditsGroupTitle": "Passed audits",
+      "runtimeAnalysisWindow": "Initial page load",
+      "runtimeAnalysisWindowSnapshot": "Point-in-time snapshot",
+      "runtimeAnalysisWindowTimespan": "User interactions timespan",
+      "runtimeCustom": "Custom throttling",
+      "runtimeDesktopEmulation": "Emulated Desktop",
+      "runtimeMobileEmulation": "Emulated Moto G Power",
+      "runtimeNoEmulation": "No emulation",
+      "runtimeSettingsAxeVersion": "Axe version",
+      "runtimeSettingsBenchmark": "Unthrottled CPU/Memory Power",
+      "runtimeSettingsCPUThrottling": "CPU throttling",
+      "runtimeSettingsDevice": "Device",
+      "runtimeSettingsNetworkThrottling": "Network throttling",
+      "runtimeSettingsScreenEmulation": "Screen emulation",
+      "runtimeSettingsUANetwork": "User agent (network)",
+      "runtimeSingleLoad": "Single page session",
+      "runtimeSingleLoadTooltip": "This data is taken from a single page session, as opposed to field data summarizing many sessions.",
+      "runtimeSlow4g": "Slow 4G throttling",
+      "runtimeUnknown": "Unknown",
+      "show": "Show",
+      "showRelevantAudits": "Show audits relevant to:",
+      "snippetCollapseButtonLabel": "Collapse snippet",
+      "snippetExpandButtonLabel": "Expand snippet",
+      "thirdPartyResourcesLabel": "Show 3rd-party resources",
+      "throttlingProvided": "Provided by environment",
+      "toplevelWarningsMessage": "There were issues affecting this run of Lighthouse:",
+      "tryInsights": "Try insights",
+      "unattributable": "Unattributable",
+      "varianceDisclaimer": "Values are estimated and may vary. The [performance score is calculated](https://developer.chrome.com/docs/lighthouse/performance/performance-scoring/) directly from these metrics.",
+      "viewTraceLabel": "View Trace",
+      "viewTreemapLabel": "View Treemap",
+      "warningAuditsGroupTitle": "Passed audits but with warnings",
+      "warningHeader": "Warnings: "
+    },
+    "icuMessagePaths": {
+      "core/lib/lh-error.js | pageLoadFailedWithStatusCode": [
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "runtimeError.message"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "runWarnings[0]"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits[document-title].errorMessage"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits[image-alt].errorMessage"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits[meta-description].errorMessage"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits[http-status-code].errorMessage"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits[link-text].errorMessage"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits[crawlable-anchors].errorMessage"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits[is-crawlable].errorMessage"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits[robots-txt].errorMessage"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits.hreflang.errorMessage"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits.canonical.errorMessage"
+        },
+        {
+          "values": {
+            "errorCode": "ERRORED_DOCUMENT_REQUEST",
+            "statusCode": "404"
+          },
+          "path": "audits[structured-data].errorMessage"
+        }
+      ],
+      "core/audits/accessibility/document-title.js | title": [
+        "audits[document-title].title"
+      ],
+      "core/audits/accessibility/document-title.js | description": [
+        "audits[document-title].description"
+      ],
+      "core/audits/accessibility/image-alt.js | title": [
+        "audits[image-alt].title"
+      ],
+      "core/audits/accessibility/image-alt.js | description": [
+        "audits[image-alt].description"
+      ],
+      "core/audits/seo/meta-description.js | title": [
+        "audits[meta-description].title"
+      ],
+      "core/audits/seo/meta-description.js | description": [
+        "audits[meta-description].description"
+      ],
+      "core/audits/seo/http-status-code.js | title": [
+        "audits[http-status-code].title"
+      ],
+      "core/audits/seo/http-status-code.js | description": [
+        "audits[http-status-code].description"
+      ],
+      "core/audits/seo/link-text.js | title": [
+        "audits[link-text].title"
+      ],
+      "core/audits/seo/link-text.js | description": [
+        "audits[link-text].description"
+      ],
+      "core/audits/seo/crawlable-anchors.js | title": [
+        "audits[crawlable-anchors].title"
+      ],
+      "core/audits/seo/crawlable-anchors.js | description": [
+        "audits[crawlable-anchors].description"
+      ],
+      "core/audits/seo/is-crawlable.js | title": [
+        "audits[is-crawlable].title"
+      ],
+      "core/audits/seo/is-crawlable.js | description": [
+        "audits[is-crawlable].description"
+      ],
+      "core/audits/seo/robots-txt.js | title": [
+        "audits[robots-txt].title"
+      ],
+      "core/audits/seo/robots-txt.js | description": [
+        "audits[robots-txt].description"
+      ],
+      "core/audits/seo/hreflang.js | title": [
+        "audits.hreflang.title"
+      ],
+      "core/audits/seo/hreflang.js | description": [
+        "audits.hreflang.description"
+      ],
+      "core/audits/seo/canonical.js | title": [
+        "audits.canonical.title"
+      ],
+      "core/audits/seo/canonical.js | description": [
+        "audits.canonical.description"
+      ],
+      "core/audits/seo/manual/structured-data.js | title": [
+        "audits[structured-data].title"
+      ],
+      "core/audits/seo/manual/structured-data.js | description": [
+        "audits[structured-data].description"
+      ],
+      "core/config/default-config.js | seoCategoryTitle": [
+        "categories.seo.title"
+      ],
+      "core/config/default-config.js | seoCategoryDescription": [
+        "categories.seo.description"
+      ],
+      "core/config/default-config.js | seoCategoryManualDescription": [
+        "categories.seo.manualDescription"
+      ],
+      "core/config/default-config.js | metricGroupTitle": [
+        "categoryGroups.metrics.title"
+      ],
+      "core/config/default-config.js | insightsGroupTitle": [
+        "categoryGroups.insights.title"
+      ],
+      "core/config/default-config.js | insightsGroupDescription": [
+        "categoryGroups.insights.description"
+      ],
+      "core/config/default-config.js | diagnosticsGroupTitle": [
+        "categoryGroups.diagnostics.title"
+      ],
+      "core/config/default-config.js | diagnosticsGroupDescription": [
+        "categoryGroups.diagnostics.description"
+      ],
+      "core/config/default-config.js | a11yBestPracticesGroupTitle": [
+        "categoryGroups[a11y-best-practices].title"
+      ],
+      "core/config/default-config.js | a11yBestPracticesGroupDescription": [
+        "categoryGroups[a11y-best-practices].description"
+      ],
+      "core/config/default-config.js | a11yColorContrastGroupTitle": [
+        "categoryGroups[a11y-color-contrast].title"
+      ],
+      "core/config/default-config.js | a11yColorContrastGroupDescription": [
+        "categoryGroups[a11y-color-contrast].description"
+      ],
+      "core/config/default-config.js | a11yNamesLabelsGroupTitle": [
+        "categoryGroups[a11y-names-labels].title"
+      ],
+      "core/config/default-config.js | a11yNamesLabelsGroupDescription": [
+        "categoryGroups[a11y-names-labels].description"
+      ],
+      "core/config/default-config.js | a11yNavigationGroupTitle": [
+        "categoryGroups[a11y-navigation].title"
+      ],
+      "core/config/default-config.js | a11yNavigationGroupDescription": [
+        "categoryGroups[a11y-navigation].description"
+      ],
+      "core/config/default-config.js | a11yAriaGroupTitle": [
+        "categoryGroups[a11y-aria].title"
+      ],
+      "core/config/default-config.js | a11yAriaGroupDescription": [
+        "categoryGroups[a11y-aria].description"
+      ],
+      "core/config/default-config.js | a11yLanguageGroupTitle": [
+        "categoryGroups[a11y-language].title"
+      ],
+      "core/config/default-config.js | a11yLanguageGroupDescription": [
+        "categoryGroups[a11y-language].description"
+      ],
+      "core/config/default-config.js | a11yAudioVideoGroupTitle": [
+        "categoryGroups[a11y-audio-video].title"
+      ],
+      "core/config/default-config.js | a11yAudioVideoGroupDescription": [
+        "categoryGroups[a11y-audio-video].description"
+      ],
+      "core/config/default-config.js | a11yTablesListsVideoGroupTitle": [
+        "categoryGroups[a11y-tables-lists].title"
+      ],
+      "core/config/default-config.js | a11yTablesListsVideoGroupDescription": [
+        "categoryGroups[a11y-tables-lists].description"
+      ],
+      "core/config/default-config.js | seoMobileGroupTitle": [
+        "categoryGroups[seo-mobile].title"
+      ],
+      "core/config/default-config.js | seoMobileGroupDescription": [
+        "categoryGroups[seo-mobile].description"
+      ],
+      "core/config/default-config.js | seoContentGroupTitle": [
+        "categoryGroups[seo-content].title"
+      ],
+      "core/config/default-config.js | seoContentGroupDescription": [
+        "categoryGroups[seo-content].description"
+      ],
+      "core/config/default-config.js | seoCrawlingGroupTitle": [
+        "categoryGroups[seo-crawl].title"
+      ],
+      "core/config/default-config.js | seoCrawlingGroupDescription": [
+        "categoryGroups[seo-crawl].description"
+      ],
+      "core/config/default-config.js | bestPracticesTrustSafetyGroupTitle": [
+        "categoryGroups[best-practices-trust-safety].title"
+      ],
+      "core/config/default-config.js | bestPracticesUXGroupTitle": [
+        "categoryGroups[best-practices-ux].title"
+      ],
+      "core/config/default-config.js | bestPracticesBrowserCompatGroupTitle": [
+        "categoryGroups[best-practices-browser-compat].title"
+      ],
+      "core/config/default-config.js | bestPracticesGeneralGroupTitle": [
+        "categoryGroups[best-practices-general].title"
+      ]
+    }
+  }
+}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MediaSelector } from "@/components/admin/media/media-selector";
 
 type Taxonomy = { id: string; name: string };
 
@@ -21,6 +22,46 @@ type Props = {
     expansionNone: string;
     price: string;
     imageUrl: string;
+    media: {
+      openLibrary: string;
+      selectedLabel: string;
+      emptyLabel: string;
+      remove: string;
+      hiddenInputLabel: string;
+      dialog: {
+        title: string;
+        description: string;
+        empty: string;
+        loading: string;
+        close: string;
+        folder: string;
+        folders: {
+          products: string;
+          categories: string;
+          blog: string;
+          banners: string;
+        };
+        paginationPrev: string;
+        paginationNext: string;
+        uploadTitle: string;
+        uploadSubtitle: string;
+        uploadChoose: string;
+        uploadUploading: string;
+        toasts: {
+          listError: string;
+          uploadSuccess: string;
+          uploadError: string;
+          deleteSuccess: string;
+          deleteError: string;
+        };
+        grid: {
+          select: string;
+          selected: string;
+          delete: string;
+          dimensionsUnknown: string;
+        };
+      };
+    };
     description: string;
     rarity: string;
     tags: string;
@@ -68,6 +109,7 @@ export function ProductCreateForm({ locale, action, games, labels }: Props) {
   const [categoryId, setCategoryId] = useState("");
   const [categories, setCategories] = useState<TaxonomyItem[]>([]);
   const [expansions, setExpansions] = useState<TaxonomyItem[]>([]);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const slugEdited = useRef(false);
 
   useEffect(() => {
@@ -205,7 +247,15 @@ export function ProductCreateForm({ locale, action, games, labels }: Props) {
       </label>
       <label className="block text-sm text-white/70">
         {labels.imageUrl}
-        <Input name="imageUrl" className="mt-1" required />
+        <div className="mt-1">
+          <MediaSelector
+            name="imageUrl"
+            value={imageUrl}
+            folder="products"
+            onChange={setImageUrl}
+            labels={labels.media}
+          />
+        </div>
       </label>
       <label className="block text-sm text-white/70">
         {labels.description}

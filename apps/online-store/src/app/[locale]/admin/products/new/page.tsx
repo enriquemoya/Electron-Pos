@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createCatalogProduct, fetchTaxonomies } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
 import { ProductCreateForm } from "@/components/admin/product-create-form";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 async function createProductAction(formData: FormData) {
   "use server";
@@ -64,10 +65,21 @@ export default async function ProductCreatePage({ params }: { params: { locale: 
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminProducts" });
   const commonT = await getTranslations({ locale: params.locale });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const games = await fetchTaxonomies({ type: "GAME", page: 1, pageSize: 100 });
 
   return (
     <div className="space-y-6">
+      <AdminBreadcrumb
+        locale={params.locale}
+        homeLabel={tSeo("home")}
+        adminLabel={tAdmin("title")}
+        items={[
+          { label: t("title"), href: `/${params.locale}/admin/products` },
+          { label: t("actions.create") }
+        ]}
+      />
       <div>
         <h1 className="text-2xl font-semibold text-white">{t("createTitle")}</h1>
         <p className="text-sm text-white/60">{t("createSubtitle")}</p>
@@ -87,6 +99,46 @@ export default async function ProductCreatePage({ params }: { params: { locale: 
           expansionNone: t("fields.expansionNone"),
           price: t("fields.price"),
           imageUrl: t("fields.imageUrl"),
+          media: {
+            openLibrary: t("media.openLibrary"),
+            selectedLabel: t("media.selectedLabel"),
+            emptyLabel: t("media.emptyLabel"),
+            remove: t("media.remove"),
+            hiddenInputLabel: t("media.hiddenInputLabel"),
+            dialog: {
+              title: t("media.dialog.title"),
+              description: t("media.dialog.description"),
+              empty: t("media.dialog.empty"),
+              loading: t("media.dialog.loading"),
+              close: t("media.dialog.close"),
+              folder: t("media.dialog.folder"),
+              folders: {
+                products: t("media.dialog.folders.products"),
+                categories: t("media.dialog.folders.categories"),
+                blog: t("media.dialog.folders.blog"),
+                banners: t("media.dialog.folders.banners")
+              },
+              paginationPrev: t("media.dialog.paginationPrev"),
+              paginationNext: t("media.dialog.paginationNext"),
+              uploadTitle: t("media.dialog.uploadTitle"),
+              uploadSubtitle: t("media.dialog.uploadSubtitle"),
+              uploadChoose: t("media.dialog.uploadChoose"),
+              uploadUploading: t("media.dialog.uploadUploading"),
+              toasts: {
+                listError: t("media.dialog.toasts.listError"),
+                uploadSuccess: t("media.dialog.toasts.uploadSuccess"),
+                uploadError: t("media.dialog.toasts.uploadError"),
+                deleteSuccess: t("media.dialog.toasts.deleteSuccess"),
+                deleteError: t("media.dialog.toasts.deleteError")
+              },
+              grid: {
+                select: t("media.dialog.grid.select"),
+                selected: t("media.dialog.grid.selected"),
+                delete: t("media.dialog.grid.delete"),
+                dimensionsUnknown: t("media.dialog.grid.dimensionsUnknown")
+              }
+            }
+          },
           description: t("fields.description"),
           rarity: t("fields.rarity"),
           tags: t("fields.tags"),

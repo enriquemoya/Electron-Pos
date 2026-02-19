@@ -145,7 +145,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
               key={item.id}
               title={item.title}
               body={item.body}
-              href="#"
+              href="/blog"
               linkLabel={t("common.learnMore")}
               backgroundImage={item.image}
               imageAlt={item.imageAlt}

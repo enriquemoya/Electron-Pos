@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 
+import { appLogger } from "../../config/app-logger";
 import { ApiErrors, asApiError } from "../../errors/api-error";
 import type { AuthUseCases } from "../../application/use-cases/auth";
 import { LOCALE } from "../../email/locales";
@@ -19,7 +20,9 @@ export function createAuthController(useCases: AuthUseCases) {
         await useCases.requestMagicLink(email, locale);
         res.status(200).json({ status: "ok" });
       } catch (error) {
-        console.error("Magic link request failed.", error);
+        appLogger.warn("magic link request failed", {
+          error: error instanceof Error ? error.message : String(error)
+        });
         const apiError = asApiError(error, ApiErrors.serverError);
         res.status(apiError.status).json({ error: apiError.message });
       }

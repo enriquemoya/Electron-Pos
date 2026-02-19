@@ -12,7 +12,7 @@ import { ProductAttributes } from "@/components/product-detail/product-attribute
 import { ProductDetailError } from "@/components/product-detail/product-detail-error";
 import { ProductMedia } from "@/components/product-detail/product-media";
 import { mapInventoryStateToAvailability } from "@/lib/cart";
-import { BackButton } from "@/components/common/back-button";
+import { AppBreadcrumb } from "@/components/common/app-breadcrumb";
 
 function normalizeInventoryState(state: InventoryState | null | undefined): InventoryState {
   return state ?? "PENDING_SYNC";
@@ -177,10 +177,13 @@ export default async function ProductDetailPage({ params }: { params: { locale: 
 
   return (
     <div className="space-y-12">
-      <BackButton
-        label={t("navigation.back")}
-        fallbackHref="/catalog"
-        className="px-0 text-sm text-white/70 hover:text-white"
+      <AppBreadcrumb
+        items={[
+          { label: t("seo.breadcrumb.home"), href: `/${params.locale}` },
+          { label: t("seo.breadcrumb.catalog"), href: `/${params.locale}/catalog` },
+          { label: product.name ?? t("productDetail.titleFallback") }
+        ]}
+        className="text-white/70"
       />
       <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr]">
         <div>

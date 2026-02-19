@@ -11,7 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BranchCreateForm } from "@/components/admin/branch-create-form";
-import { BackButton } from "@/components/common/back-button";
+import { MediaSelector } from "@/components/admin/media/media-selector";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 function parseCoordinate(value: FormDataEntryValue | null) {
   if (typeof value !== "string") {
@@ -52,9 +53,7 @@ async function createBranchAction(
     revalidatePath(`/${locale}/admin/branches`);
     return { error: null };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "branch create failed";
-    console.error("branch create failed", message);
-    return { error: message };
+    return { error: error instanceof Error ? error.message : "branch create failed" };
   }
 }
 
@@ -101,15 +100,58 @@ export default async function BranchesPage({ params }: { params: { locale: strin
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminBranches" });
-  const tNav = await getTranslations({ locale: params.locale, namespace: "navigation" });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const branches = await fetchAdminBranches();
+  const mediaLabels = {
+    openLibrary: t("media.openLibrary"),
+    selectedLabel: t("media.selectedLabel"),
+    emptyLabel: t("media.emptyLabel"),
+    remove: t("media.remove"),
+    hiddenInputLabel: t("media.hiddenInputLabel"),
+    dialog: {
+      title: t("media.dialog.title"),
+      description: t("media.dialog.description"),
+      empty: t("media.dialog.empty"),
+      loading: t("media.dialog.loading"),
+      close: t("media.dialog.close"),
+      folder: t("media.dialog.folder"),
+      folders: {
+        products: t("media.dialog.folders.products"),
+        categories: t("media.dialog.folders.categories"),
+        blog: t("media.dialog.folders.blog"),
+        banners: t("media.dialog.folders.banners")
+      },
+      paginationPrev: t("media.dialog.paginationPrev"),
+      paginationNext: t("media.dialog.paginationNext"),
+      uploadTitle: t("media.dialog.uploadTitle"),
+      uploadSubtitle: t("media.dialog.uploadSubtitle"),
+      uploadChoose: t("media.dialog.uploadChoose"),
+      uploadUploading: t("media.dialog.uploadUploading"),
+      toasts: {
+        listError: t("media.dialog.toasts.listError"),
+        uploadSuccess: t("media.dialog.toasts.uploadSuccess"),
+        uploadError: t("media.dialog.toasts.uploadError"),
+        deleteSuccess: t("media.dialog.toasts.deleteSuccess"),
+        deleteError: t("media.dialog.toasts.deleteError")
+      },
+      grid: {
+        select: t("media.dialog.grid.select"),
+        selected: t("media.dialog.grid.selected"),
+        delete: t("media.dialog.grid.delete"),
+        dimensionsUnknown: t("media.dialog.grid.dimensionsUnknown")
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <BackButton
-          label={tNav("back")}
-          fallbackHref={`/${params.locale}/admin/home`}
+        <AdminBreadcrumb
+          locale={params.locale}
+          homeLabel={tSeo("home")}
+          adminLabel={tAdmin("title")}
+          items={[{ label: t("title") }]}
           className="text-white/70"
         />
         <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
@@ -124,6 +166,7 @@ export default async function BranchesPage({ params }: { params: { locale: strin
           city: t("fields.city"),
           address: t("fields.address"),
           imageUrl: t("fields.imageUrl"),
+          media: mediaLabels,
           latitude: t("fields.latitude"),
           longitude: t("fields.longitude"),
           submit: t("actions.create"),
@@ -153,7 +196,12 @@ export default async function BranchesPage({ params }: { params: { locale: strin
                       <input type="hidden" name="id" value={branch.id} />
                       <input type="hidden" name="locale" value={params.locale} />
                       <Input name="name" defaultValue={branch.name} className="h-8" form={formId} />
-                      <Input name="imageUrl" defaultValue={branch.imageUrl ?? ""} className="h-8" form={formId} />
+                      <MediaSelector
+                        name="imageUrl"
+                        folder="banners"
+                        defaultValue={branch.imageUrl}
+                        labels={mediaLabels}
+                      />
                     </form>
                   </td>
                   <td className="px-4 py-3">
