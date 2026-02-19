@@ -11,8 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BranchCreateForm } from "@/components/admin/branch-create-form";
-import { BackButton } from "@/components/common/back-button";
 import { MediaSelector } from "@/components/admin/media/media-selector";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 function parseCoordinate(value: FormDataEntryValue | null) {
   if (typeof value !== "string") {
@@ -100,7 +100,8 @@ export default async function BranchesPage({ params }: { params: { locale: strin
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminBranches" });
-  const tNav = await getTranslations({ locale: params.locale, namespace: "navigation" });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const branches = await fetchAdminBranches();
   const mediaLabels = {
     openLibrary: t("media.openLibrary"),
@@ -146,9 +147,11 @@ export default async function BranchesPage({ params }: { params: { locale: strin
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <BackButton
-          label={tNav("back")}
-          fallbackHref={`/${params.locale}/admin/home`}
+        <AdminBreadcrumb
+          locale={params.locale}
+          homeLabel={tSeo("home")}
+          adminLabel={tAdmin("title")}
+          items={[{ label: t("title") }]}
           className="text-white/70"
         />
         <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>

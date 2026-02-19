@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BlogEditor } from "@/components/admin/blog-editor";
 import { requireAdmin } from "@/lib/admin-guard";
 import { fetchAdminBlogPosts } from "@/lib/blog-api";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 export default async function AdminBlogPage({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale);
@@ -11,14 +12,23 @@ export default async function AdminBlogPage({ params }: { params: { locale: stri
   const locale = params.locale === "en" ? "en" : "es";
   const t = await getTranslations({ locale: params.locale, namespace: "adminBlog" });
   const blogT = await getTranslations({ locale: params.locale, namespace: "blog" });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
 
   const postsPayload = await fetchAdminBlogPosts({ locale, page: 1, pageSize: 50 });
 
   return (
-    <BlogEditor
-      locale={locale}
-      initialPosts={postsPayload.items as any}
-      labels={{
+    <div className="space-y-4">
+      <AdminBreadcrumb
+        locale={params.locale}
+        homeLabel={tSeo("home")}
+        adminLabel={tAdmin("title")}
+        items={[{ label: t("title") }]}
+      />
+      <BlogEditor
+        locale={locale}
+        initialPosts={postsPayload.items as any}
+        labels={{
         title: t("title"),
         subtitle: t("subtitle"),
         listTitle: t("listTitle"),
@@ -111,7 +121,8 @@ export default async function AdminBlogPage({ params }: { params: { locale: stri
           uploadOk: t("toasts.uploadOk"),
           uploadError: t("toasts.uploadError")
         }
-      }}
-    />
+        }}
+      />
+    </div>
   );
 }

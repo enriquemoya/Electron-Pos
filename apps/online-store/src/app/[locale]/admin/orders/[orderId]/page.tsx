@@ -5,10 +5,10 @@ import { redirect } from "next/navigation";
 import { createAdminRefund, fetchAdminOrder, transitionAdminOrderStatus } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
 import { OrderStatusTransitionForm } from "@/components/admin/order-status-transition-form";
-import { BackButton } from "@/components/common/back-button";
 import { OrderStatusToast } from "@/components/admin/order-status-toast";
 import { OrderRefundForm } from "@/components/admin/order-refund-form";
 import { Badge } from "@/components/ui/badge";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 async function transitionOrderStatusAction(formData: FormData) {
   "use server";
@@ -79,6 +79,8 @@ export default async function AdminOrderDetailPage({
   requireAdmin(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminOrders" });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const data = await fetchAdminOrder(params.orderId);
   const order = data.order;
   const isTerminal = ["COMPLETED", "CANCELED", "CANCELLED_EXPIRED", "CANCELLED_MANUAL", "CANCELLED_REFUNDED"].includes(
@@ -110,10 +112,14 @@ export default async function AdminOrderDetailPage({
         }
         errorMessage={searchParams?.error === "refund" ? t("refund.toastError") : t("transition.toastError")}
       />
-      <BackButton
-        label={t("actions.back")}
-        fallbackHref={`/${params.locale}/admin/orders`}
-        className="px-0 text-sm text-white/70 hover:text-white"
+      <AdminBreadcrumb
+        locale={params.locale}
+        homeLabel={tSeo("home")}
+        adminLabel={tAdmin("title")}
+        items={[
+          { label: t("title"), href: `/${params.locale}/admin/orders` },
+          { label: t("detailTitle") }
+        ]}
       />
       <div className="flex items-start justify-between gap-4">
         <div>

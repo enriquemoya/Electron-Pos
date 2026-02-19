@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { fetchCatalogProduct, fetchTaxonomies, updateCatalogProduct } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
 import { ProductEditForm } from "@/components/admin/product-edit-form";
-import { BackButton } from "@/components/common/back-button";
 import { AdminSaveToast } from "@/components/admin/admin-save-toast";
 import { redirect } from "next/navigation";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 async function updateProductAction(formData: FormData) {
   "use server";
@@ -61,6 +61,8 @@ export default async function ProductDetailPage({
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminProducts" });
   const commonT = await getTranslations({ locale: params.locale });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const games = await fetchTaxonomies({ type: "GAME", page: 1, pageSize: 100 });
   const result = await fetchCatalogProduct(params.id);
   const product = result.product;
@@ -72,10 +74,14 @@ export default async function ProductDetailPage({
         successMessage={t("toast.saveSuccess")}
         errorMessage={t("toast.saveError")}
       />
-      <BackButton
-        label={t("actions.back")}
-        fallbackHref={`/${params.locale}/admin/products`}
-        className="px-0 text-sm text-white/70 hover:text-white"
+      <AdminBreadcrumb
+        locale={params.locale}
+        homeLabel={tSeo("home")}
+        adminLabel={tAdmin("title")}
+        items={[
+          { label: t("title"), href: `/${params.locale}/admin/products` },
+          { label: t("detailTitle") }
+        ]}
       />
       <div>
         <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>

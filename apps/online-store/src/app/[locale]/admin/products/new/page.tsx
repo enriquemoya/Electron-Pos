@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createCatalogProduct, fetchTaxonomies } from "@/lib/admin-api";
 import { requireAdmin } from "@/lib/admin-guard";
 import { ProductCreateForm } from "@/components/admin/product-create-form";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 async function createProductAction(formData: FormData) {
   "use server";
@@ -64,10 +65,21 @@ export default async function ProductCreatePage({ params }: { params: { locale: 
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminProducts" });
   const commonT = await getTranslations({ locale: params.locale });
+  const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
+  const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const games = await fetchTaxonomies({ type: "GAME", page: 1, pageSize: 100 });
 
   return (
     <div className="space-y-6">
+      <AdminBreadcrumb
+        locale={params.locale}
+        homeLabel={tSeo("home")}
+        adminLabel={tAdmin("title")}
+        items={[
+          { label: t("title"), href: `/${params.locale}/admin/products` },
+          { label: t("actions.create") }
+        ]}
+      />
       <div>
         <h1 className="text-2xl font-semibold text-white">{t("createTitle")}</h1>
         <p className="text-sm text-white/60">{t("createSubtitle")}</p>
