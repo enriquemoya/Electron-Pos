@@ -339,7 +339,7 @@ export type SyncRepository = {
   recordEvents: (events: any[]) => Promise<{ accepted: string[]; duplicates: string[] }>;
   getPendingEvents: (posId: string, since: string | null) => Promise<any[]>;
   acknowledgeEvents: (posId: string, eventIds: string[]) => Promise<void>;
-  createOrder: (orderId: string, items: any[]) => Promise<{ duplicate: boolean }>;
+  createOrder: (orderId: string, items: any[], branchId: string) => Promise<{ duplicate: boolean }>;
   readProducts: (params: {
     page: number;
     pageSize: number;

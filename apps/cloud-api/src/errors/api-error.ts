@@ -76,6 +76,25 @@ export const ApiErrors = {
   blogMediaInvalidHost: new ApiError(400, "BLOG_MEDIA_INVALID_HOST", "blog media invalid host"),
   blogMediaNotAllowed: new ApiError(400, "BLOG_MEDIA_NOT_ALLOWED", "blog media not allowed"),
   blogInternalError: new ApiError(500, "BLOG_INTERNAL_ERROR", "blog internal error"),
+  terminalAlreadyActivated: new ApiError(400, "TERMINAL_ALREADY_ACTIVATED", "terminal already activated"),
+  terminalFingerprintMismatch: new ApiError(
+    403,
+    "TERMINAL_FINGERPRINT_MISMATCH",
+    "terminal fingerprint mismatch"
+  ),
+  terminalInvalidToken: new ApiError(401, "TERMINAL_INVALID_TOKEN", "terminal invalid token"),
+  terminalRevoked: new ApiError(403, "TERMINAL_REVOKED", "terminal revoked"),
+  terminalRotationFailed: new ApiError(500, "TERMINAL_ROTATION_FAILED", "terminal rotation failed"),
+  terminalInvalidGraceToken: new ApiError(
+    401,
+    "TERMINAL_INVALID_GRACE_TOKEN",
+    "terminal invalid grace token"
+  ),
+  terminalTokenExpired: new ApiError(401, "TERMINAL_TOKEN_EXPIRED", "terminal token expired"),
+  terminalRateLimited: new ApiError(429, "POS_RATE_LIMITED", "terminal rate limited"),
+  terminalNotFound: new ApiError(404, "POS_TERMINAL_NOT_FOUND", "terminal not found"),
+  terminalAlreadyRevoked: new ApiError(400, "POS_TERMINAL_ALREADY_REVOKED", "terminal already revoked"),
+  invalidActivationKey: new ApiError(401, "POS_INVALID_ACTIVATION_KEY", "invalid activation key"),
   orderTransferApprovalRequired: new ApiError(
     400,
     "ORDER_TRANSFER_APPROVAL_REQUIRED",

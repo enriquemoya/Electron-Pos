@@ -71,7 +71,7 @@ export async function acknowledgeEvents(posId: string, eventIds: string[]) {
   });
 }
 
-export async function createOrder(orderId: string, items: any[]) {
+export async function createOrder(orderId: string, items: any[], branchId: string) {
   return withClient(async (client) => {
     const existing = await client.query("SELECT order_id FROM orders WHERE order_id = $1", [orderId]);
     if (existing.rowCount && existing.rowCount > 0) {
@@ -80,7 +80,7 @@ export async function createOrder(orderId: string, items: any[]) {
 
     await client.query(
       "INSERT INTO orders (id, order_id, status, payload) VALUES ($1, $2, $3, $4)",
-      [crypto.randomUUID(), orderId, "CREATED", { items }]
+      [crypto.randomUUID(), orderId, "CREATED", { items, branchId }]
     );
 
     const eventId = `order-${orderId}`;
@@ -88,31 +88,8 @@ export async function createOrder(orderId: string, items: any[]) {
       `INSERT INTO sync_events (id, event_id, type, occurred_at, source, payload, status)
        VALUES ($1, $2, 'ONLINE_SALE', $3, $4, $5, 'PENDING')
        ON CONFLICT (event_id) DO NOTHING`,
-      [crypto.randomUUID(), eventId, new Date().toISOString(), "online-store", { orderId, items }]
+      [crypto.randomUUID(), eventId, new Date().toISOString(), "online-store", { orderId, items, branchId }]
     );
-
-    for (const item of items) {
-      const quantity = Math.max(0, Number(item.quantity) || 0);
-      if (!quantity) {
-        continue;
-      }
-      await client.query(
-        `INSERT INTO read_model_inventory
-         (product_id, available, updated_at, last_synced_at, availability_state)
-         VALUES ($1, 0, NOW(), NOW(), 'PENDING_SYNC')
-         ON CONFLICT (product_id)
-         DO UPDATE SET
-           available = GREATEST(0, read_model_inventory.available - $2),
-           updated_at = NOW(),
-           last_synced_at = NOW(),
-           availability_state = CASE
-             WHEN (read_model_inventory.available - $2) <= 0 THEN 'SOLD_OUT'
-             WHEN (read_model_inventory.available - $2) <= 2 THEN 'LOW_STOCK'
-             ELSE 'AVAILABLE'
-           END`,
-        [String(item.productId), quantity]
-      );
-    }
 
     return { duplicate: false };
   });

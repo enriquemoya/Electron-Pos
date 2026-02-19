@@ -64,13 +64,21 @@ export function createSyncController(useCases: SyncUseCases) {
     async createOrderHandler(req: Request, res: Response) {
       const orderId = req.body?.orderId;
       const items = Array.isArray(req.body?.items) ? req.body.items : [];
+      const terminal = (req as Request & { terminal?: { branchId: string } }).terminal;
       if (!orderId || items.length === 0) {
         res.status(400).json({ error: ApiErrors.orderRequired.message });
         return;
       }
+      if (!terminal?.branchId) {
+        res.status(ApiErrors.terminalInvalidToken.status).json({
+          error: ApiErrors.terminalInvalidToken.message,
+          code: ApiErrors.terminalInvalidToken.code
+        });
+        return;
+      }
 
       try {
-        const result = await useCases.createOrder(String(orderId), items);
+        const result = await useCases.createOrder(String(orderId), items, terminal.branchId);
         if (result.duplicate) {
           res.status(200).json({ status: "duplicate" });
         } else {

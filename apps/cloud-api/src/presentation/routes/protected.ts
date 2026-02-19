@@ -12,6 +12,7 @@ import type { UsersUseCases } from "../../application/use-cases/users";
 import type { BranchUseCases } from "../../application/use-cases/branches";
 import type { MediaUseCases } from "../../application/use-cases/media";
 import type { BlogUseCases } from "../../application/use-cases/blog";
+import type { TerminalUseCases } from "../../application/use-cases/terminals";
 import { createCatalogController } from "../controllers/catalog-controller";
 import { createAdminDashboardController } from "../controllers/admin-dashboard-controller";
 import { createCatalogAdminController } from "../controllers/catalog-admin-controller";
@@ -29,6 +30,8 @@ import { adminMediaUploadMiddleware } from "../middleware/admin-media-upload";
 import { createBlogController } from "../controllers/blog-controller";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { ApiErrors } from "../../errors/api-error";
+import { createTerminalController } from "../controllers/terminal-controller";
+import { requireTerminalAuth } from "../middleware/require-terminal-auth";
 
 export function createProtectedRoutes(params: {
   adminDashboardUseCases: AdminDashboardUseCases;
@@ -43,6 +46,7 @@ export function createProtectedRoutes(params: {
   orderFulfillmentUseCases: OrderFulfillmentUseCases;
   mediaUseCases: MediaUseCases;
   blogUseCases: BlogUseCases;
+  terminalUseCases: TerminalUseCases;
 }) {
   const router = Router();
   const catalogController = createCatalogController(params.catalogUseCases);
@@ -57,6 +61,7 @@ export function createProtectedRoutes(params: {
   const orderFulfillmentController = createOrderFulfillmentController(params.orderFulfillmentUseCases);
   const mediaController = createMediaController(params.mediaUseCases);
   const blogController = createBlogController(params.blogUseCases);
+  const terminalController = createTerminalController(params.terminalUseCases);
   const blogMutationsRateLimit = createRateLimitMiddleware({
     limit: 30,
     windowMs: 60_000,
@@ -74,12 +79,33 @@ export function createProtectedRoutes(params: {
     keyPrefix: "admin-media-read",
     error: ApiErrors.mediaRateLimited
   });
+  const terminalActivationRateLimit = createRateLimitMiddleware({
+    limit: 10,
+    windowMs: 60_000,
+    keyPrefix: "pos-activation",
+    error: ApiErrors.terminalRateLimited
+  });
+  const terminalRotationRateLimit = createRateLimitMiddleware({
+    limit: 60,
+    windowMs: 60_000,
+    keyPrefix: "pos-rotation",
+    error: ApiErrors.terminalRateLimited
+  });
+  const terminalSyncRateLimit = createRateLimitMiddleware({
+    limit: 120,
+    windowMs: 60_000,
+    keyPrefix: "pos-sync",
+    error: ApiErrors.terminalRateLimited
+  });
+  const requirePosToken = requireTerminalAuth(params.terminalUseCases);
 
   router.post("/sync/events", syncController.recordEventsHandler);
   router.get("/sync/pending", syncController.getPendingHandler);
   router.post("/sync/ack", syncController.acknowledgeHandler);
-  router.post("/orders", syncController.createOrderHandler);
+  router.post("/orders", terminalSyncRateLimit, requirePosToken, syncController.createOrderHandler);
   router.get("/read/products", syncController.readProductsHandler);
+  router.post("/pos/activate", terminalActivationRateLimit, terminalController.activateHandler);
+  router.post("/pos/rotate-token", terminalRotationRateLimit, requirePosToken, terminalController.rotateTokenHandler);
   router.get("/api/cloud/catalog/featured", catalogController.getFeaturedCatalogHandler);
 
   router.use("/profile", requireAuth);
@@ -129,6 +155,10 @@ export function createProtectedRoutes(params: {
   router.post("/admin/blog/posts/:id/publish", blogMutationsRateLimit, blogController.publishPostHandler);
   router.post("/admin/blog/posts/:id/unpublish", blogMutationsRateLimit, blogController.unpublishPostHandler);
   router.delete("/admin/blog/posts/:id", blogMutationsRateLimit, blogController.deletePostHandler);
+  router.get("/admin/terminals", terminalController.listAdminTerminalsHandler);
+  router.post("/admin/terminals", terminalController.createAdminTerminalHandler);
+  router.post("/admin/terminals/:id/regenerate-key", terminalController.regenerateAdminTerminalKeyHandler);
+  router.post("/admin/terminals/:id/revoke", terminalController.revokeAdminTerminalHandler);
   router.get("/admin/users", usersController.listUsersHandler);
   router.get("/admin/users/:id", usersController.getUserHandler);
   router.post("/admin/users", usersController.createUserHandler);

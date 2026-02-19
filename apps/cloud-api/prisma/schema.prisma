@@ -187,6 +187,12 @@ enum InventoryReservationStatus {
   RELEASED
 }
 
+enum TerminalStatus {
+  PENDING
+  ACTIVE
+  REVOKED
+}
+
 model User {
   id         String      @id @default(uuid()) @db.Uuid
   email      String?     @unique
@@ -214,6 +220,7 @@ model User {
   orderStatusLogs OnlineOrderStatusLog[] @relation("OnlineOrderStatusLogActor")
   paymentEntries OrderPaymentEntry[] @relation("OrderPaymentEntryActor")
   refunds      OnlineOrderRefund[]   @relation("OnlineOrderRefundAdmin")
+  revokedTerminals Terminal[]        @relation("TerminalRevokedByAdmin")
 
   @@map("users")
 }
@@ -324,9 +331,37 @@ model PickupBranch {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   orders OnlineOrder[]
+  terminals Terminal[]
 
   @@index([city], name: "idx_pickup_branches_city")
   @@map("pickup_branches")
+}
+
+model Terminal {
+  id                          String        @id @default(cuid())
+  name                        String
+  branchId                    String        @map("branch_id") @db.Uuid
+  activationApiKeyHash        String?       @map("activation_api_key_hash")
+  deviceFingerprintHash       String?       @map("device_fingerprint_hash")
+  currentDeviceTokenHash      String?       @map("current_device_token_hash")
+  previousDeviceTokenHash     String?       @map("previous_device_token_hash")
+  previousTokenGraceValidUntil DateTime?    @map("previous_token_grace_valid_until") @db.Timestamptz(6)
+  status                      TerminalStatus @default(PENDING)
+  revokedAt                   DateTime?     @map("revoked_at") @db.Timestamptz(6)
+  revokedByAdminId            String?       @map("revoked_by_admin_id") @db.Uuid
+  lastSeenAt                  DateTime?     @map("last_seen_at") @db.Timestamptz(6)
+  createdAt                   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  branch                      PickupBranch  @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  revokedByAdmin              User?         @relation("TerminalRevokedByAdmin", fields: [revokedByAdminId], references: [id], onDelete: SetNull)
+
+  @@unique([activationApiKeyHash], name: "ux_terminals_activation_api_key_hash")
+  @@unique([currentDeviceTokenHash], name: "ux_terminals_current_device_token_hash")
+  @@index([branchId], name: "idx_terminals_branch")
+  @@index([deviceFingerprintHash], name: "idx_terminals_fingerprint")
+  @@index([previousDeviceTokenHash], name: "idx_terminals_previous_device_token_hash")
+  @@index([status], name: "idx_terminals_status")
+  @@map("terminals")
 }
 
 model PreorderDraft {
