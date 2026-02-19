@@ -108,6 +108,12 @@ export const ApiErrors = {
   posSyncEventInvalid: new ApiError(400, "POS_SYNC_EVENT_INVALID", "pos sync event invalid"),
   posSyncEventDuplicate: new ApiError(200, "POS_SYNC_EVENT_DUPLICATE", "pos sync event duplicate"),
   posSyncStorageFailed: new ApiError(500, "POS_SYNC_STORAGE_FAILED", "pos sync storage failed"),
+  proofInvalidType: new ApiError(400, "PROOF_INVALID_TYPE", "proof invalid type"),
+  proofTooLarge: new ApiError(413, "PROOF_TOO_LARGE", "proof too large"),
+  proofUploadFailed: new ApiError(500, "PROOF_UPLOAD_FAILED", "proof upload failed"),
+  proofNotAuthorized: new ApiError(403, "PROOF_NOT_AUTHORIZED", "proof not authorized"),
+  proofNotFound: new ApiError(404, "PROOF_NOT_FOUND", "proof not found"),
+  proofRateLimited: new ApiError(429, "PROOF_RATE_LIMITED", "proof rate limited"),
   orderTransferApprovalRequired: new ApiError(
     400,
     "ORDER_TRANSFER_APPROVAL_REQUIRED",

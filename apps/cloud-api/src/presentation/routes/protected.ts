@@ -32,6 +32,7 @@ import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { ApiErrors } from "../../errors/api-error";
 import { createTerminalController } from "../controllers/terminal-controller";
 import { requireTerminalAuth } from "../middleware/require-terminal-auth";
+import { posProofUploadMiddleware } from "../middleware/pos-proof-upload";
 
 export function createProtectedRoutes(params: {
   adminDashboardUseCases: AdminDashboardUseCases;
@@ -97,6 +98,18 @@ export function createProtectedRoutes(params: {
     keyPrefix: "pos-sync",
     error: ApiErrors.posSyncRateLimited
   });
+  const posProofUploadRateLimit = createRateLimitMiddleware({
+    limit: 30,
+    windowMs: 60_000,
+    keyPrefix: "pos-proof-upload",
+    error: ApiErrors.proofRateLimited
+  });
+  const adminProofReadRateLimit = createRateLimitMiddleware({
+    limit: 60,
+    windowMs: 60_000,
+    keyPrefix: "admin-proof-read",
+    error: ApiErrors.proofRateLimited
+  });
   const requirePosToken = requireTerminalAuth(params.terminalUseCases);
 
   router.post("/sync/events", syncController.recordEventsHandler);
@@ -106,6 +119,7 @@ export function createProtectedRoutes(params: {
   router.get("/pos/catalog/delta", terminalSyncRateLimit, requirePosToken, syncController.catalogDeltaHandler);
   router.post("/pos/catalog/reconcile", terminalSyncRateLimit, requirePosToken, syncController.reconcileCatalogHandler);
   router.post("/pos/sync/sales-events", terminalSyncRateLimit, requirePosToken, syncController.ingestSalesEventHandler);
+  router.post("/pos/media/proofs/upload", posProofUploadRateLimit, requirePosToken, posProofUploadMiddleware, mediaController.uploadPosProofHandler);
   router.post("/orders", terminalSyncRateLimit, requirePosToken, syncController.createOrderHandler);
   router.get("/read/products", syncController.readProductsHandler);
   router.post("/pos/activate", terminalActivationRateLimit, terminalController.activateHandler);
@@ -150,6 +164,8 @@ export function createProtectedRoutes(params: {
   router.post("/admin/orders/:orderId/refunds", orderFulfillmentController.createRefundHandler);
   router.post("/admin/orders/expire", orderFulfillmentController.runExpirationSweepHandler);
   router.get("/admin/media", mediaReadRateLimit, mediaController.listAdminMediaHandler);
+  router.get("/admin/media/proofs", adminProofReadRateLimit, mediaController.listAdminProofsHandler);
+  router.get("/admin/media/proofs/:id", adminProofReadRateLimit, mediaController.getAdminProofByIdHandler);
   router.post("/admin/media/upload", mediaWriteRateLimit, adminMediaUploadMiddleware, mediaController.uploadAdminMediaHandler);
   router.delete("/admin/media/*", mediaWriteRateLimit, mediaController.deleteAdminMediaHandler);
   router.get("/admin/blog/posts", blogController.listAdminPostsHandler);

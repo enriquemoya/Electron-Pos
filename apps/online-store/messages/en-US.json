@@ -410,7 +410,8 @@
       "branches": "Pickup branches",
       "orders": "Order management",
       "blog": "Blog editor",
-      "terminals": "POS terminals"
+      "terminals": "POS terminals",
+      "proofs": "Proof files"
     }
   },
   "adminTerminals": {
@@ -1337,6 +1338,21 @@
     },
     "toc": {
       "title": "Table of contents"
+    }
+  },
+  "adminProofs": {
+    "title": "Proof files",
+    "subtitle": "Global proof uploads from POS terminals.",
+    "empty": "No proof files found.",
+    "table": {
+      "createdAt": "Created",
+      "branch": "Branch",
+      "terminal": "Terminal",
+      "sale": "Sale",
+      "mime": "Type",
+      "size": "Size",
+      "url": "URL",
+      "open": "Open"
     }
   }
 }

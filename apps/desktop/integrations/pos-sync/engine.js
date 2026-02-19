@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { deriveProofStatus } = require("@pos/core");
 
 const RETRIABLE_CODES = new Set([
   "POS_SYNC_STORAGE_FAILED",
@@ -138,7 +139,7 @@ function normalizeErrorCode(error) {
 }
 
 async function flushSalesJournal({ cloudClient, posSyncRepo }) {
-  const pending = posSyncRepo.listPendingEvents(100);
+  const pending = posSyncRepo.listPendingEvents(100).filter((event) => event.eventType === "SALE_COMMITTED");
   let synced = 0;
   for (const event of pending) {
     try {
@@ -170,6 +171,68 @@ async function flushSalesJournal({ cloudClient, posSyncRepo }) {
     }
   }
 
+  return {
+    attempted: pending.length,
+    synced,
+    remaining: Math.max(0, pending.length - synced)
+  };
+}
+
+async function flushProofUploadJournal({ cloudClient, posSyncRepo, saleRepo }) {
+  const pending = posSyncRepo.listPendingEvents(100).filter((event) => event.eventType === "PROOF_UPLOAD");
+  let synced = 0;
+  for (const event of pending) {
+    try {
+      const payload = event.payload || {};
+      const localPath = String(payload.localPath || "");
+      const fileName = String(payload.fileName || "proof.bin");
+      const mimeType = String(payload.mimeType || "application/octet-stream");
+      const saleId = payload.saleId ? String(payload.saleId) : null;
+      if (!localPath) {
+        posSyncRepo.markEventRetry(event.id, {
+          retryCount: event.retryCount + 1,
+          nextRetryAt: toIsoAfter(backoffMs(event.retryCount + 1)),
+          errorCode: "PROOF_UPLOAD_FAILED",
+          nowIso: nowIso(),
+          manualInterventionRequired: true
+        });
+        continue;
+      }
+      const fs = require("fs");
+      if (!fs.existsSync(localPath)) {
+        posSyncRepo.markEventRetry(event.id, {
+          retryCount: event.retryCount + 1,
+          nextRetryAt: toIsoAfter(backoffMs(event.retryCount + 1)),
+          errorCode: "PROOF_UPLOAD_FAILED",
+          nowIso: nowIso(),
+          manualInterventionRequired: true
+        });
+        continue;
+      }
+      const response = await cloudClient.uploadProof({
+        fileBuffer: fs.readFileSync(localPath),
+        fileName,
+        mimeType,
+        saleId
+      });
+      if (saleId && saleRepo) {
+        saleRepo.updateProof(saleId, response.url, deriveProofStatus(String(payload.method || "TRANSFERENCIA"), true));
+      }
+      fs.unlinkSync(localPath);
+      posSyncRepo.markEventSynced(event.id, nowIso());
+      synced += 1;
+    } catch (error) {
+      const errorCode = normalizeErrorCode(error);
+      const retryCount = event.retryCount + 1;
+      posSyncRepo.markEventRetry(event.id, {
+        retryCount,
+        nextRetryAt: toIsoAfter(Math.max(30 * 60_000, backoffMs(retryCount))),
+        errorCode,
+        nowIso: nowIso(),
+        manualInterventionRequired: retryCount >= event.maxRetries
+      });
+    }
+  }
   return {
     attempted: pending.length,
     synced,
@@ -251,5 +314,6 @@ module.exports = {
   runCatalogSync,
   runReconcile,
   flushSalesJournal,
+  flushProofUploadJournal,
   enqueueSaleSyncEvent
 };

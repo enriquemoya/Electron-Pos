@@ -38,10 +38,12 @@ const {
   runCatalogSync,
   runReconcile,
   flushSalesJournal,
+  flushProofUploadJournal,
   enqueueSaleSyncEvent
 } = require("./integrations/pos-sync/engine");
+const { uploadOrQueueProof } = require("./integrations/proofs/proof-upload-service");
 // MIGRATION NOTE (pos-offline-sync-engine-v1):
-// Google Drive inventory sync IPC endpoints were removed from startup/runtime paths.
+// Legacy inventory sync IPC endpoints were removed from startup/runtime paths.
 // POS sync now uses terminal-authenticated cloud endpoints and local sync_journal storage.
 const { registerProductIpc } = require("./ipc/product-ipc");
 const { registerInventoryIpc } = require("./ipc/inventory-ipc");
@@ -77,23 +79,6 @@ for (const envPath of envPaths) {
     const isDesktopEnv = envPath.endsWith(path.join("apps", "desktop", ".env"));
     dotenv.config({ path: envPath, override: isDesktopEnv });
   }
-}
-
-function getDriveConfig() {
-  const clientId = process.env.DRIVE_CLIENT_ID;
-  if (!clientId) {
-    throw new Error("DRIVE_CLIENT_ID is missing.");
-  }
-
-  return {
-    clientId,
-    clientSecret: process.env.DRIVE_CLIENT_SECRET,
-    scopes: (process.env.DRIVE_SCOPES || "https://www.googleapis.com/auth/drive.file")
-      .split(",")
-      .map((scope) => scope.trim())
-      .filter(Boolean),
-    fileName: process.env.DRIVE_FILE_NAME || "productos-inventario.xlsx"
-  };
 }
 
 ipcMain.handle("terminal-auth:get-state", async () => {
@@ -319,6 +304,18 @@ app.whenReady().then(async () => {
   const participantRepo = createParticipantRepository(db);
   const prizeRepo = createTournamentPrizeRepository(db);
   terminalAuthService = createTerminalAuthService();
+  const cloudClient =
+    process.env.CLOUD_API_URL || process.env.API_URL || process.env.CLOUD_API_BASE_URL
+      ? new PosSyncCloudClient((pathname, init) => terminalAuthService.authenticatedRequest(pathname, init))
+      : null;
+  const uploadProof = async (payload) =>
+    uploadOrQueueProof({
+      ...payload,
+      cloudClient,
+      posSyncRepo,
+      terminalState: terminalAuthService.getState(),
+      saleRepo
+    });
 
   registerDataSafetyIpc(ipcMain, dataSafety);
   registerInventorySyncIpc(ipcMain, {
@@ -371,8 +368,8 @@ app.whenReady().then(async () => {
   });
   registerSyncIpc(ipcMain, syncRepo);
   registerCashRegisterIpc(ipcMain, shiftRepo, saleRepo);
-  registerPaymentsIpc(ipcMain, saleRepo, getDriveConfig);
-  registerSalesHistoryIpc(ipcMain, saleRepo, getDriveConfig);
+  registerPaymentsIpc(ipcMain, saleRepo, uploadProof);
+  registerSalesHistoryIpc(ipcMain, saleRepo, uploadProof);
   registerCustomerIpc(ipcMain, customerRepo);
   registerGameTypeIpc(ipcMain, gameTypeRepo);
   registerExpansionIpc(ipcMain, expansionRepo);
@@ -390,13 +387,8 @@ app.whenReady().then(async () => {
     expansionRepo,
     storeCreditRepo,
     db,
-    getDriveConfig
+    uploadProof
   });
-
-  const cloudClient =
-    process.env.CLOUD_API_URL || process.env.API_URL || process.env.CLOUD_API_BASE_URL
-      ? new PosSyncCloudClient((pathname, init) => terminalAuthService.authenticatedRequest(pathname, init))
-      : null;
   if (cloudClient) {
     runCatalogSync({
       cloudClient,
@@ -410,6 +402,13 @@ app.whenReady().then(async () => {
     }).catch(() => {
       // Journal flush failures should not block POS startup.
     });
+    flushProofUploadJournal({
+      cloudClient,
+      posSyncRepo,
+      saleRepo
+    }).catch(() => {
+      // Proof upload retries are best effort.
+    });
     setInterval(() => {
       flushSalesJournal({
         cloudClient,
@@ -418,6 +417,15 @@ app.whenReady().then(async () => {
         // Background retries are best effort.
       });
     }, 30_000);
+    setInterval(() => {
+      flushProofUploadJournal({
+        cloudClient,
+        posSyncRepo,
+        saleRepo
+      }).catch(() => {
+        // Retry loop is best effort.
+      });
+    }, 30 * 60_000);
   }
 
   mainWindow = createWindow();

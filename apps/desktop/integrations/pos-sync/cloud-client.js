@@ -38,6 +38,19 @@ class PosSyncCloudClient {
       body: JSON.stringify({ localEventId, eventType, payload })
     });
   }
+
+  async uploadProof({ fileBuffer, fileName, mimeType, saleId = null }) {
+    const form = new FormData();
+    const blob = new Blob([fileBuffer], { type: mimeType || "application/octet-stream" });
+    form.append("file", blob, fileName || "proof.bin");
+    if (saleId) {
+      form.append("saleId", saleId);
+    }
+    return this.requestWithTerminalAuth("/pos/media/proofs/upload", {
+      method: "POST",
+      body: form
+    });
+  }
 }
 
 module.exports = {

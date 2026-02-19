@@ -65,6 +65,7 @@ model ReadModelInventory {
   lastSyncedAt      DateTime? @map("last_synced_at") @db.Timestamptz(6)
   isFeatured        Boolean  @default(false) @map("is_featured")
   featuredOrder     Int?     @map("featured_order")
+  branchScopes      BranchCatalogScope[]
 
   @@index([categoryId], name: "idx_read_model_category_id")
   @@index([gameId], name: "idx_read_model_game_id")
@@ -333,9 +334,24 @@ model PickupBranch {
   orders OnlineOrder[]
   terminals Terminal[]
   posSyncEvents PosSyncEvent[]
+  catalogScopes BranchCatalogScope[]
+  proofMedia ProofMedia[]
 
   @@index([city], name: "idx_pickup_branches_city")
   @@map("pickup_branches")
+}
+
+model BranchCatalogScope {
+  branchId  String   @map("branch_id") @db.Uuid
+  productId String   @map("product_id")
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  branch    PickupBranch      @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  product   ReadModelInventory @relation(fields: [productId], references: [productId], onDelete: Cascade)
+
+  @@id([branchId, productId])
+  @@index([branchId, updatedAt], name: "idx_branch_catalog_scope_branch_updated")
+  @@index([productId], name: "idx_branch_catalog_scope_product")
+  @@map("branch_catalog_scope")
 }
 
 model Terminal {
@@ -356,6 +372,7 @@ model Terminal {
   branch                      PickupBranch  @relation(fields: [branchId], references: [id], onDelete: Restrict)
   revokedByAdmin              User?         @relation("TerminalRevokedByAdmin", fields: [revokedByAdminId], references: [id], onDelete: SetNull)
   posSyncEvents               PosSyncEvent[]
+  proofMedia                  ProofMedia[]
 
   @@unique([activationApiKeyHash], name: "ux_terminals_activation_api_key_hash")
   @@unique([currentDeviceTokenHash], name: "ux_terminals_current_device_token_hash")
@@ -364,6 +381,27 @@ model Terminal {
   @@index([previousDeviceTokenHash], name: "idx_terminals_previous_device_token_hash")
   @@index([status], name: "idx_terminals_status")
   @@map("terminals")
+}
+
+model ProofMedia {
+  id         String    @id @default(uuid()) @db.Uuid
+  branchId   String    @map("branch_id") @db.Uuid
+  terminalId String    @map("terminal_id")
+  saleId     String?   @map("sale_id")
+  objectKey  String    @map("object_key")
+  cdnUrl     String    @map("cdn_url")
+  mime       String
+  sizeBytes  Int       @map("size_bytes")
+  width      Int?
+  height     Int?
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  branch     PickupBranch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  terminal   Terminal  @relation(fields: [terminalId], references: [id], onDelete: Restrict)
+
+  @@index([branchId, createdAt(sort: Desc)], name: "idx_proof_media_branch_created")
+  @@index([saleId], name: "idx_proof_media_sale")
+  @@index([terminalId, createdAt(sort: Desc)], name: "idx_proof_media_terminal_created")
+  @@map("proof_media")
 }
 
 model PosSyncEvent {

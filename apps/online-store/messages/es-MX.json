@@ -410,7 +410,8 @@
       "branches": "Sucursales",
       "orders": "Gestion de pedidos",
       "blog": "Editor de blog",
-      "terminals": "Terminales POS"
+      "terminals": "Terminales POS",
+      "proofs": "Archivos de comprobante"
     }
   },
   "adminTerminals": {
@@ -1337,6 +1338,21 @@
     },
     "toc": {
       "title": "Tabla de contenido"
+    }
+  },
+  "adminProofs": {
+    "title": "Archivos de comprobante",
+    "subtitle": "Subidas globales de comprobantes desde terminales POS.",
+    "empty": "No se encontraron comprobantes.",
+    "table": {
+      "createdAt": "Creado",
+      "branch": "Sucursal",
+      "terminal": "Terminal",
+      "sale": "Venta",
+      "mime": "Tipo",
+      "size": "Tamano",
+      "url": "URL",
+      "open": "Abrir"
     }
   }
 }

@@ -100,6 +100,22 @@ function buildSnapshotVersion(date: Date | null): string {
   return date ? date.toISOString() : "1970-01-01T00:00:00.000Z";
 }
 
+async function ensureBranchCatalogScope(branchId: string) {
+  const existing = await prisma.branchCatalogScope.count({
+    where: { branchId }
+  });
+  if (existing > 0) {
+    return;
+  }
+
+  await prisma.$executeRaw`
+    INSERT INTO branch_catalog_scope (branch_id, product_id)
+    SELECT ${branchId}::uuid, product_id
+    FROM read_model_inventory
+    ON CONFLICT (branch_id, product_id) DO NOTHING
+  `;
+}
+
 function buildVersionHash(params: { updatedAt: Date; available: number; price: Prisma.Decimal | null }) {
   return crypto
     .createHash("sha256")
@@ -161,8 +177,11 @@ export async function getCatalogSnapshot(params: { branchId: string; page: numbe
   if (!branch) {
     throw ApiErrors.branchNotFound;
   }
+  await ensureBranchCatalogScope(params.branchId);
 
-  const where: Prisma.ReadModelInventoryWhereInput = {};
+  const where: Prisma.ReadModelInventoryWhereInput = {
+    branchScopes: { some: { branchId: params.branchId } }
+  };
   const [items, total, latest] = await prisma.$transaction([
     prisma.readModelInventory.findMany({
       where,
@@ -216,9 +235,11 @@ export async function getCatalogDelta(params: {
   if (!branch) {
     throw ApiErrors.branchNotFound;
   }
+  await ensureBranchCatalogScope(params.branchId);
 
   const sinceDate = params.since ? new Date(params.since) : null;
   const where: Prisma.ReadModelInventoryWhereInput = {
+    branchScopes: { some: { branchId: params.branchId } },
     ...(sinceDate && !Number.isNaN(sinceDate.getTime()) ? { updatedAt: { gt: sinceDate } } : {})
   };
   const [items, total, latest] = await prisma.$transaction([
@@ -278,8 +299,12 @@ export async function reconcileCatalog(params: {
   if (!branch) {
     throw ApiErrors.branchNotFound;
   }
+  await ensureBranchCatalogScope(params.branchId);
 
   const cloudRows = await prisma.readModelInventory.findMany({
+    where: {
+      branchScopes: { some: { branchId: params.branchId } }
+    },
     select: {
       productId: true,
       updatedAt: true,

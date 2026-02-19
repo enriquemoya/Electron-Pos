@@ -128,6 +128,28 @@ type AdminTerminalCreateResponse = {
   createdAt: string;
 };
 
+type AdminProofMedia = {
+  id: string;
+  branchId: string;
+  terminalId: string;
+  saleId: string | null;
+  key: string;
+  url: string;
+  mime: string;
+  sizeBytes: number;
+  width: number | null;
+  height: number | null;
+  createdAt: string;
+};
+
+type AdminProofMediaResponse = {
+  items: AdminProofMedia[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+};
+
 type OrderStatus =
   | "CREATED"
   | "PENDING_PAYMENT"
@@ -343,6 +365,37 @@ export async function fetchAdminSummary(): Promise<AdminSummary> {
     throw new Error("admin summary request failed");
   }
 
+  return response.json();
+}
+
+export async function fetchAdminProofMedia(params: {
+  branchId?: string;
+  q?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<AdminProofMediaResponse> {
+  const baseUrl = getBaseUrl();
+  const url = withQuery(new URL(`${baseUrl}/admin/media/proofs`), {
+    branchId: params.branchId,
+    q: params.q,
+    from: params.from,
+    to: params.to,
+    page: params.page ?? 1,
+    pageSize: params.pageSize ?? 20
+  });
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+  if (!response.ok) {
+    throw new Error("admin proof media request failed");
+  }
   return response.json();
 }
 
