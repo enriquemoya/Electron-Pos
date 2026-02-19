@@ -409,7 +409,100 @@
       "taxonomies": "Catalog taxonomies",
       "branches": "Pickup branches",
       "orders": "Order management",
-      "blog": "Blog editor"
+      "blog": "Blog editor",
+      "terminals": "POS terminals"
+    }
+  },
+  "adminTerminals": {
+    "title": "Terminal management",
+    "subtitle": "Create, review, and revoke POS terminals.",
+    "summary": "{count} terminals total. Page {page} of {pages}.",
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "table": {
+      "columns": {
+        "name": "Terminal",
+        "branch": "Branch",
+        "status": "Status",
+        "lastRotation": "Last rotation",
+        "createdAt": "Created at",
+        "actions": "Actions"
+      },
+      "empty": "No terminals found yet.",
+      "never": "Never",
+      "actions": {
+        "details": "View details",
+        "revoke": "Revoke terminal",
+        "revoking": "Revoking...",
+        "disabled": "Already revoked",
+        "menuLabel": "Open terminal actions"
+      }
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {pages}"
+    },
+    "create": {
+      "trigger": "Create terminal",
+      "title": "Create terminal",
+      "description": "Generate a new terminal for a branch and reveal its activation key once.",
+      "fields": {
+        "name": "Terminal name",
+        "namePlaceholder": "Counter A",
+        "branch": "Branch",
+        "branchPlaceholder": "Select a branch"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "submit": "Create terminal",
+        "creating": "Creating..."
+      },
+      "key": {
+        "title": "Activation key generated",
+        "description": "Store this key securely. It is only shown once.",
+        "hint": "After closing this dialog, the key cannot be displayed again.",
+        "copy": "Copy key",
+        "copied": "Copied",
+        "close": "Done"
+      }
+    },
+    "revoke": {
+      "title": "Revoke terminal",
+      "description": "Revoke {name}? Active device tokens will be invalidated.",
+      "cancel": "Cancel",
+      "confirm": "Revoke"
+    },
+    "detail": {
+      "subtitle": "Terminal metadata and security status.",
+      "back": "Back to terminals",
+      "revoke": "Revoke terminal",
+      "revokeDisabled": "Terminal revoked",
+      "notRevoked": "Not revoked",
+      "fields": {
+        "branch": "Branch",
+        "lastRotation": "Last rotation",
+        "createdAt": "Created at",
+        "revokedAt": "Revoked at"
+      }
+    },
+    "toasts": {
+      "created": "Terminal created",
+      "createError": "Could not create terminal",
+      "revokeOk": "Terminal revoked",
+      "revokeError": "Could not revoke terminal"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "nameRequired": "Terminal name is required.",
+      "branchRequired": "Please select a branch.",
+      "unauthorized": "Your session expired. Please sign in again.",
+      "notFound": "Terminal not found.",
+      "revoked": "Terminal is already revoked.",
+      "rateLimited": "Too many requests. Try again in a moment."
     }
   },
   "adminInventory": {

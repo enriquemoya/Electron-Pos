@@ -101,6 +101,33 @@ type PickupBranch = {
   updatedAt: string;
 };
 
+type TerminalStatus = "PENDING" | "ACTIVE" | "REVOKED";
+
+type AdminTerminal = {
+  id: string;
+  name: string;
+  branchId: string;
+  branchName: string;
+  branchCity: string | null;
+  status: TerminalStatus;
+  revokedAt: string | null;
+  revokedByAdminId: string | null;
+  revokedByAdminName: string | null;
+  lastSeenAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type AdminTerminalCreateResponse = {
+  id: string;
+  name: string;
+  branchId: string;
+  branchName: string;
+  status: TerminalStatus;
+  activationApiKey: string;
+  createdAt: string;
+};
+
 type OrderStatus =
   | "CREATED"
   | "PENDING_PAYMENT"
@@ -405,6 +432,67 @@ export async function fetchAdminBranches(): Promise<PickupBranch[]> {
 
   const data = (await response.json()) as { items: PickupBranch[] };
   return data.items ?? [];
+}
+
+export async function fetchAdminTerminals(): Promise<AdminTerminal[]> {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/terminals`, {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("terminals request failed");
+  }
+
+  const data = (await response.json()) as { items?: AdminTerminal[] };
+  return data.items ?? [];
+}
+
+export async function createAdminTerminal(data: {
+  name: string;
+  branchId: string;
+}): Promise<AdminTerminalCreateResponse> {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/terminals`, {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`terminal create failed (${response.status}): ${message}`);
+  }
+
+  return response.json() as Promise<AdminTerminalCreateResponse>;
+}
+
+export async function revokeAdminTerminal(id: string) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/terminals/${id}/revoke`, {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`terminal revoke failed (${response.status}): ${message}`);
+  }
+
+  return response.json() as Promise<{ ok: boolean }>;
 }
 
 export async function createAdminBranch(data: {
@@ -747,8 +835,12 @@ export type {
   AdminUser,
   AdminSummary,
   InventoryItem,
+  PickupBranch,
   CatalogProduct,
   Taxonomy,
+  AdminTerminal,
+  AdminTerminalCreateResponse,
+  TerminalStatus,
   AdminOrderListItem,
   AdminOrderDetail,
   OrderStatus,

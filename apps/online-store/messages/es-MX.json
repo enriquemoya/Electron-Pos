@@ -409,7 +409,100 @@
       "taxonomies": "Taxonomias del catalogo",
       "branches": "Sucursales",
       "orders": "Gestion de pedidos",
-      "blog": "Editor de blog"
+      "blog": "Editor de blog",
+      "terminals": "Terminales POS"
+    }
+  },
+  "adminTerminals": {
+    "title": "Gestion de terminales",
+    "subtitle": "Crea, revisa y revoca terminales POS.",
+    "summary": "{count} terminales en total. Pagina {page} de {pages}.",
+    "status": {
+      "pending": "Pendiente",
+      "active": "Activa",
+      "revoked": "Revocada"
+    },
+    "table": {
+      "columns": {
+        "name": "Terminal",
+        "branch": "Sucursal",
+        "status": "Estado",
+        "lastRotation": "Ultima rotacion",
+        "createdAt": "Creada",
+        "actions": "Acciones"
+      },
+      "empty": "Aun no hay terminales registradas.",
+      "never": "Nunca",
+      "actions": {
+        "details": "Ver detalle",
+        "revoke": "Revocar terminal",
+        "revoking": "Revocando...",
+        "disabled": "Ya revocada",
+        "menuLabel": "Abrir acciones de terminal"
+      }
+    },
+    "pagination": {
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "page": "Pagina {page} de {pages}"
+    },
+    "create": {
+      "trigger": "Crear terminal",
+      "title": "Crear terminal",
+      "description": "Genera una nueva terminal para una sucursal y muestra la llave de activacion una sola vez.",
+      "fields": {
+        "name": "Nombre de terminal",
+        "namePlaceholder": "Caja A",
+        "branch": "Sucursal",
+        "branchPlaceholder": "Selecciona una sucursal"
+      },
+      "actions": {
+        "cancel": "Cancelar",
+        "submit": "Crear terminal",
+        "creating": "Creando..."
+      },
+      "key": {
+        "title": "Llave de activacion generada",
+        "description": "Guarda esta llave en un lugar seguro. Solo se muestra una vez.",
+        "hint": "Al cerrar este dialogo, la llave no se podra ver de nuevo.",
+        "copy": "Copiar llave",
+        "copied": "Copiada",
+        "close": "Listo"
+      }
+    },
+    "revoke": {
+      "title": "Revocar terminal",
+      "description": "Revocar {name}? Los tokens activos del dispositivo se invalidaran.",
+      "cancel": "Cancelar",
+      "confirm": "Revocar"
+    },
+    "detail": {
+      "subtitle": "Metadatos y estado de seguridad de la terminal.",
+      "back": "Volver a terminales",
+      "revoke": "Revocar terminal",
+      "revokeDisabled": "Terminal revocada",
+      "notRevoked": "No revocada",
+      "fields": {
+        "branch": "Sucursal",
+        "lastRotation": "Ultima rotacion",
+        "createdAt": "Creada",
+        "revokedAt": "Revocada"
+      }
+    },
+    "toasts": {
+      "created": "Terminal creada",
+      "createError": "No se pudo crear la terminal",
+      "revokeOk": "Terminal revocada",
+      "revokeError": "No se pudo revocar la terminal"
+    },
+    "errors": {
+      "generic": "Ocurrio un error. Intenta de nuevo.",
+      "nameRequired": "El nombre de terminal es obligatorio.",
+      "branchRequired": "Selecciona una sucursal.",
+      "unauthorized": "Tu sesion expiro. Inicia sesion de nuevo.",
+      "notFound": "Terminal no encontrada.",
+      "revoked": "La terminal ya esta revocada.",
+      "rateLimited": "Demasiadas solicitudes. Intenta en un momento."
     }
   },
   "adminInventory": {
