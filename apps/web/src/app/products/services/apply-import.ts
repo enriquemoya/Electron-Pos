@@ -11,15 +11,6 @@ type ApiInventory = {
   updateStock: (productId: string, delta: number) => Promise<InventoryState>;
 };
 
-declare global {
-  interface Window {
-    api?: {
-      products: ApiProducts;
-      inventory: ApiInventory;
-    };
-  }
-}
-
 // Applies an import result to SQLite through IPC, preserving DB as source of truth.
 export async function applyImportResult(
   result: ImportResult,

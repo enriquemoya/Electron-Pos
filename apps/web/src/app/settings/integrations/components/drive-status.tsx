@@ -27,22 +27,6 @@ type DriveSyncApi = {
   download: (localSnapshot?: { products: unknown[]; inventory: unknown }) => Promise<DriveDownloadResult>;
 };
 
-declare global {
-  interface Window {
-    koyote?: {
-      driveSync?: DriveSyncApi;
-    };
-    api?: {
-      products: {
-        getProducts: () => Promise<import("@pos/core").Product[]>;
-      };
-      inventory: {
-        getInventory: () => Promise<import("@pos/core").InventoryState>;
-      };
-    };
-  }
-}
-
 function statusLabel(status: SyncStatus) {
   switch (status) {
     case "CONNECTED":

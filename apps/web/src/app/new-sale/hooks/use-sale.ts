@@ -63,48 +63,6 @@ type UseSaleResult = {
   confirmDisabledReason: string | null;
 };
 
-declare global {
-  interface Window {
-    api?: {
-      products: {
-        getProducts: () => Promise<Product[]>;
-        getTopProducts: (limit: number) => Promise<Product[]>;
-        getRecentProducts: (limit: number) => Promise<Product[]>;
-      };
-      inventory: {
-        getInventory: () => Promise<InventoryState>;
-        updateStock: (productId: string, delta: number) => Promise<InventoryState>;
-      };
-      sales: {
-        createSale: (sale: Sale) => Promise<void>;
-      };
-      cashRegister: {
-        getActiveShift: () => Promise<Shift | null>;
-      };
-      payments: {
-        validatePayment: (payload: {
-          method: PaymentMethod | null;
-          amount: number;
-          proofProvided: boolean;
-        }) => Promise<PaymentValidationResult>;
-        attachProofAndUpload: (payload: {
-          fileBuffer: ArrayBuffer;
-          fileName: string;
-          mimeType: string;
-          ticketNumber: string;
-          method: PaymentMethod;
-        }) => Promise<{ proofFileRef: string; fileName: string }>;
-      };
-      customers: {
-        searchCustomers: (query: string) => Promise<Customer[]>;
-      };
-      storeCredit: {
-        getBalance: (customerId: string) => Promise<Money>;
-      };
-    };
-  }
-}
-
 function createNewSale(shiftId: string): Sale {
   return createEmptySale(crypto.randomUUID(), shiftId, new Date().toISOString());
 }

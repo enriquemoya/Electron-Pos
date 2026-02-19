@@ -1,4 +1,4 @@
-﻿export const esMX = {
+export const esMX = {
   title: "Panel",
   subtitle: "Resumen operativo del día.",
   loading: "Cargando...",
@@ -43,7 +43,7 @@ export function t(key: DictionaryKey, params?: Record<string, string | number>):
   if (!params) {
     return template;
   }
-  return Object.entries(params).reduce((result, [token, value]) => {
+  return Object.entries(params).reduce<string>((result, [token, value]) => {
     return result.replace(new RegExp(`\\{${token}\\}`, "g"), String(value));
-  }, template);
+  }, String(template));
 }

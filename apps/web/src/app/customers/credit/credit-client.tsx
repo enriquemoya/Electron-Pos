@@ -10,27 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 type Balance = { amount: number; currency: "MXN" };
 
-declare global {
-  interface Window {
-    api?: {
-      customers: {
-        getCustomerDetail: (customerId: string) => Promise<Customer | null>;
-      };
-      storeCredit: {
-        grantCredit: (payload: {
-          customerId: string;
-          amount: number;
-          reason: StoreCreditMovement["reason"];
-          referenceType: StoreCreditMovement["referenceType"];
-          referenceId?: string | null;
-        }) => Promise<StoreCreditMovement>;
-        getBalance: (customerId: string) => Promise<Balance>;
-        listMovements: (customerId: string) => Promise<StoreCreditMovement[]>;
-      };
-    };
-  }
-}
-
 function formatMoney(amount: number) {
   return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(amount / 100);
 }

@@ -44,22 +44,6 @@ type ActivationCopy = {
   rateLimitedError: string;
 };
 
-declare global {
-  interface Window {
-    koyote?: {
-      terminalAuth?: {
-        getState: () => Promise<TerminalState>;
-        activate: (
-          activationApiKey: string
-        ) => Promise<{ ok: true; state: TerminalState } | { ok: false; error: string; code: string }>;
-        rotate: () => Promise<RotateResult>;
-        clear: () => Promise<TerminalState>;
-        onStateChanged: (handler: (state: TerminalState) => void) => () => void;
-      };
-    };
-  }
-}
-
 function formatLastVerified(value: string | null) {
   if (!value) {
     return "-";

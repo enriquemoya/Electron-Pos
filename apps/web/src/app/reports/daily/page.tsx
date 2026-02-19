@@ -13,20 +13,6 @@ type DailySummary = {
   credit: { granted: number; used: number };
 };
 
-declare global {
-  interface Window {
-    api?: {
-      dailyReports: {
-        getDailySummary: (date: string) => Promise<DailySummary>;
-        getDailySales: (date: string) => Promise<Sale[]>;
-        getDailyShifts: (date: string) => Promise<Shift[]>;
-        generateDailyReportPDF: (date: string) => Promise<string>;
-        openReportPDF: (filePath: string) => Promise<string>;
-      };
-    };
-  }
-}
-
 function formatMoney(amount: number) {
   return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(amount / 100);
 }

@@ -74,51 +74,6 @@ function categoryLabel(category: ProductCategory) {
   }
 }
 
-declare global {
-  interface Window {
-    api?: {
-      products: {
-        getProducts: () => Promise<Product[]>;
-        listPaged: (filters: {
-          search?: string;
-          category?: ProductCategory;
-          gameTypeId?: string;
-          stockStatus?: ProductStockStatus;
-          sortBy?: "NAME" | "CREATED_AT" | "STOCK";
-          sortDir?: "ASC" | "DESC";
-          page?: number;
-          pageSize?: number;
-        }) => Promise<{
-          items: ProductListItem[];
-          total: number;
-          page: number;
-          pageSize: number;
-        }>;
-        createProduct: (product: Product) => Promise<void>;
-        updateProduct: (product: Product) => Promise<void>;
-      };
-      inventory: {
-        getInventory: () => Promise<InventoryState>;
-        updateStock: (productId: string, delta: number) => Promise<InventoryState>;
-      };
-      inventoryAlerts: {
-        getProductAlertSettings: (productId: string) => Promise<ProductAlertSettings>;
-        updateProductAlertSettings: (
-          productId: string,
-          settings: Omit<ProductAlertSettings, "productId" | "updatedAt">
-        ) => Promise<ProductAlertSettings>;
-      };
-      gameTypes: {
-        listGameTypes: (activeOnly?: boolean) => Promise<GameType[]>;
-      };
-      expansions: {
-        getExpansionsByGame: (gameTypeId: string, includeInactive?: boolean) => Promise<Expansion[]>;
-        getExpansionById: (expansionId: string) => Promise<Expansion | null>;
-      };
-    };
-  }
-}
-
 export default function ProductsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<ProductListItem[]>([]);

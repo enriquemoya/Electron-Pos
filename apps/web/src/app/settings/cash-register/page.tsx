@@ -23,22 +23,6 @@ function parseAmount(value: string): number | null {
   return Math.round(parsed * 100);
 }
 
-declare global {
-  interface Window {
-    api?: {
-      cashRegister: {
-        openShift: (openingAmount: number) => Promise<Shift>;
-        getActiveShift: () => Promise<Shift | null>;
-        closeShift: (realAmount: number) => Promise<Shift>;
-        getShiftHistory: () => Promise<Shift[]>;
-      };
-      sales: {
-        getSales: () => Promise<Sale[]>;
-      };
-    };
-  }
-}
-
 export default function CashRegisterPage() {
   const [activeShift, setActiveShift] = useState<Shift | null>(null);
   const [history, setHistory] = useState<Shift[]>([]);

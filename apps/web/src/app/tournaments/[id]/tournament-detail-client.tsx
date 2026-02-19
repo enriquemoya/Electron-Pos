@@ -36,55 +36,6 @@ type TournamentDetail = {
 
 type TabKey = "details" | "participants" | "sales" | "winners";
 
-declare global {
-  interface Window {
-    api?: {
-      tournaments: {
-        updateTournament: (tournament: Tournament) => Promise<Tournament>;
-        getTournamentDetail: (id: string) => Promise<TournamentDetail | null>;
-        addParticipant: (payload: {
-          tournamentId: string;
-          name: string;
-          customerId?: string | null;
-        }) => Promise<TournamentParticipant>;
-        removeParticipant: (payload: { tournamentId: string; participantId: string }) => Promise<void>;
-        sellEntry: (payload: {
-          tournamentId: string;
-          participant: { name: string; customerId?: string | null };
-          payment: {
-            method: PaymentMethod;
-            reference?: string | null;
-            proofStatus: "ATTACHED" | "PENDING";
-            proofFile?: {
-              fileBuffer: ArrayBuffer;
-              fileName: string;
-              mimeType: string;
-            } | null;
-          };
-        }) => Promise<{ sale: unknown; participant: TournamentParticipant }>;
-        closeTournament: (id: string) => Promise<Tournament>;
-        assignWinner: (payload: {
-          tournamentId: string;
-          participantIds: string[];
-          productNotes?: string | null;
-        }) => Promise<TournamentPrize>;
-        deleteTournament: (tournamentId: string) => Promise<void>;
-      };
-      customers: {
-        createCustomer: (customer: Customer) => Promise<Customer>;
-        searchCustomers: (query: string) => Promise<Customer[]>;
-        getCustomerDetail: (customerId: string) => Promise<Customer | null>;
-      };
-      gameTypes: {
-        listGameTypes: (activeOnly?: boolean) => Promise<GameType[]>;
-      };
-      expansions: {
-        getExpansionsByGame: (gameTypeId: string, includeInactive?: boolean) => Promise<Expansion[]>;
-      };
-    };
-  }
-}
-
 const emptyAmount = "";
 
 function parseAmount(value: string): number | null {

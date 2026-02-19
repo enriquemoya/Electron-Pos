@@ -26,35 +26,6 @@ const initialForm: ExpansionFormState = {
   active: true
 };
 
-declare global {
-  interface Window {
-    api?: {
-      gameTypes: {
-        listGameTypes: (activeOnly?: boolean) => Promise<GameType[]>;
-      };
-      expansions: {
-        getExpansionsByGame: (gameTypeId: string, includeInactive?: boolean) => Promise<Expansion[]>;
-        createExpansion: (payload: {
-          gameTypeId: string;
-          name: string;
-          code?: string | null;
-          releaseDate?: string | null;
-        }) => Promise<Expansion>;
-        updateExpansion: (payload: {
-          id: string;
-          gameTypeId: string;
-          name: string;
-          code?: string | null;
-          releaseDate?: string | null;
-          active: boolean;
-        }) => Promise<Expansion>;
-        deactivateExpansion: (expansionId: string) => Promise<Expansion>;
-        deleteExpansion: (expansionId: string) => Promise<void>;
-      };
-    };
-  }
-}
-
 export default function ExpansionsPage() {
   const [gameTypes, setGameTypes] = useState<GameType[]>([]);
   const [gameTypeId, setGameTypeId] = useState("none");

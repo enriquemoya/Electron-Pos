@@ -9,27 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-declare global {
-  interface Window {
-    api?: {
-      products: {
-        listPaged: (filters: {
-          search?: string;
-          gameTypeId?: string;
-          stockStatus?: ProductStockStatus;
-          sortBy?: "NAME" | "CREATED_AT" | "STOCK";
-          sortDir?: "ASC" | "DESC";
-          page?: number;
-          pageSize?: number;
-        }) => Promise<{ items: ProductListItem[]; total: number; page: number; pageSize: number }>;
-      };
-      gameTypes: {
-        listGameTypes: (activeOnly?: boolean) => Promise<GameType[]>;
-      };
-    };
-  }
-}
-
 export default function InventoryPage() {
   const [items, setItems] = useState<ProductListItem[]>([]);
   const [total, setTotal] = useState(0);

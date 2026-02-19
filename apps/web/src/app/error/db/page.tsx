@@ -24,20 +24,6 @@ type BackupStatus = {
   message: string | null;
 };
 
-declare global {
-  interface Window {
-    api?: {
-      dataSafety?: {
-        listBackups: () => Promise<BackupItem[]>;
-        getBackupStatus: () => Promise<BackupStatus>;
-        restoreBackup: (payload: { filename: string; confirm: boolean }) => Promise<{ restored: boolean }>;
-        restartApp: () => Promise<{ restarted: boolean }>;
-        getDbHealth: () => Promise<DbHealth>;
-      };
-    };
-  }
-}
-
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("es-MX", {
     dateStyle: "short",

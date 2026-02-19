@@ -54,16 +54,6 @@ type DashboardSummary = {
   }[];
 };
 
-declare global {
-  interface Window {
-    api?: {
-      dashboard: {
-        getSummary: (date: string) => Promise<DashboardSummary>;
-      };
-    };
-  }
-}
-
 function formatMoney(amount: number) {
   return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(
     amount / 100
