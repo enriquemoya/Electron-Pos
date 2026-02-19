@@ -50,6 +50,46 @@ export default async function AdminBlogPage({ params }: { params: { locale: stri
         bubbleBold: t("bubble.bold"),
         bubbleItalic: t("bubble.italic"),
         bubbleLink: t("bubble.link"),
+        media: {
+          openLibrary: t("media.openLibrary"),
+          selectedLabel: t("media.selectedLabel"),
+          emptyLabel: t("media.emptyLabel"),
+          remove: t("media.remove"),
+          hiddenInputLabel: t("media.hiddenInputLabel"),
+          dialog: {
+            title: t("media.dialog.title"),
+            description: t("media.dialog.description"),
+            empty: t("media.dialog.empty"),
+            loading: t("media.dialog.loading"),
+            close: t("media.dialog.close"),
+            folder: t("media.dialog.folder"),
+            folders: {
+              products: t("media.dialog.folders.products"),
+              categories: t("media.dialog.folders.categories"),
+              blog: t("media.dialog.folders.blog"),
+              banners: t("media.dialog.folders.banners")
+            },
+            paginationPrev: t("media.dialog.paginationPrev"),
+            paginationNext: t("media.dialog.paginationNext"),
+            uploadTitle: t("media.dialog.uploadTitle"),
+            uploadSubtitle: t("media.dialog.uploadSubtitle"),
+            uploadChoose: t("media.dialog.uploadChoose"),
+            uploadUploading: t("media.dialog.uploadUploading"),
+            toasts: {
+              listError: t("media.dialog.toasts.listError"),
+              uploadSuccess: t("media.dialog.toasts.uploadSuccess"),
+              uploadError: t("media.dialog.toasts.uploadError"),
+              deleteSuccess: t("media.dialog.toasts.deleteSuccess"),
+              deleteError: t("media.dialog.toasts.deleteError")
+            },
+            grid: {
+              select: t("media.dialog.grid.select"),
+              selected: t("media.dialog.grid.selected"),
+              delete: t("media.dialog.grid.delete"),
+              dimensionsUnknown: t("media.dialog.grid.dimensionsUnknown")
+            }
+          }
+        },
         toolbar: {
           h2: t("toolbar.h2"),
           h3: t("toolbar.h3"),

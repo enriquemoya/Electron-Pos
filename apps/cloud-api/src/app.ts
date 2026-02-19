@@ -34,6 +34,7 @@ import * as emailService from "./infrastructure/adapters/email-service";
 import { createR2MediaService } from "./infrastructure/storage/r2-media.service";
 import { startOrderExpirationJob } from "./infrastructure/jobs/order-expiration-job";
 import * as blogRepository from "./infrastructure/repositories/blog-service";
+import { createMediaRepository } from "./infrastructure/repositories/media-service";
 
 export function createApp() {
   const app = express();
@@ -72,7 +73,8 @@ export function createApp() {
   });
   const branchUseCases = createBranchUseCases({ branchRepository });
   const mediaStorage = createR2MediaService();
-  const mediaUseCases = createMediaUseCases({ mediaStorage });
+  const mediaRepository = createMediaRepository({ mediaStorage });
+  const mediaUseCases = createMediaUseCases({ mediaRepository });
   const blogUseCases = createBlogUseCases({ blogRepository, mediaStorage });
 
   app.use(createPublicRoutes({ catalogUseCases, authUseCases, branchUseCases, blogUseCases }));

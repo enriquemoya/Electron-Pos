@@ -195,8 +195,8 @@
         "errorInvalid": "Completa los campos obligatorios.",
         "errorServer": "No se pudo guardar el perfil.",
         "emailLocale": "Idioma de correo",
-        "emailLocaleEs": "Español (México)",
-        "emailLocaleEn": "Inglés (EE. UU.)"
+        "emailLocaleEs": "Espa\u00f1ol (M\u00e9xico)",
+        "emailLocaleEn": "Ingl\u00e9s (EE. UU.)"
       },
       "address": {
         "title": "Direccion (opcional)",
@@ -505,6 +505,46 @@
       "onePiece": "One Piece",
       "yugioh": "Yu-Gi-Oh!",
       "other": "Otros"
+    },
+    "media": {
+      "openLibrary": "Abrir biblioteca de medios",
+      "selectedLabel": "Imagen seleccionada",
+      "emptyLabel": "No hay imagen seleccionada",
+      "remove": "Quitar imagen",
+      "hiddenInputLabel": "URL del medio seleccionado",
+      "dialog": {
+        "title": "Biblioteca de medios",
+        "description": "Sube o elige una imagen de tus archivos CDN.",
+        "empty": "Aun no hay imagenes en esta carpeta.",
+        "loading": "Cargando medios...",
+        "close": "Cerrar",
+        "folder": "Carpeta",
+        "folders": {
+          "products": "Productos",
+          "categories": "Categorias",
+          "blog": "Blog",
+          "banners": "Banners"
+        },
+        "paginationPrev": "Anterior",
+        "paginationNext": "Siguiente",
+        "uploadTitle": "Subir imagen",
+        "uploadSubtitle": "Las imagenes se convierten a WebP automaticamente.",
+        "uploadChoose": "Elegir archivo",
+        "uploadUploading": "Subiendo...",
+        "toasts": {
+          "listError": "No se pudo cargar la biblioteca de medios.",
+          "uploadSuccess": "Imagen subida correctamente.",
+          "uploadError": "No se pudo subir la imagen.",
+          "deleteSuccess": "Imagen eliminada correctamente.",
+          "deleteError": "No se pudo eliminar la imagen."
+        },
+        "grid": {
+          "select": "Seleccionar",
+          "selected": "Seleccionada",
+          "delete": "Eliminar imagen",
+          "dimensionsUnknown": "Dimensiones desconocidas"
+        }
+      }
     }
   },
   "adminTaxonomies": {
@@ -590,6 +630,46 @@
     "errors": {
       "createFailed": "No se pudo crear la sucursal.",
       "details": "Detalle: {detail}"
+    },
+    "media": {
+      "openLibrary": "Abrir biblioteca de medios",
+      "selectedLabel": "Imagen seleccionada",
+      "emptyLabel": "No hay imagen seleccionada",
+      "remove": "Quitar imagen",
+      "hiddenInputLabel": "URL del medio seleccionado",
+      "dialog": {
+        "title": "Biblioteca de medios",
+        "description": "Sube o elige una imagen de tus archivos CDN.",
+        "empty": "Aun no hay imagenes en esta carpeta.",
+        "loading": "Cargando medios...",
+        "close": "Cerrar",
+        "folder": "Carpeta",
+        "folders": {
+          "products": "Productos",
+          "categories": "Categorias",
+          "blog": "Blog",
+          "banners": "Banners"
+        },
+        "paginationPrev": "Anterior",
+        "paginationNext": "Siguiente",
+        "uploadTitle": "Subir imagen",
+        "uploadSubtitle": "Las imagenes se convierten a WebP automaticamente.",
+        "uploadChoose": "Elegir archivo",
+        "uploadUploading": "Subiendo...",
+        "toasts": {
+          "listError": "No se pudo cargar la biblioteca de medios.",
+          "uploadSuccess": "Imagen subida correctamente.",
+          "uploadError": "No se pudo subir la imagen.",
+          "deleteSuccess": "Imagen eliminada correctamente.",
+          "deleteError": "No se pudo eliminar la imagen."
+        },
+        "grid": {
+          "select": "Seleccionar",
+          "selected": "Seleccionada",
+          "delete": "Eliminar imagen",
+          "dimensionsUnknown": "Dimensiones desconocidas"
+        }
+      }
     }
   },
   "checkout": {
@@ -885,7 +965,7 @@
         "address": "Interior Plaza Ley, El Vigia, 85440 Guaymas, Son."
       }
     },
-    "copyright": "© {year} DanimeZone. Todos los derechos reservados."
+    "copyright": "\u00a9 {year} DanimeZone. Todos los derechos reservados."
   },
   "legal": {
     "back": "Volver al inicio",
@@ -903,23 +983,23 @@
       },
       "questions": [
         {
-          "q": "¿Puedo pagar en sucursal?",
+          "q": "\u00bfPuedo pagar en sucursal?",
           "a": "Si. Selecciona pago en sucursal en checkout y liquida al recoger."
         },
         {
-          "q": "¿Cuanto tiempo tengo para recoger?",
+          "q": "\u00bfCuanto tiempo tengo para recoger?",
           "a": "Reservamos tu pedido por 10 dias. Si necesitas mas tiempo, contacta soporte."
         },
         {
-          "q": "¿Hacen envios nacionales?",
+          "q": "\u00bfHacen envios nacionales?",
           "a": "Si. Enviamos a todo Mexico con seguimiento una vez confirmado el pedido."
         },
         {
-          "q": "¿Los productos son originales?",
+          "q": "\u00bfLos productos son originales?",
           "a": "Todos los productos son oficiales y de distribuidores autorizados."
         },
         {
-          "q": "¿Cual es la politica de devoluciones?",
+          "q": "\u00bfCual es la politica de devoluciones?",
           "a": "Devoluciones en sellados sin abrir dentro de 10 dias. Singles y abiertos son venta final."
         }
       ]
@@ -1092,6 +1172,46 @@
       "bold": "N",
       "italic": "C",
       "link": "Link"
+    },
+    "media": {
+      "openLibrary": "Abrir biblioteca de medios",
+      "selectedLabel": "Imagen seleccionada",
+      "emptyLabel": "No hay imagen seleccionada",
+      "remove": "Quitar imagen",
+      "hiddenInputLabel": "URL del medio seleccionado",
+      "dialog": {
+        "title": "Biblioteca de medios",
+        "description": "Sube o elige una imagen de tus archivos CDN.",
+        "empty": "Aun no hay imagenes en esta carpeta.",
+        "loading": "Cargando medios...",
+        "close": "Cerrar",
+        "folder": "Carpeta",
+        "folders": {
+          "products": "Productos",
+          "categories": "Categorias",
+          "blog": "Blog",
+          "banners": "Banners"
+        },
+        "paginationPrev": "Anterior",
+        "paginationNext": "Siguiente",
+        "uploadTitle": "Subir imagen",
+        "uploadSubtitle": "Las imagenes se convierten a WebP automaticamente.",
+        "uploadChoose": "Elegir archivo",
+        "uploadUploading": "Subiendo...",
+        "toasts": {
+          "listError": "No se pudo cargar la biblioteca de medios.",
+          "uploadSuccess": "Imagen subida correctamente.",
+          "uploadError": "No se pudo subir la imagen.",
+          "deleteSuccess": "Imagen eliminada correctamente.",
+          "deleteError": "No se pudo eliminar la imagen."
+        },
+        "grid": {
+          "select": "Seleccionar",
+          "selected": "Seleccionada",
+          "delete": "Eliminar imagen",
+          "dimensionsUnknown": "Dimensiones desconocidas"
+        }
+      }
     }
   },
   "blog": {

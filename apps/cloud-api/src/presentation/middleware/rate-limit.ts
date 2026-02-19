@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { ApiErrors } from "../../errors/api-error";
+import { ApiError, ApiErrors } from "../../errors/api-error";
 
 type Bucket = {
   count: number;
@@ -12,6 +12,7 @@ export function createRateLimitMiddleware(params: {
   limit: number;
   windowMs: number;
   keyPrefix: string;
+  error?: ApiError;
 }) {
   return (req: Request, res: Response, next: NextFunction) => {
     const auth = (req as Request & { auth?: { userId?: string } }).auth;
@@ -27,9 +28,10 @@ export function createRateLimitMiddleware(params: {
     }
 
     if (current.count >= params.limit) {
-      res.status(ApiErrors.blogRateLimited.status).json({
-        error: ApiErrors.blogRateLimited.message,
-        code: ApiErrors.blogRateLimited.code
+      const rateLimitError = params.error ?? ApiErrors.blogRateLimited;
+      res.status(rateLimitError.status).json({
+        error: rateLimitError.message,
+        code: rateLimitError.code
       });
       return;
     }

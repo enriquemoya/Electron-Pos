@@ -505,6 +505,46 @@
       "onePiece": "One Piece",
       "yugioh": "Yu-Gi-Oh!",
       "other": "Other"
+    },
+    "media": {
+      "openLibrary": "Open media library",
+      "selectedLabel": "Selected image",
+      "emptyLabel": "No image selected",
+      "remove": "Remove image",
+      "hiddenInputLabel": "Selected media URL",
+      "dialog": {
+        "title": "Media library",
+        "description": "Upload or choose an image from your CDN media files.",
+        "empty": "No images found in this folder yet.",
+        "loading": "Loading media...",
+        "close": "Close",
+        "folder": "Folder",
+        "folders": {
+          "products": "Products",
+          "categories": "Categories",
+          "blog": "Blog",
+          "banners": "Banners"
+        },
+        "paginationPrev": "Previous",
+        "paginationNext": "Next",
+        "uploadTitle": "Upload image",
+        "uploadSubtitle": "Images are converted to WebP automatically.",
+        "uploadChoose": "Choose file",
+        "uploadUploading": "Uploading...",
+        "toasts": {
+          "listError": "Could not load media library.",
+          "uploadSuccess": "Image uploaded successfully.",
+          "uploadError": "Image upload failed.",
+          "deleteSuccess": "Image deleted successfully.",
+          "deleteError": "Image could not be deleted."
+        },
+        "grid": {
+          "select": "Select",
+          "selected": "Selected",
+          "delete": "Delete image",
+          "dimensionsUnknown": "Unknown dimensions"
+        }
+      }
     }
   },
   "adminTaxonomies": {
@@ -590,6 +630,46 @@
     "errors": {
       "createFailed": "Branch creation failed.",
       "details": "Details: {detail}"
+    },
+    "media": {
+      "openLibrary": "Open media library",
+      "selectedLabel": "Selected image",
+      "emptyLabel": "No image selected",
+      "remove": "Remove image",
+      "hiddenInputLabel": "Selected media URL",
+      "dialog": {
+        "title": "Media library",
+        "description": "Upload or choose an image from your CDN media files.",
+        "empty": "No images found in this folder yet.",
+        "loading": "Loading media...",
+        "close": "Close",
+        "folder": "Folder",
+        "folders": {
+          "products": "Products",
+          "categories": "Categories",
+          "blog": "Blog",
+          "banners": "Banners"
+        },
+        "paginationPrev": "Previous",
+        "paginationNext": "Next",
+        "uploadTitle": "Upload image",
+        "uploadSubtitle": "Images are converted to WebP automatically.",
+        "uploadChoose": "Choose file",
+        "uploadUploading": "Uploading...",
+        "toasts": {
+          "listError": "Could not load media library.",
+          "uploadSuccess": "Image uploaded successfully.",
+          "uploadError": "Image upload failed.",
+          "deleteSuccess": "Image deleted successfully.",
+          "deleteError": "Image could not be deleted."
+        },
+        "grid": {
+          "select": "Select",
+          "selected": "Selected",
+          "delete": "Delete image",
+          "dimensionsUnknown": "Unknown dimensions"
+        }
+      }
     }
   },
   "checkout": {
@@ -885,7 +965,7 @@
         "address": "Interior Plaza Ley, El Vigia, 85440 Guaymas, Son."
       }
     },
-    "copyright": "© {year} DanimeZone. All rights reserved."
+    "copyright": "\u00a9 {year} DanimeZone. All rights reserved."
   },
   "legal": {
     "back": "Back to home",
@@ -1092,6 +1172,46 @@
       "bold": "B",
       "italic": "I",
       "link": "Link"
+    },
+    "media": {
+      "openLibrary": "Open media library",
+      "selectedLabel": "Selected image",
+      "emptyLabel": "No image selected",
+      "remove": "Remove image",
+      "hiddenInputLabel": "Selected media URL",
+      "dialog": {
+        "title": "Media library",
+        "description": "Upload or choose an image from your CDN media files.",
+        "empty": "No images found in this folder yet.",
+        "loading": "Loading media...",
+        "close": "Close",
+        "folder": "Folder",
+        "folders": {
+          "products": "Products",
+          "categories": "Categories",
+          "blog": "Blog",
+          "banners": "Banners"
+        },
+        "paginationPrev": "Previous",
+        "paginationNext": "Next",
+        "uploadTitle": "Upload image",
+        "uploadSubtitle": "Images are converted to WebP automatically.",
+        "uploadChoose": "Choose file",
+        "uploadUploading": "Uploading...",
+        "toasts": {
+          "listError": "Could not load media library.",
+          "uploadSuccess": "Image uploaded successfully.",
+          "uploadError": "Image upload failed.",
+          "deleteSuccess": "Image deleted successfully.",
+          "deleteError": "Image could not be deleted."
+        },
+        "grid": {
+          "select": "Select",
+          "selected": "Selected",
+          "delete": "Delete image",
+          "dimensionsUnknown": "Unknown dimensions"
+        }
+      }
     }
   },
   "blog": {

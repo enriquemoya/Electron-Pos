@@ -87,6 +87,46 @@ export default async function ProductCreatePage({ params }: { params: { locale: 
           expansionNone: t("fields.expansionNone"),
           price: t("fields.price"),
           imageUrl: t("fields.imageUrl"),
+          media: {
+            openLibrary: t("media.openLibrary"),
+            selectedLabel: t("media.selectedLabel"),
+            emptyLabel: t("media.emptyLabel"),
+            remove: t("media.remove"),
+            hiddenInputLabel: t("media.hiddenInputLabel"),
+            dialog: {
+              title: t("media.dialog.title"),
+              description: t("media.dialog.description"),
+              empty: t("media.dialog.empty"),
+              loading: t("media.dialog.loading"),
+              close: t("media.dialog.close"),
+              folder: t("media.dialog.folder"),
+              folders: {
+                products: t("media.dialog.folders.products"),
+                categories: t("media.dialog.folders.categories"),
+                blog: t("media.dialog.folders.blog"),
+                banners: t("media.dialog.folders.banners")
+              },
+              paginationPrev: t("media.dialog.paginationPrev"),
+              paginationNext: t("media.dialog.paginationNext"),
+              uploadTitle: t("media.dialog.uploadTitle"),
+              uploadSubtitle: t("media.dialog.uploadSubtitle"),
+              uploadChoose: t("media.dialog.uploadChoose"),
+              uploadUploading: t("media.dialog.uploadUploading"),
+              toasts: {
+                listError: t("media.dialog.toasts.listError"),
+                uploadSuccess: t("media.dialog.toasts.uploadSuccess"),
+                uploadError: t("media.dialog.toasts.uploadError"),
+                deleteSuccess: t("media.dialog.toasts.deleteSuccess"),
+                deleteError: t("media.dialog.toasts.deleteError")
+              },
+              grid: {
+                select: t("media.dialog.grid.select"),
+                selected: t("media.dialog.grid.selected"),
+                delete: t("media.dialog.grid.delete"),
+                dimensionsUnknown: t("media.dialog.grid.dimensionsUnknown")
+              }
+            }
+          },
           description: t("fields.description"),
           rarity: t("fields.rarity"),
           tags: t("fields.tags"),

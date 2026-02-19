@@ -28,6 +28,7 @@ import { createMediaController } from "../controllers/media-controller";
 import { adminMediaUploadMiddleware } from "../middleware/admin-media-upload";
 import { createBlogController } from "../controllers/blog-controller";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
+import { ApiErrors } from "../../errors/api-error";
 
 export function createProtectedRoutes(params: {
   adminDashboardUseCases: AdminDashboardUseCases;
@@ -60,6 +61,18 @@ export function createProtectedRoutes(params: {
     limit: 30,
     windowMs: 60_000,
     keyPrefix: "admin-blog-mutations"
+  });
+  const mediaWriteRateLimit = createRateLimitMiddleware({
+    limit: 30,
+    windowMs: 60_000,
+    keyPrefix: "admin-media-write",
+    error: ApiErrors.mediaRateLimited
+  });
+  const mediaReadRateLimit = createRateLimitMiddleware({
+    limit: 60,
+    windowMs: 60_000,
+    keyPrefix: "admin-media-read",
+    error: ApiErrors.mediaRateLimited
   });
 
   router.post("/sync/events", syncController.recordEventsHandler);
@@ -106,7 +119,9 @@ export function createProtectedRoutes(params: {
   router.post("/admin/orders/:orderId/status", orderFulfillmentController.transitionOrderStatusHandler);
   router.post("/admin/orders/:orderId/refunds", orderFulfillmentController.createRefundHandler);
   router.post("/admin/orders/expire", orderFulfillmentController.runExpirationSweepHandler);
-  router.post("/admin/media/upload", adminMediaUploadMiddleware, mediaController.uploadAdminMediaHandler);
+  router.get("/admin/media", mediaReadRateLimit, mediaController.listAdminMediaHandler);
+  router.post("/admin/media/upload", mediaWriteRateLimit, adminMediaUploadMiddleware, mediaController.uploadAdminMediaHandler);
+  router.delete("/admin/media/*", mediaWriteRateLimit, mediaController.deleteAdminMediaHandler);
   router.get("/admin/blog/posts", blogController.listAdminPostsHandler);
   router.get("/admin/blog/posts/:id", blogController.getAdminPostHandler);
   router.post("/admin/blog/posts", blogMutationsRateLimit, blogController.createPostHandler);

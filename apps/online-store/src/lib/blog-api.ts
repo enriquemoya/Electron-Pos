@@ -156,27 +156,3 @@ export async function fetchAdminBlogPosts(params: {
     hasMore: boolean;
   }>;
 }
-
-export async function uploadAdminMediaFile(input: { file: File; folder: "blog" }) {
-  const formData = new FormData();
-  formData.append("folder", input.folder);
-  formData.append("file", input.file);
-
-  const response = await fetch(`${getBaseUrl()}/admin/media/upload`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: formData,
-    cache: "no-store"
-  });
-
-  if (!response.ok) {
-    throw new Error(`admin media upload failed (${response.status})`);
-  }
-
-  return response.json() as Promise<{
-    url: string;
-    width: number;
-    height: number;
-    sizeBytes: number;
-  }>;
-}

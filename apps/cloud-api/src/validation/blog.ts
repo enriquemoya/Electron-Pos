@@ -1,5 +1,5 @@
 import { ApiErrors } from "../errors/api-error";
-import { env } from "../config/env";
+import { isAllowedMediaCdnUrl } from "./media-source";
 
 const ALLOWED_LOCALES = new Set(["es", "en"]);
 const MAX_CONTENT_BYTES = 1024 * 1024;
@@ -20,34 +20,8 @@ function isSafeHyperlink(value: string) {
   }
 }
 
-function getMediaCdnHost() {
-  if (!env.mediaCdnBaseUrl) {
-    throw ApiErrors.blogMediaNotAllowed;
-  }
-  try {
-    return new URL(env.mediaCdnBaseUrl).host;
-  } catch {
-    throw ApiErrors.blogMediaNotAllowed;
-  }
-}
-
 function isAllowedCdnImageUrl(value: string) {
-  if (value.startsWith("/") || value.startsWith("data:")) {
-    return false;
-  }
-  try {
-    const parsed = new URL(value);
-    if (parsed.protocol !== "https:") {
-      return false;
-    }
-    const cdnHost = getMediaCdnHost();
-    return parsed.host === cdnHost;
-  } catch (error) {
-    if (error === ApiErrors.blogMediaNotAllowed) {
-      throw error;
-    }
-    return false;
-  }
+  return isAllowedMediaCdnUrl(value);
 }
 
 function sanitizeTextNode(node: Record<string, unknown>) {

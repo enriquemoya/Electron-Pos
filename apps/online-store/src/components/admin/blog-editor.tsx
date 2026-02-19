@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BubbleMenu, EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Heading from "@tiptap/extension-heading";
@@ -37,6 +37,8 @@ import { MoreHorizontal, Trash2 } from "lucide-react";
 import { BlogToolbar } from "@/components/admin/blog/blog-toolbar";
 import { BlogStatusIndicator } from "@/components/admin/blog/blog-status-indicator";
 import { BlogPreviewRenderer } from "@/components/admin/blog/blog-preview-renderer";
+import { MediaSelector } from "@/components/admin/media/media-selector";
+import { MediaLibraryDialog } from "@/components/admin/media/media-library-dialog";
 
 type AdminBlogPost = {
   id: string;
@@ -87,6 +89,46 @@ type BlogEditorLabels = {
   bubbleBold: string;
   bubbleItalic: string;
   bubbleLink: string;
+  media: {
+    openLibrary: string;
+    selectedLabel: string;
+    emptyLabel: string;
+    remove: string;
+    hiddenInputLabel: string;
+    dialog: {
+      title: string;
+      description: string;
+      empty: string;
+      loading: string;
+      close: string;
+      folder: string;
+      folders: {
+        products: string;
+        categories: string;
+        blog: string;
+        banners: string;
+      };
+      paginationPrev: string;
+      paginationNext: string;
+      uploadTitle: string;
+      uploadSubtitle: string;
+      uploadChoose: string;
+      uploadUploading: string;
+      toasts: {
+        listError: string;
+        uploadSuccess: string;
+        uploadError: string;
+        deleteSuccess: string;
+        deleteError: string;
+      };
+      grid: {
+        select: string;
+        selected: string;
+        delete: string;
+        dimensionsUnknown: string;
+      };
+    };
+  };
   toolbar: {
     h2: string;
     h3: string;
@@ -155,7 +197,7 @@ export function BlogEditor({
   const [saving, setSaving] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [editorMediaDialogOpen, setEditorMediaDialogOpen] = useState(false);
 
   const storageKey = useMemo(() => `blog-editor-draft-${locale}-${selectedId}`, [locale, selectedId]);
 
@@ -325,27 +367,6 @@ export function BlogEditor({
     editor.chain().focus().setLink({ href }).run();
   };
 
-  const uploadImage = async (file: File) => {
-    const formData = new FormData();
-    formData.append("folder", "blog");
-    formData.append("file", file);
-
-    const response = await fetch("/api/admin/media/upload", {
-      method: "POST",
-      body: formData
-    });
-
-    if (!response.ok) {
-      toast.error(labels.toasts.uploadError);
-      return;
-    }
-
-    const payload = (await response.json()) as { url: string };
-    setModel((current) => ({ ...current, coverImageUrl: current.coverImageUrl || payload.url }));
-    editor?.chain().focus().setImage({ src: payload.url, alt: file.name }).run();
-    toast.success(labels.toasts.uploadOk);
-  };
-
   return (
     <div className="space-y-4">
       <div>
@@ -403,7 +424,9 @@ export function BlogEditor({
               >
                 {labels.unpublish}
               </Button>
-              <Button variant="outline" onClick={() => fileInputRef.current?.click()}>{labels.uploadImage}</Button>
+              <Button variant="outline" onClick={() => setEditorMediaDialogOpen(true)}>
+                {labels.uploadImage}
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" disabled={!model.id} aria-label="post actions">
@@ -474,9 +497,12 @@ export function BlogEditor({
             </div>
             <div>
               <label className="mb-1 block text-xs uppercase text-white/60">{labels.coverImageUrl}</label>
-              <Input
-                value={model.coverImageUrl || ""}
-                onChange={(event) => setModel((current) => ({ ...current, coverImageUrl: event.target.value || null }))}
+              <MediaSelector
+                name="coverImageUrl"
+                value={model.coverImageUrl}
+                folder="blog"
+                onChange={(value) => setModel((current) => ({ ...current, coverImageUrl: value }))}
+                labels={labels.media}
               />
             </div>
             <div>
@@ -493,7 +519,12 @@ export function BlogEditor({
           </div>
 
           <div className="space-y-3 rounded-lg border border-white/10 bg-base-900/80 p-3">
-            <BlogToolbar editor={editor} labels={labels.toolbar} onLink={addLink} onImage={() => fileInputRef.current?.click()} />
+            <BlogToolbar
+              editor={editor}
+              labels={labels.toolbar}
+              onLink={addLink}
+              onImage={() => setEditorMediaDialogOpen(true)}
+            />
             {editor ? (
               <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="rounded-lg border border-white/10 bg-base-900/95 p-1 shadow-xl">
                 <div className="flex gap-1">
@@ -509,19 +540,6 @@ export function BlogEditor({
                 </div>
               </BubbleMenu>
             ) : null}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) {
-                  void uploadImage(file);
-                }
-                event.currentTarget.value = "";
-              }}
-            />
             <EditorContent editor={editor} className="min-h-[360px] rounded-md border border-white/10 bg-base-900 p-3" />
           </div>
 
@@ -534,6 +552,20 @@ export function BlogEditor({
           />
         </Card>
       </div>
+      <MediaLibraryDialog
+        open={editorMediaDialogOpen}
+        onOpenChange={setEditorMediaDialogOpen}
+        folder="blog"
+        selectedUrl={null}
+        onSelect={(url) => {
+          editor?.chain().focus().setImage({ src: url, alt: model.title || labels.untitled }).run();
+          if (!model.coverImageUrl) {
+            setModel((current) => ({ ...current, coverImageUrl: url }));
+          }
+          toast.success(labels.toasts.uploadOk);
+        }}
+        labels={labels.media.dialog}
+      />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
