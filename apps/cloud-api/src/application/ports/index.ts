@@ -340,6 +340,39 @@ export type SyncRepository = {
   getPendingEvents: (posId: string, since: string | null) => Promise<any[]>;
   acknowledgeEvents: (posId: string, eventIds: string[]) => Promise<void>;
   createOrder: (orderId: string, items: any[], branchId: string) => Promise<{ duplicate: boolean }>;
+  getCatalogSnapshot: (params: {
+    branchId: string;
+    page: number;
+    pageSize: number;
+  }) => Promise<{ items: any[]; total: number; snapshotVersion: string; appliedAt: string }>;
+  getCatalogDelta: (params: {
+    branchId: string;
+    since: string | null;
+    page: number;
+    pageSize: number;
+  }) => Promise<{ items: any[]; total: number; snapshotVersion: string; appliedAt: string }>;
+  reconcileCatalog: (params: {
+    branchId: string;
+    manifest: Array<{
+      entityType: string;
+      cloudId: string;
+      localId: string | null;
+      updatedAt: string | null;
+      versionHash: string | null;
+    }>;
+  }) => Promise<{
+    missing: any[];
+    stale: any[];
+    unknown: any[];
+    snapshotVersion: string;
+  }>;
+  ingestSalesEvent: (params: {
+    terminalId: string;
+    branchId: string;
+    localEventId: string;
+    eventType: string;
+    payload: Record<string, unknown>;
+  }) => Promise<{ duplicate: boolean }>;
   readProducts: (params: {
     page: number;
     pageSize: number;

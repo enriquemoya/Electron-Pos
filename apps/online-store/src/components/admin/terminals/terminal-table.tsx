@@ -37,6 +37,7 @@ type Props = {
   locale: string;
   items: AdminTerminal[];
   labels: Labels;
+  onRegenerate: (terminalId: string) => Promise<void>;
   onRevoke: (terminalId: string) => Promise<void>;
 };
 
@@ -59,7 +60,7 @@ function formatDate(value: string | null, locale: string, fallback: string) {
   }).format(date);
 }
 
-export function TerminalTable({ locale, items, labels, onRevoke }: Props) {
+export function TerminalTable({ locale, items, labels, onRegenerate, onRevoke }: Props) {
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-base-900/40">
       <table className="w-full text-left text-sm text-white/80">
@@ -97,7 +98,7 @@ export function TerminalTable({ locale, items, labels, onRevoke }: Props) {
                 <td className="px-4 py-3 text-white/70">{formatDate(terminal.createdAt, locale, labels.never)}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end">
-                    <TerminalActions terminal={terminal} labels={labels.actions} onRevoke={onRevoke} />
+                    <TerminalActions terminal={terminal} labels={labels.actions} onRegenerate={onRegenerate} onRevoke={onRevoke} />
                   </div>
                 </td>
               </tr>

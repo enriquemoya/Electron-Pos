@@ -1,0 +1,4 @@
+interface:
+  display_name: "frontend-design"
+  short_description: "Imported external skill for project governance use."
+  default_prompt: "Use this skill when tasks match its original capability domain."

@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["audit","review","validate","compliance","check spec","check implementation"]
 outputs: ["audit report","verdict","blocking issues"]
+recommended_skills: [clean-code, backend-patterns]
 ---
 
 Scope

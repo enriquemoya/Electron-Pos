@@ -435,6 +435,8 @@
       "never": "Never",
       "actions": {
         "details": "View details",
+        "regenerate": "Regenerate key",
+        "regenerating": "Regenerating...",
         "revoke": "Revoke terminal",
         "revoking": "Revoking...",
         "disabled": "Already revoked",
@@ -479,6 +481,8 @@
     "detail": {
       "subtitle": "Terminal metadata and security status.",
       "back": "Back to terminals",
+      "regenerate": "Regenerate activation key",
+      "regenerating": "Regenerating...",
       "revoke": "Revoke terminal",
       "revokeDisabled": "Terminal revoked",
       "notRevoked": "Not revoked",
@@ -492,6 +496,8 @@
     "toasts": {
       "created": "Terminal created",
       "createError": "Could not create terminal",
+      "regenerateOk": "Activation key regenerated",
+      "regenerateError": "Could not regenerate key",
       "revokeOk": "Terminal revoked",
       "revokeError": "Could not revoke terminal"
     },

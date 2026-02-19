@@ -146,6 +146,48 @@ CREATE TABLE IF NOT EXISTS sync_state (
   metadata TEXT
 );
 
+CREATE TABLE IF NOT EXISTS catalog_meta (
+  entity_type TEXT NOT NULL,
+  cloud_id TEXT NOT NULL,
+  version_hash TEXT,
+  updated_at TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  PRIMARY KEY (entity_type, cloud_id)
+);
+
+CREATE TABLE IF NOT EXISTS catalog_id_map (
+  entity_type TEXT NOT NULL,
+  cloud_id TEXT NOT NULL,
+  local_id TEXT,
+  PRIMARY KEY (entity_type, cloud_id)
+);
+
+CREATE TABLE IF NOT EXISTS sync_journal (
+  id TEXT PRIMARY KEY,
+  terminal_id TEXT,
+  branch_id TEXT,
+  event_type TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'PENDING',
+  retry_count INTEGER NOT NULL DEFAULT 0,
+  max_retries INTEGER NOT NULL DEFAULT 10,
+  next_retry_at TEXT,
+  last_error_code TEXT,
+  manual_intervention_required INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  synced_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS pos_sync_state (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  catalog_snapshot_version TEXT,
+  snapshot_applied_at TEXT,
+  last_delta_sync_at TEXT,
+  last_reconcile_at TEXT,
+  last_sync_error_code TEXT
+);
+
 CREATE TABLE IF NOT EXISTS customers (
   id TEXT PRIMARY KEY,
   first_names TEXT NOT NULL,
@@ -242,6 +284,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_expansions_game_type_name ON expansions(ga
 CREATE INDEX IF NOT EXISTS idx_customers_created_at ON customers(created_at);
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
 CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+CREATE INDEX IF NOT EXISTS idx_catalog_meta_updated ON catalog_meta(updated_at);
+CREATE INDEX IF NOT EXISTS idx_sync_journal_status_next_retry ON sync_journal(status, next_retry_at);
+CREATE INDEX IF NOT EXISTS idx_sync_journal_manual ON sync_journal(manual_intervention_required);
 `;
 
-export const latestSchemaVersion = 11;
+export const latestSchemaVersion = 12;

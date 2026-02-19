@@ -11,7 +11,11 @@ function registerSaleIpc(
     storeCreditRepo,
     productAlertRepo,
     inventoryAlertRepo,
-    db
+    db,
+    posSyncRepo,
+    terminalAuthService,
+    enqueueSaleSyncEvent,
+    flushSalesJournal
   }
 ) {
   ipcMain.handle("sales:getAll", () => {
@@ -73,10 +77,24 @@ function registerSaleIpc(
           createdAt: new Date().toISOString()
         });
       }
+
+      if (posSyncRepo && enqueueSaleSyncEvent) {
+        const terminalState = terminalAuthService?.getState?.() || null;
+        enqueueSaleSyncEvent({
+          posSyncRepo,
+          terminalState,
+          sale
+        });
+      }
     });
 
     transaction();
     shiftRepo.incrementExpectedAmount(active.id, sale.total.amount);
+    if (flushSalesJournal) {
+      flushSalesJournal().catch(() => {
+        // Background sync is best effort and non-blocking.
+      });
+    }
   });
 }
 

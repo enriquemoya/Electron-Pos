@@ -62,7 +62,7 @@ export default async function AdminTerminalsListPage({
         labels={{
           title: t("title"),
           subtitle: t("subtitle"),
-          summary: t("summary"),
+          summary: t("summary", { count: total, page, pages: totalPages }),
           create: {
             trigger: t("create.trigger"),
             title: t("create.title"),
@@ -90,6 +90,14 @@ export default async function AdminTerminalsListPage({
               createError: t("toasts.createError")
             }
           },
+          regenerateKey: {
+            title: t("create.key.title"),
+            description: t("create.key.description"),
+            hint: t("create.key.hint"),
+            copy: t("create.key.copy"),
+            copied: t("create.key.copied"),
+            close: t("create.key.close")
+          },
           table: {
             columns: {
               name: t("table.columns.name"),
@@ -108,13 +116,15 @@ export default async function AdminTerminalsListPage({
             never: t("table.never"),
             actions: {
               details: t("table.actions.details"),
+              regenerate: t("table.actions.regenerate"),
+              regenerating: t("table.actions.regenerating"),
               revoke: t("table.actions.revoke"),
               revoking: t("table.actions.revoking"),
               disabled: t("table.actions.disabled"),
               menuLabel: t("table.actions.menuLabel"),
               revokeDialog: {
                 title: t("revoke.title"),
-                description: t("revoke.description"),
+                description: t("revoke.description", { name: "{name}" }),
                 cancel: t("revoke.cancel"),
                 confirm: t("revoke.confirm")
               }
@@ -123,9 +133,11 @@ export default async function AdminTerminalsListPage({
           pagination: {
             prev: t("pagination.prev"),
             next: t("pagination.next"),
-            page: t("pagination.page")
+            page: t("pagination.page", { page, pages: totalPages })
           },
           toasts: {
+            regenerateOk: t("toasts.regenerateOk"),
+            regenerateError: t("toasts.regenerateError"),
             revokeOk: t("toasts.revokeOk"),
             revokeError: t("toasts.revokeError")
           },

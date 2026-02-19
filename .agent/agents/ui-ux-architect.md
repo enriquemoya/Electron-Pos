@@ -26,6 +26,7 @@ forbidden_paths:
   - apps/desktop/**
   - packages/**
 tools: []
+recommended_skills: [frontend-design, ui-ux-pro-max]
 ---
 
 # ui-ux-architect

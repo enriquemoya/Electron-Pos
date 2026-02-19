@@ -332,6 +332,7 @@ model PickupBranch {
 
   orders OnlineOrder[]
   terminals Terminal[]
+  posSyncEvents PosSyncEvent[]
 
   @@index([city], name: "idx_pickup_branches_city")
   @@map("pickup_branches")
@@ -354,6 +355,7 @@ model Terminal {
   updatedAt                   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   branch                      PickupBranch  @relation(fields: [branchId], references: [id], onDelete: Restrict)
   revokedByAdmin              User?         @relation("TerminalRevokedByAdmin", fields: [revokedByAdminId], references: [id], onDelete: SetNull)
+  posSyncEvents               PosSyncEvent[]
 
   @@unique([activationApiKeyHash], name: "ux_terminals_activation_api_key_hash")
   @@unique([currentDeviceTokenHash], name: "ux_terminals_current_device_token_hash")
@@ -362,6 +364,24 @@ model Terminal {
   @@index([previousDeviceTokenHash], name: "idx_terminals_previous_device_token_hash")
   @@index([status], name: "idx_terminals_status")
   @@map("terminals")
+}
+
+model PosSyncEvent {
+  id           String   @id @default(uuid()) @db.Uuid
+  terminalId   String   @map("terminal_id")
+  branchId     String   @map("branch_id") @db.Uuid
+  localEventId String   @map("local_event_id")
+  eventType    String   @map("event_type")
+  payload      Json
+  syncedAt     DateTime @default(now()) @map("synced_at") @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  terminal     Terminal @relation(fields: [terminalId], references: [id], onDelete: Restrict)
+  branch       PickupBranch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@unique([terminalId, localEventId], name: "ux_pos_sync_events_terminal_local_event")
+  @@index([branchId, syncedAt], name: "idx_pos_sync_events_branch_synced")
+  @@index([eventType], name: "idx_pos_sync_events_event_type")
+  @@map("pos_sync_events")
 }
 
 model PreorderDraft {

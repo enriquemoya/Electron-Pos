@@ -10,14 +10,6 @@ const path = require("path");
 const fs = require("fs");
 const dotenv = require("dotenv");
 const {
-  loadSyncState,
-  saveSyncState,
-  startDriveConnection,
-  completeDriveConnection,
-  uploadInventoryWorkbook,
-  downloadAndReconcile
-} = require("./integrations/google-drive/drive-sync.ts");
-const {
   initializeDb,
   createProductRepository,
   createInventoryRepository,
@@ -38,11 +30,19 @@ const {
   createParticipantRepository,
   createTournamentPrizeRepository
 } = require("../../packages/db/src/index.ts");
+const { createPosSyncRepository } = require("../../packages/db/src/index.ts");
 const { DataSafetyManager } = require("./data-safety");
-const { MockCloudSyncClient } = require("./integrations/inventory-sync/cloud-client");
-const { TerminalCloudSyncClient } = require("./integrations/inventory-sync/terminal-cloud-client");
+const { PosSyncCloudClient } = require("./integrations/pos-sync/cloud-client");
 const { createTerminalAuthService } = require("./integrations/terminal-auth/terminal-auth.ts");
-const { runInventorySync } = require("./integrations/inventory-sync/reconcile");
+const {
+  runCatalogSync,
+  runReconcile,
+  flushSalesJournal,
+  enqueueSaleSyncEvent
+} = require("./integrations/pos-sync/engine");
+// MIGRATION NOTE (pos-offline-sync-engine-v1):
+// Google Drive inventory sync IPC endpoints were removed from startup/runtime paths.
+// POS sync now uses terminal-authenticated cloud endpoints and local sync_journal storage.
 const { registerProductIpc } = require("./ipc/product-ipc");
 const { registerInventoryIpc } = require("./ipc/inventory-ipc");
 const { registerInventoryAlertsIpc } = require("./ipc/inventory-alerts-ipc");
@@ -66,9 +66,17 @@ const startUrl = process.env.ELECTRON_START_URL || "http://localhost:3000";
 let mainWindow = null;
 let terminalAuthService = null;
 
-const envPath = path.join(__dirname, "..", "..", ".env");
-if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath });
+const envPaths = [
+  path.join(__dirname, "..", "..", "deploy", ".env"),
+  path.join(__dirname, "..", "..", ".env"),
+  path.join(__dirname, ".env")
+];
+
+for (const envPath of envPaths) {
+  if (fs.existsSync(envPath)) {
+    const isDesktopEnv = envPath.endsWith(path.join("apps", "desktop", ".env"));
+    dotenv.config({ path: envPath, override: isDesktopEnv });
+  }
 }
 
 function getDriveConfig() {
@@ -87,40 +95,6 @@ function getDriveConfig() {
     fileName: process.env.DRIVE_FILE_NAME || "productos-inventario.xlsx"
   };
 }
-
-ipcMain.handle("drive:getState", async () => {
-  return loadSyncState();
-});
-
-ipcMain.handle("drive:connect", async () => {
-  const deviceCode = await startDriveConnection(getDriveConfig());
-  return deviceCode;
-});
-
-ipcMain.handle("drive:complete", async (_event, deviceCode) => {
-  const state = await completeDriveConnection(getDriveConfig(), deviceCode);
-  return state;
-});
-
-ipcMain.handle("drive:upload", async (_event, dataBuffer) => {
-  const state = loadSyncState();
-  const buffer = dataBuffer instanceof ArrayBuffer ? dataBuffer : dataBuffer.buffer;
-  return uploadInventoryWorkbook(getDriveConfig(), buffer, state);
-});
-
-ipcMain.handle("drive:download", async (_event, localSnapshot) => {
-  if (!localSnapshot?.products || !localSnapshot?.inventory) {
-    throw new Error("Local snapshot missing.");
-  }
-
-  const result = await downloadAndReconcile(
-    getDriveConfig(),
-    localSnapshot.products,
-    localSnapshot.inventory
-  );
-  saveSyncState(result.state);
-  return result;
-});
 
 ipcMain.handle("terminal-auth:get-state", async () => {
   if (!terminalAuthService) {
@@ -334,6 +308,7 @@ app.whenReady().then(async () => {
   const inventoryAlertRepo = createInventoryAlertRepository(db);
   const saleRepo = createSaleRepository(db);
   const syncRepo = createSyncStateRepository(db);
+  const posSyncRepo = createPosSyncRepository(db);
   const shiftRepo = createShiftRepository(db);
   const customerRepo = createCustomerRepository(db);
   const gameTypeRepo = createGameTypeRepository(db);
@@ -346,7 +321,22 @@ app.whenReady().then(async () => {
   terminalAuthService = createTerminalAuthService();
 
   registerDataSafetyIpc(ipcMain, dataSafety);
-  registerInventorySyncIpc(ipcMain, inventorySyncRepo);
+  registerInventorySyncIpc(ipcMain, {
+    inventorySyncRepo,
+    posSyncRepo,
+    terminalAuthService,
+    createCloudClient: () => {
+      if (!(process.env.CLOUD_API_URL || process.env.API_URL || process.env.CLOUD_API_BASE_URL)) {
+        return null;
+      }
+      return new PosSyncCloudClient((pathname, init) =>
+        terminalAuthService.authenticatedRequest(pathname, init)
+      );
+    },
+    runCatalogSync,
+    runReconcile,
+    flushSalesJournal
+  });
   registerProductIpc(ipcMain, productRepo, expansionRepo);
   registerInventoryIpc(ipcMain, inventoryRepo, productAlertRepo, inventoryAlertRepo);
   registerInventoryAlertsIpc(ipcMain, {
@@ -362,7 +352,22 @@ app.whenReady().then(async () => {
     storeCreditRepo,
     productAlertRepo,
     inventoryAlertRepo,
-    db
+    db,
+    posSyncRepo,
+    terminalAuthService,
+    flushSalesJournal: async () => {
+      const cloudClient = process.env.CLOUD_API_URL || process.env.API_URL || process.env.CLOUD_API_BASE_URL
+        ? new PosSyncCloudClient((pathname, init) => terminalAuthService.authenticatedRequest(pathname, init))
+        : null;
+      if (!cloudClient) {
+        return;
+      }
+      await flushSalesJournal({
+        cloudClient,
+        posSyncRepo
+      });
+    },
+    enqueueSaleSyncEvent
   });
   registerSyncIpc(ipcMain, syncRepo);
   registerCashRegisterIpc(ipcMain, shiftRepo, saleRepo);
@@ -388,23 +393,32 @@ app.whenReady().then(async () => {
     getDriveConfig
   });
 
-  const posId = process.env.POS_ID || "pos-local";
   const cloudClient =
     process.env.CLOUD_API_URL || process.env.API_URL || process.env.CLOUD_API_BASE_URL
-      ? new TerminalCloudSyncClient((pathname, init) => terminalAuthService.authenticatedRequest(pathname, init))
-      : new MockCloudSyncClient();
-  runInventorySync({
-    posId,
-    cloudClient,
-    inventoryRepo,
-    movementRepo: inventoryMovementRepo,
-    appliedEventRepo,
-    syncRepo: inventorySyncRepo,
-    productRepo,
-    db
-  }).catch(() => {
-    // Inventory sync failures should not block POS startup.
-  });
+      ? new PosSyncCloudClient((pathname, init) => terminalAuthService.authenticatedRequest(pathname, init))
+      : null;
+  if (cloudClient) {
+    runCatalogSync({
+      cloudClient,
+      posSyncRepo
+    }).catch(() => {
+      // Catalog sync failures should not block POS startup.
+    });
+    flushSalesJournal({
+      cloudClient,
+      posSyncRepo
+    }).catch(() => {
+      // Journal flush failures should not block POS startup.
+    });
+    setInterval(() => {
+      flushSalesJournal({
+        cloudClient,
+        posSyncRepo
+      }).catch(() => {
+        // Background retries are best effort.
+      });
+    }, 30_000);
+  }
 
   mainWindow = createWindow();
   buildAppMenu(mainWindow);

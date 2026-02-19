@@ -115,19 +115,13 @@ type ExpansionsApi = {
 
 type InventorySyncApi = {
   getSyncStatus: AsyncFn;
+  runSyncNow: AsyncFn;
+  reconcileNow: AsyncFn;
 };
 
 type SyncApi = {
   getSyncState: AsyncFn;
   updateSyncState: AsyncFn;
-};
-
-type DriveSyncApi = {
-  getState: AsyncFn;
-  connect: AsyncFn;
-  complete: AsyncFn;
-  upload: AsyncFn;
-  download: AsyncFn;
 };
 
 type TerminalAuthState = {
@@ -177,7 +171,6 @@ type ElectronApi = {
 
 type KoyoteBridge = {
   version: string;
-  driveSync: DriveSyncApi;
   terminalAuth: TerminalAuthApi;
 };
 

@@ -11,6 +11,8 @@ import { TerminalRevokeDialog, type TerminalRevokeDialogLabels } from "@/compone
 
 type Labels = {
   details: string;
+  regenerate: string;
+  regenerating: string;
   revoke: string;
   revoking: string;
   disabled: string;
@@ -21,13 +23,20 @@ type Labels = {
 type Props = {
   terminal: AdminTerminal;
   labels: Labels;
+  onRegenerate: (terminalId: string) => Promise<void>;
   onRevoke: (terminalId: string) => Promise<void>;
 };
 
-export function TerminalActions({ terminal, labels, onRevoke }: Props) {
+export function TerminalActions({ terminal, labels, onRegenerate, onRevoke }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const isRevoked = terminal.status === "REVOKED";
+
+  const handleRegenerate = () => {
+    startTransition(async () => {
+      await onRegenerate(terminal.id);
+    });
+  };
 
   const handleRevoke = () => {
     startTransition(async () => {
@@ -47,6 +56,9 @@ export function TerminalActions({ terminal, labels, onRevoke }: Props) {
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuItem asChild>
             <Link href={`/admin/terminals/${terminal.id}`}>{labels.details}</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={isPending} onSelect={handleRegenerate}>
+            {isPending ? labels.regenerating : labels.regenerate}
           </DropdownMenuItem>
           <DropdownMenuItem
             disabled={isRevoked || isPending}

@@ -18,6 +18,7 @@ constraints:
   - read-only
   - no runtime code changes
 tools: []
+recommended_skills: [frontend-design, fullstack-developer]
 ---
 
 # nextjs-vercel-best-practices

@@ -1,50 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { SyncState, SyncStatus } from "@pos/core";
-import { createInitialSyncState } from "@pos/core";
+import { useEffect, useMemo, useState } from "react";
 import { t } from "../i18n";
-import { importProductsFromExcel } from "@/app/products/services/excel-import";
-import { applyImportResult } from "@/app/products/services/apply-import";
 
-type DriveDeviceCode = {
-  userCode: string;
-  verificationUri: string;
-  expiresIn: number;
-  interval: number;
-  deviceCode: string;
+type SyncStatusPayload = {
+  syncState?: {
+    catalogSnapshotVersion: string | null;
+    snapshotAppliedAt: string | null;
+    lastDeltaSyncAt: string | null;
+    lastReconcileAt: string | null;
+    lastSyncErrorCode: string | null;
+  };
+  queue?: {
+    queuedEvents: number;
+    oldestPendingAt: string | null;
+  };
+  terminal?: {
+    activated: boolean;
+    status: string;
+    branchId: string | null;
+    terminalId: string | null;
+    lastVerifiedAt: string | null;
+  };
 };
 
-type DriveDownloadResult = {
-  fileBase64?: string;
-};
-
-type DriveSyncApi = {
-  getState: () => Promise<SyncState>;
-  connect: () => Promise<DriveDeviceCode>;
-  complete: (deviceCode: DriveDeviceCode) => Promise<SyncState>;
-  upload: (arrayBuffer?: ArrayBuffer) => Promise<SyncState>;
-  download: (localSnapshot?: { products: unknown[]; inventory: unknown }) => Promise<DriveDownloadResult>;
-};
-
-function statusLabel(status: SyncStatus) {
-  switch (status) {
-    case "CONNECTED":
-      return t("statusConnected");
-    case "UPLOADING":
-      return t("statusUploading");
-    case "DOWNLOADING":
-      return t("statusDownloading");
-    case "CONFLICT":
-      return t("statusConflict");
-    case "ERROR":
-      return t("statusError");
-    default:
-      return t("statusNotConnected");
-  }
-}
-
-function formatDate(value?: string) {
+function formatDate(value?: string | null) {
   if (!value) {
     return t("notAvailable");
   }
@@ -55,41 +35,34 @@ function formatDate(value?: string) {
 }
 
 export function DriveStatus() {
-  const [state, setState] = useState<SyncState>(createInitialSyncState());
-  const [deviceCode, setDeviceCode] = useState<DriveDeviceCode | null>(null);
-  const [copyMessage, setCopyMessage] = useState<string | null>(null);
-  const [uploadBuffer, setUploadBuffer] = useState<ArrayBuffer | null>(null);
-  const [uploadFileName, setUploadFileName] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [status, setStatus] = useState<SyncStatusPayload | null>(null);
+  const [busy, setBusy] = useState<"sync" | "reconcile" | null>(null);
+  const [resultMessage, setResultMessage] = useState<string | null>(null);
 
-  const syncApi = typeof window !== "undefined" ? window.koyote?.driveSync : undefined;
-  const canUpload = Boolean(uploadBuffer);
-  const isDesktopReady = Boolean(syncApi);
-  const canDownload = true;
+  const syncApi = typeof window !== "undefined" ? window.api?.inventorySync : undefined;
 
-  const loadSnapshot = async () => {
-    const api = window.api;
-    if (!api) {
-      return null;
-    }
-    const [products, inventory] = await Promise.all([
-      api.products.getProducts(),
-      api.inventory.getInventory()
-    ]);
-    return { products: products ?? [], inventory: inventory ?? { items: {} } };
-  };
-
-  const refreshState = async () => {
+  const refresh = async () => {
     if (!syncApi) {
+      setStatus(null);
       return;
     }
-    const nextState = await syncApi.getState();
-    setState(nextState);
+    const next = (await syncApi.getSyncStatus()) as SyncStatusPayload;
+    setStatus(next);
   };
 
   useEffect(() => {
-    refreshState();
+    refresh();
   }, []);
+
+  const terminalLabel = useMemo(() => {
+    if (!status?.terminal?.activated) {
+      return t("terminalNotActivated");
+    }
+    if (status.terminal.status === "offline") {
+      return t("terminalOffline");
+    }
+    return t("terminalActive");
+  }, [status]);
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
@@ -98,232 +71,102 @@ export function DriveStatus() {
         <p className="text-sm text-zinc-400">{t("driveDescription")}</p>
         <p className="text-xs text-zinc-500">{t("helpLocalFirst")}</p>
       </div>
+
       <div className="mt-4 grid gap-3 text-sm text-zinc-300 sm:grid-cols-2">
         <div>
-          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">
-            {t("statusLabel")}
-          </span>
-          <span className="text-base font-semibold text-white">{statusLabel(state.status)}</span>
+          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">{t("statusLabel")}</span>
+          <span className="text-base font-semibold text-white">{terminalLabel}</span>
         </div>
         <div>
-          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">
-            {t("conflictsLabel")}
-          </span>
-          <span className="text-base font-semibold text-white">
-            {state.conflictCount ? state.conflictCount : t("conflictsNone")}
-          </span>
+          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">{t("branchLabel")}</span>
+          <span>{status?.terminal?.branchId ?? t("notAvailable")}</span>
         </div>
         <div>
-          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">
-            {t("lastSyncLabel")}
-          </span>
-          <span>{formatDate(state.lastSyncAt)}</span>
+          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">{t("snapshotVersionLabel")}</span>
+          <span>{status?.syncState?.catalogSnapshotVersion ?? t("notAvailable")}</span>
         </div>
         <div>
-          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">
-            {t("lastUploadLabel")}
-          </span>
-          <span>{formatDate(state.lastUploadAt)}</span>
+          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">{t("queueLabel")}</span>
+          <span>{status?.queue?.queuedEvents ?? 0}</span>
         </div>
         <div>
-          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">
-            {t("lastDownloadLabel")}
-          </span>
-          <span>{formatDate(state.lastDownloadAt)}</span>
+          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">{t("lastSyncLabel")}</span>
+          <span>{formatDate(status?.syncState?.lastDeltaSyncAt)}</span>
+        </div>
+        <div>
+          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">{t("lastReconcileLabel")}</span>
+          <span>{formatDate(status?.syncState?.lastReconcileAt)}</span>
+        </div>
+        <div>
+          <span className="block text-xs uppercase tracking-[0.2em] text-zinc-500">{t("oldestQueuedLabel")}</span>
+          <span>{formatDate(status?.queue?.oldestPendingAt)}</span>
         </div>
       </div>
+
       <div className="mt-5 flex flex-wrap gap-3">
         <button
           type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={!isDesktopReady}
-          className={`rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white transition ${
-            isDesktopReady ? "bg-white/10 hover:bg-white/20" : "cursor-not-allowed bg-white/5 opacity-60"
-          }`}
+          onClick={async () => {
+            if (!syncApi) {
+              return;
+            }
+            setBusy("sync");
+            setResultMessage(null);
+            try {
+              const result = await syncApi.runSyncNow();
+              setResultMessage(`${t("syncNowDone")} (${result?.catalog?.itemCount ?? 0})`);
+              await refresh();
+            } catch {
+              setResultMessage(t("syncNowFailed"));
+            } finally {
+              setBusy(null);
+            }
+          }}
+          disabled={!syncApi || busy !== null}
+          className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {t("selectFileAction")}
+          {busy === "sync" ? t("syncNowBusy") : t("syncNowAction")}
         </button>
+
         <button
           type="button"
           onClick={async () => {
             if (!syncApi) {
               return;
             }
-            const code = await syncApi.connect();
-            setDeviceCode(code);
+            setBusy("reconcile");
+            setResultMessage(null);
+            try {
+              const result = await syncApi.reconcileNow();
+              const plan = result?.plan || {};
+              setResultMessage(
+                `${t("reconcileDone")} M:${plan.missing ?? 0} S:${plan.stale ?? 0} U:${plan.unknown ?? 0}`
+              );
+              await refresh();
+            } catch {
+              setResultMessage(t("reconcileFailed"));
+            } finally {
+              setBusy(null);
+            }
           }}
-          disabled={!isDesktopReady}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-            isDesktopReady
-              ? "bg-accent-500 text-black hover:bg-accent-600"
-              : "cursor-not-allowed bg-white/10 text-zinc-400"
-          }`}
+          disabled={!syncApi || busy !== null}
+          className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {t("connectAction")}
+          {busy === "reconcile" ? t("reconcileBusy") : t("reconcileAction")}
         </button>
+
         <button
           type="button"
-          onClick={async () => {
-            if (!syncApi) {
-              return;
-            }
-            if (!uploadBuffer) {
-              return;
-            }
-            setState(await syncApi.upload(uploadBuffer));
-          }}
-          disabled={!canUpload || !isDesktopReady}
-          className={`rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white transition ${
-            canUpload && isDesktopReady
-              ? "bg-white/10 hover:bg-white/20"
-              : "cursor-not-allowed bg-white/5 opacity-60"
-          }`}
-        >
-          {t("uploadAction")}
-        </button>
-        <button
-          type="button"
-          onClick={async () => {
-            if (!syncApi) {
-              return;
-            }
-            const snapshot = await loadSnapshot();
-            if (!snapshot) {
-              return;
-            }
-            await syncApi.download(snapshot);
-            refreshState();
-          }}
-          disabled={!isDesktopReady}
-          className={`rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white transition ${
-            isDesktopReady
-              ? "bg-white/10 hover:bg-white/20"
-              : "cursor-not-allowed bg-white/5 opacity-60"
-          }`}
-        >
-          {t("downloadAction")}
-        </button>
-        <button
-          type="button"
-          onClick={async () => {
-            if (!syncApi) {
-              return;
-            }
-            const snapshot = await loadSnapshot();
-            if (!snapshot) {
-              return;
-            }
-            const result = await syncApi.download(snapshot);
-            if (!result.fileBase64) {
-              return;
-            }
-            const buffer = Uint8Array.from(atob(result.fileBase64), (char) => char.charCodeAt(0))
-              .buffer;
-            const applied = importProductsFromExcel({
-              file: buffer,
-              products: snapshot.products,
-              inventory: snapshot.inventory,
-              nowIso: new Date().toISOString(),
-              createId: () => crypto.randomUUID()
-            });
-            await applyImportResult(applied, snapshot.products, snapshot.inventory);
-            refreshState();
-          }}
-          disabled={!canDownload || !isDesktopReady}
-          className={`rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white transition ${
-            canDownload && isDesktopReady
-              ? "bg-white/10 hover:bg-white/20"
-              : "cursor-not-allowed bg-white/5 opacity-60"
-          }`}
-        >
-          {t("applyDriveAction")}
-        </button>
-        <button
-          type="button"
-          onClick={refreshState}
-          disabled={!isDesktopReady}
-          className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+          onClick={refresh}
+          disabled={!syncApi || busy !== null}
+          className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {t("refreshAction")}
         </button>
       </div>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".xlsx"
-        className="hidden"
-        onChange={async (event) => {
-          const file = event.target.files?.[0];
-          if (!file) {
-            return;
-          }
-          const buffer = await file.arrayBuffer();
-          setUploadBuffer(buffer);
-          setUploadFileName(file.name);
-          event.target.value = "";
-        }}
-      />
-      <div className="mt-3 text-xs text-zinc-500">
-        {t("selectedFileLabel")}: {uploadFileName ?? t("noFileSelected")}
-      </div>
-      <div className="mt-2 text-xs text-zinc-500">{t("applyDriveNote")}</div>
-      {!isDesktopReady ? (
-        <div className="mt-4 text-xs text-zinc-500">
-          <div>{t("desktopOnlyNotice")}</div>
-          <div>{t("desktopOnlyAction")}</div>
-        </div>
-      ) : null}
-      {deviceCode ? (
-        <div className="mt-4 rounded-xl border border-white/10 bg-base-900 p-4 text-sm text-zinc-300">
-          <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">
-            {t("connectPendingTitle")}
-          </div>
-          <p className="mt-2">{t("connectInstructions")}</p>
-          <div className="mt-3 grid gap-2 text-xs text-zinc-400">
-            <div>
-              <span className="text-zinc-500">{t("connectUserCodeLabel")}: </span>
-              <span className="text-white">{deviceCode.userCode}</span>
-            </div>
-            <div>
-              <span className="text-zinc-500">{t("connectUrlLabel")}: </span>
-              <span className="text-white">{deviceCode.verificationUri}</span>
-            </div>
-          </div>
-          <div className="mt-3 flex items-center gap-3 text-xs text-zinc-400">
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(deviceCode.verificationUri);
-                  setCopyMessage(t("copyLinkSuccess"));
-                } catch {
-                  setCopyMessage(t("copyLinkError"));
-                }
-                setTimeout(() => setCopyMessage(null), 2000);
-              }}
-              className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/20"
-            >
-              {t("copyLinkLabel")}
-            </button>
-            {copyMessage ? <span>{copyMessage}</span> : null}
-          </div>
-          <button
-            type="button"
-            onClick={async () => {
-              if (!syncApi) {
-                return;
-              }
-              const nextState = await syncApi.complete(deviceCode);
-              setState(nextState);
-              setDeviceCode(null);
-            }}
-            className="mt-4 rounded-xl bg-accent-500 px-4 py-2 text-xs font-semibold text-black transition hover:bg-accent-600"
-          >
-            {t("connectFinishAction")}
-          </button>
-        </div>
-      ) : null}
+
+      {resultMessage ? <p className="mt-3 text-xs text-zinc-300">{resultMessage}</p> : null}
+      {!syncApi ? <p className="mt-3 text-xs text-zinc-500">{t("desktopOnlyNotice")}</p> : null}
     </div>
   );
 }
-

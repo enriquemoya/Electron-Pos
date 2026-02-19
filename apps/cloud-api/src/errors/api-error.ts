@@ -95,6 +95,19 @@ export const ApiErrors = {
   terminalNotFound: new ApiError(404, "POS_TERMINAL_NOT_FOUND", "terminal not found"),
   terminalAlreadyRevoked: new ApiError(400, "POS_TERMINAL_ALREADY_REVOKED", "terminal already revoked"),
   invalidActivationKey: new ApiError(401, "POS_INVALID_ACTIVATION_KEY", "invalid activation key"),
+  posSyncUnauthorized: new ApiError(401, "POS_SYNC_UNAUTHORIZED", "pos sync unauthorized"),
+  posSyncRateLimited: new ApiError(429, "POS_SYNC_RATE_LIMITED", "pos sync rate limited"),
+  posCatalogSnapshotFailed: new ApiError(500, "POS_CATALOG_SNAPSHOT_FAILED", "pos catalog snapshot failed"),
+  posCatalogDeltaFailed: new ApiError(500, "POS_CATALOG_DELTA_FAILED", "pos catalog delta failed"),
+  posCatalogReconcileFailed: new ApiError(500, "POS_CATALOG_RECONCILE_FAILED", "pos catalog reconcile failed"),
+  posCatalogManifestTooLarge: new ApiError(
+    413,
+    "POS_CATALOG_MANIFEST_TOO_LARGE",
+    "pos catalog manifest too large"
+  ),
+  posSyncEventInvalid: new ApiError(400, "POS_SYNC_EVENT_INVALID", "pos sync event invalid"),
+  posSyncEventDuplicate: new ApiError(200, "POS_SYNC_EVENT_DUPLICATE", "pos sync event duplicate"),
+  posSyncStorageFailed: new ApiError(500, "POS_SYNC_STORAGE_FAILED", "pos sync storage failed"),
   orderTransferApprovalRequired: new ApiError(
     400,
     "ORDER_TRANSFER_APPROVAL_REQUIRED",

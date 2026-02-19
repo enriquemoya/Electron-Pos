@@ -80,14 +80,26 @@ export default async function AdminTerminalDetailPage({
               terminalName={terminal.name}
               isRevoked={terminal.status === "REVOKED"}
               labels={{
+                regenerate: t("detail.regenerate"),
+                regenerating: t("detail.regenerating"),
                 revoke: t("detail.revoke"),
                 revokeDisabled: t("detail.revokeDisabled"),
+                regenerateDialog: {
+                  title: t("create.key.title"),
+                  description: t("create.key.description"),
+                  hint: t("create.key.hint"),
+                  copy: t("create.key.copy"),
+                  copied: t("create.key.copied"),
+                  close: t("create.key.close")
+                },
                 revokeDialog: {
                   title: t("revoke.title"),
-                  description: t("revoke.description"),
+                  description: t("revoke.description", { name: "{name}" }),
                   cancel: t("revoke.cancel"),
                   confirm: t("revoke.confirm")
                 },
+                regenerateOk: t("toasts.regenerateOk"),
+                regenerateError: t("toasts.regenerateError"),
                 revokeOk: t("toasts.revokeOk"),
                 revokeError: t("toasts.revokeError"),
                 genericError: t("errors.generic"),

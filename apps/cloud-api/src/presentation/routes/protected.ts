@@ -95,13 +95,17 @@ export function createProtectedRoutes(params: {
     limit: 120,
     windowMs: 60_000,
     keyPrefix: "pos-sync",
-    error: ApiErrors.terminalRateLimited
+    error: ApiErrors.posSyncRateLimited
   });
   const requirePosToken = requireTerminalAuth(params.terminalUseCases);
 
   router.post("/sync/events", syncController.recordEventsHandler);
   router.get("/sync/pending", syncController.getPendingHandler);
   router.post("/sync/ack", syncController.acknowledgeHandler);
+  router.get("/pos/catalog/snapshot", terminalSyncRateLimit, requirePosToken, syncController.catalogSnapshotHandler);
+  router.get("/pos/catalog/delta", terminalSyncRateLimit, requirePosToken, syncController.catalogDeltaHandler);
+  router.post("/pos/catalog/reconcile", terminalSyncRateLimit, requirePosToken, syncController.reconcileCatalogHandler);
+  router.post("/pos/sync/sales-events", terminalSyncRateLimit, requirePosToken, syncController.ingestSalesEventHandler);
   router.post("/orders", terminalSyncRateLimit, requirePosToken, syncController.createOrderHandler);
   router.get("/read/products", syncController.readProductsHandler);
   router.post("/pos/activate", terminalActivationRateLimit, terminalController.activateHandler);

@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["migration","schema evolution","table change","prisma"]
 outputs: ["migration risks","data loss warnings","audit notes"]
+recommended_skills: [prisma-expert]
 ---
 
 ## Capabilities

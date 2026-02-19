@@ -25,6 +25,7 @@ forbidden_paths:
   - apps/desktop/**
   - packages/**
 tools: []
+recommended_skills: [frontend-design, ui-ux-pro-max]
 ---
 
 # i18n-accessibility-guardian

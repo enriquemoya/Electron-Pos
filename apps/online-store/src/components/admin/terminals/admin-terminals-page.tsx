@@ -7,6 +7,7 @@ import type { AdminTerminal, PickupBranch } from "@/lib/admin-api";
 import { Link } from "@/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { TerminalActivationKeyDialog, type TerminalActivationKeyDialogLabels } from "@/components/admin/terminals/terminal-activation-key-dialog";
 import { TerminalCreateDialog, type CreateTerminalPayload, type CreateTerminalResult, type TerminalCreateDialogLabels } from "@/components/admin/terminals/terminal-create-dialog";
 import { TerminalTable, type TerminalTableLabels } from "@/components/admin/terminals/terminal-table";
 
@@ -20,6 +21,7 @@ type Labels = {
   subtitle: string;
   summary: string;
   create: TerminalCreateDialogLabels;
+  regenerateKey: TerminalActivationKeyDialogLabels;
   table: TerminalTableLabels;
   pagination: {
     prev: string;
@@ -27,6 +29,8 @@ type Labels = {
     page: string;
   };
   toasts: {
+    regenerateOk: string;
+    regenerateError: string;
     revokeOk: string;
     revokeError: string;
   };
@@ -77,14 +81,14 @@ async function parseApiResponse(response: Response) {
 
 export function AdminTerminalsPage({ locale, page, total, totalPages, branches, items, labels }: Props) {
   const [terminals, setTerminals] = useState<AdminTerminal[]>(items);
+  const [activationApiKey, setActivationApiKey] = useState<string | null>(null);
+  const [activationKeyDialogOpen, setActivationKeyDialogOpen] = useState(false);
+  const [activationKeyCopied, setActivationKeyCopied] = useState(false);
 
   const canGoPrev = page > 1;
   const canGoNext = page < totalPages;
 
-  const pageSummary = useMemo(
-    () => labels.summary.replace("{count}", String(total)).replace("{page}", String(page)).replace("{pages}", String(totalPages)),
-    [labels.summary, page, total, totalPages]
-  );
+  const pageSummary = useMemo(() => labels.summary, [labels.summary]);
 
   const errorFromCode = (code?: string) => {
     switch (code) {
@@ -174,6 +178,50 @@ export function AdminTerminalsPage({ locale, page, total, totalPages, branches, 
     }
   };
 
+  const handleRegenerateKey = async (terminalId: string) => {
+    try {
+      const response = await fetch(`/api/admin/terminals/${terminalId}/regenerate-key`, {
+        method: "POST"
+      });
+      const payload = await parseApiResponse(response);
+      const key = typeof payload.activationApiKey === "string" ? payload.activationApiKey : "";
+      if (!key) {
+        throw new RequestError(labels.errors.generic, "UNKNOWN");
+      }
+
+      setActivationApiKey(key);
+      setActivationKeyCopied(false);
+      setActivationKeyDialogOpen(true);
+      setTerminals((current) =>
+        current.map((terminal) =>
+          terminal.id === terminalId
+            ? {
+                ...terminal,
+                status: "PENDING",
+                revokedAt: null,
+                revokedByAdminId: null,
+                revokedByAdminName: null
+              }
+            : terminal
+        )
+      );
+      toast.success(labels.toasts.regenerateOk);
+    } catch (error) {
+      const code = error instanceof RequestError ? error.code : undefined;
+      const message = errorFromCode(code);
+      toast.error(labels.toasts.regenerateError, { description: message });
+      throw error;
+    }
+  };
+
+  const handleCopyActivationKey = async () => {
+    if (!activationApiKey) {
+      return;
+    }
+    await navigator.clipboard.writeText(activationApiKey);
+    setActivationKeyCopied(true);
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-white/10 bg-white/5 text-white">
@@ -186,7 +234,13 @@ export function AdminTerminalsPage({ locale, page, total, totalPages, branches, 
           <TerminalCreateDialog branches={branches} labels={labels.create} onCreate={handleCreateTerminal} />
         </CardHeader>
         <CardContent className="space-y-4">
-          <TerminalTable locale={locale} items={terminals} labels={labels.table} onRevoke={handleRevokeTerminal} />
+          <TerminalTable
+            locale={locale}
+            items={terminals}
+            labels={labels.table}
+            onRegenerate={handleRegenerateKey}
+            onRevoke={handleRevokeTerminal}
+          />
 
           <div className="flex items-center justify-between text-sm text-white/70">
             {canGoPrev ? (
@@ -198,7 +252,7 @@ export function AdminTerminalsPage({ locale, page, total, totalPages, branches, 
                 {labels.pagination.prev}
               </Button>
             )}
-            <span>{labels.pagination.page.replace("{page}", String(page)).replace("{pages}", String(totalPages))}</span>
+            <span>{labels.pagination.page}</span>
             {canGoNext ? (
               <Button asChild variant="outline" size="sm">
                 <Link href={`/admin/terminals?page=${Math.min(totalPages, page + 1)}`}>{labels.pagination.next}</Link>
@@ -211,6 +265,14 @@ export function AdminTerminalsPage({ locale, page, total, totalPages, branches, 
           </div>
         </CardContent>
       </Card>
+      <TerminalActivationKeyDialog
+        open={activationKeyDialogOpen}
+        onOpenChange={setActivationKeyDialogOpen}
+        activationApiKey={activationApiKey}
+        copied={activationKeyCopied}
+        labels={labels.regenerateKey}
+        onCopy={handleCopyActivationKey}
+      />
     </div>
   );
 }

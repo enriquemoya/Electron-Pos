@@ -41,7 +41,8 @@ const TERMINAL_AUTH_FAILURE_CODES = new Set([
   "TERMINAL_INVALID_TOKEN",
   "TERMINAL_TOKEN_EXPIRED",
   "TERMINAL_INVALID_GRACE_TOKEN",
-  "POS_TERMINAL_NOT_FOUND"
+  "POS_TERMINAL_NOT_FOUND",
+  "POS_TOKEN_INVALID"
 ]);
 
 function getAuthPath() {
@@ -171,7 +172,7 @@ async function parseResponse(response: Response) {
   return payload || {};
 }
 
-function isTerminalAuthFailure(error: unknown) {
+function isTerminalAuthFailure(error: unknown, acceptHttpStatusFallback = false) {
   if (!(error instanceof Error)) {
     return false;
   }
@@ -181,7 +182,7 @@ function isTerminalAuthFailure(error: unknown) {
     return true;
   }
 
-  if (cloudError.status === 401 || cloudError.status === 403) {
+  if (acceptHttpStatusFallback && (cloudError.status === 401 || cloudError.status === 403)) {
     return true;
   }
 
@@ -277,7 +278,7 @@ export function createTerminalAuthService() {
         state: toState(nextCredentials, "active")
       };
     } catch (error) {
-      if (isTerminalAuthFailure(error)) {
+      if (isTerminalAuthFailure(error, true)) {
         clearCredentials();
         const code = (error as CloudError).code || "TERMINAL_REVOKED";
         return {
@@ -329,7 +330,7 @@ export function createTerminalAuthService() {
     try {
       return await parseResponse(response);
     } catch (error) {
-      if (isTerminalAuthFailure(error)) {
+      if (isTerminalAuthFailure(error, false)) {
         clearCredentials();
       }
       throw error;

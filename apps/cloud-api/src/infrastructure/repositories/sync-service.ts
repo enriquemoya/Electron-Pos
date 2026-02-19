@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 
 import { withClient } from "../db/pg";
 import { prisma } from "../db/prisma";
+import { ApiErrors } from "../../errors/api-error";
 import { isIsoString } from "../../validation/common";
 
 export async function recordEvents(events: any[]) {
@@ -93,6 +94,282 @@ export async function createOrder(orderId: string, items: any[], branchId: strin
 
     return { duplicate: false };
   });
+}
+
+function buildSnapshotVersion(date: Date | null): string {
+  return date ? date.toISOString() : "1970-01-01T00:00:00.000Z";
+}
+
+function buildVersionHash(params: { updatedAt: Date; available: number; price: Prisma.Decimal | null }) {
+  return crypto
+    .createHash("sha256")
+    .update(`${params.updatedAt.toISOString()}|${params.available}|${params.price ? params.price.toString() : "null"}`)
+    .digest("hex");
+}
+
+function toCatalogEntity(row: {
+  productId: string;
+  slug: string | null;
+  displayName: string | null;
+  shortDescription: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  categoryId: string | null;
+  category: string | null;
+  gameId: string | null;
+  game: string | null;
+  expansionId: string | null;
+  price: Prisma.Decimal | null;
+  available: number;
+  updatedAt: Date;
+  availabilityState: string | null;
+}) {
+  return {
+    entityType: "PRODUCT",
+    cloudId: row.productId,
+    localId: null,
+    updatedAt: row.updatedAt.toISOString(),
+    versionHash: buildVersionHash({
+      updatedAt: row.updatedAt,
+      available: row.available,
+      price: row.price
+    }),
+    payload: {
+      id: row.productId,
+      slug: row.slug ?? null,
+      name: row.displayName ?? null,
+      shortDescription: row.shortDescription ?? null,
+      description: row.description ?? null,
+      imageUrl: row.imageUrl ?? null,
+      categoryId: row.categoryId ?? null,
+      category: row.category ?? null,
+      gameId: row.gameId ?? null,
+      game: row.game ?? null,
+      expansionId: row.expansionId ?? null,
+      price: row.price == null ? null : Number(row.price),
+      available: row.available,
+      availabilityState: row.availabilityState ?? null
+    }
+  };
+}
+
+export async function getCatalogSnapshot(params: { branchId: string; page: number; pageSize: number }) {
+  const branch = await prisma.pickupBranch.findUnique({
+    where: { id: params.branchId },
+    select: { id: true }
+  });
+  if (!branch) {
+    throw ApiErrors.branchNotFound;
+  }
+
+  const where: Prisma.ReadModelInventoryWhereInput = {};
+  const [items, total, latest] = await prisma.$transaction([
+    prisma.readModelInventory.findMany({
+      where,
+      orderBy: [{ updatedAt: "asc" }, { productId: "asc" }],
+      skip: (params.page - 1) * params.pageSize,
+      take: params.pageSize,
+      select: {
+        productId: true,
+        slug: true,
+        displayName: true,
+        shortDescription: true,
+        description: true,
+        imageUrl: true,
+        categoryId: true,
+        category: true,
+        gameId: true,
+        game: true,
+        expansionId: true,
+        price: true,
+        available: true,
+        updatedAt: true,
+        availabilityState: true
+      }
+    }),
+    prisma.readModelInventory.count({ where }),
+    prisma.readModelInventory.findFirst({
+      where,
+      orderBy: [{ updatedAt: "desc" }],
+      select: { updatedAt: true }
+    })
+  ]);
+
+  return {
+    items: items.map(toCatalogEntity),
+    total,
+    snapshotVersion: buildSnapshotVersion(latest?.updatedAt ?? null),
+    appliedAt: new Date().toISOString()
+  };
+}
+
+export async function getCatalogDelta(params: {
+  branchId: string;
+  since: string | null;
+  page: number;
+  pageSize: number;
+}) {
+  const branch = await prisma.pickupBranch.findUnique({
+    where: { id: params.branchId },
+    select: { id: true }
+  });
+  if (!branch) {
+    throw ApiErrors.branchNotFound;
+  }
+
+  const sinceDate = params.since ? new Date(params.since) : null;
+  const where: Prisma.ReadModelInventoryWhereInput = {
+    ...(sinceDate && !Number.isNaN(sinceDate.getTime()) ? { updatedAt: { gt: sinceDate } } : {})
+  };
+  const [items, total, latest] = await prisma.$transaction([
+    prisma.readModelInventory.findMany({
+      where,
+      orderBy: [{ updatedAt: "asc" }, { productId: "asc" }],
+      skip: (params.page - 1) * params.pageSize,
+      take: params.pageSize,
+      select: {
+        productId: true,
+        slug: true,
+        displayName: true,
+        shortDescription: true,
+        description: true,
+        imageUrl: true,
+        categoryId: true,
+        category: true,
+        gameId: true,
+        game: true,
+        expansionId: true,
+        price: true,
+        available: true,
+        updatedAt: true,
+        availabilityState: true
+      }
+    }),
+    prisma.readModelInventory.count({ where }),
+    prisma.readModelInventory.findFirst({
+      where,
+      orderBy: [{ updatedAt: "desc" }],
+      select: { updatedAt: true }
+    })
+  ]);
+
+  return {
+    items: items.map(toCatalogEntity),
+    total,
+    snapshotVersion: buildSnapshotVersion(latest?.updatedAt ?? null),
+    appliedAt: new Date().toISOString()
+  };
+}
+
+export async function reconcileCatalog(params: {
+  branchId: string;
+  manifest: Array<{
+    entityType: string;
+    cloudId: string;
+    localId: string | null;
+    updatedAt: string | null;
+    versionHash: string | null;
+  }>;
+}) {
+  const branch = await prisma.pickupBranch.findUnique({
+    where: { id: params.branchId },
+    select: { id: true }
+  });
+  if (!branch) {
+    throw ApiErrors.branchNotFound;
+  }
+
+  const cloudRows = await prisma.readModelInventory.findMany({
+    select: {
+      productId: true,
+      updatedAt: true,
+      available: true,
+      price: true
+    }
+  });
+  const cloudMap = new Map(
+    cloudRows.map((row) => [
+      row.productId,
+      {
+        cloudId: row.productId,
+        updatedAt: row.updatedAt.toISOString(),
+        versionHash: buildVersionHash({
+          updatedAt: row.updatedAt,
+          available: row.available,
+          price: row.price
+        })
+      }
+    ])
+  );
+  const manifestMap = new Map(params.manifest.map((entry) => [entry.cloudId, entry]));
+
+  const missing = cloudRows
+    .filter((row) => !manifestMap.has(row.productId))
+    .map((row) => ({
+      entityType: "PRODUCT",
+      cloudId: row.productId
+    }));
+
+  const stale = params.manifest
+    .filter((entry) => {
+      const cloud = cloudMap.get(entry.cloudId);
+      if (!cloud) {
+        return false;
+      }
+      if (!entry.versionHash) {
+        return true;
+      }
+      return entry.versionHash !== cloud.versionHash;
+    })
+    .map((entry) => ({
+      entityType: entry.entityType,
+      cloudId: entry.cloudId
+    }));
+
+  const unknown = params.manifest
+    .filter((entry) => !cloudMap.has(entry.cloudId))
+    .map((entry) => ({
+      entityType: entry.entityType,
+      cloudId: entry.cloudId,
+      localId: entry.localId
+    }));
+
+  const latest = cloudRows.length
+    ? cloudRows.reduce((acc, row) => (row.updatedAt > acc ? row.updatedAt : acc), cloudRows[0].updatedAt)
+    : null;
+
+  return {
+    missing,
+    stale,
+    unknown,
+    snapshotVersion: buildSnapshotVersion(latest)
+  };
+}
+
+export async function ingestSalesEvent(params: {
+  terminalId: string;
+  branchId: string;
+  localEventId: string;
+  eventType: string;
+  payload: Record<string, unknown>;
+}) {
+  try {
+    await prisma.posSyncEvent.create({
+      data: {
+        terminalId: params.terminalId,
+        branchId: params.branchId,
+        localEventId: params.localEventId,
+        eventType: params.eventType,
+        payload: params.payload as Prisma.InputJsonValue
+      }
+    });
+    return { duplicate: false };
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return { duplicate: true };
+    }
+    throw ApiErrors.posSyncStorageFailed;
+  }
 }
 
 export async function readProducts(params: {

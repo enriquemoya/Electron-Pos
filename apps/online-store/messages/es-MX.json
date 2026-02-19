@@ -435,6 +435,8 @@
       "never": "Nunca",
       "actions": {
         "details": "Ver detalle",
+        "regenerate": "Regenerar llave",
+        "regenerating": "Regenerando...",
         "revoke": "Revocar terminal",
         "revoking": "Revocando...",
         "disabled": "Ya revocada",
@@ -479,6 +481,8 @@
     "detail": {
       "subtitle": "Metadatos y estado de seguridad de la terminal.",
       "back": "Volver a terminales",
+      "regenerate": "Regenerar llave de activacion",
+      "regenerating": "Regenerando...",
       "revoke": "Revocar terminal",
       "revokeDisabled": "Terminal revocada",
       "notRevoked": "No revocada",
@@ -492,6 +496,8 @@
     "toasts": {
       "created": "Terminal creada",
       "createError": "No se pudo crear la terminal",
+      "regenerateOk": "Llave de activacion regenerada",
+      "regenerateError": "No se pudo regenerar la llave",
       "revokeOk": "Terminal revocada",
       "revokeError": "No se pudo revocar la terminal"
     },

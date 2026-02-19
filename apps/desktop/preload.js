@@ -2,13 +2,6 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("koyote", {
   version: "0.0.0",
-  driveSync: {
-    getState: () => ipcRenderer.invoke("drive:getState"),
-    connect: () => ipcRenderer.invoke("drive:connect"),
-    complete: (deviceCode) => ipcRenderer.invoke("drive:complete", deviceCode),
-    upload: (arrayBuffer) => ipcRenderer.invoke("drive:upload", arrayBuffer),
-    download: (localSnapshot) => ipcRenderer.invoke("drive:download", localSnapshot)
-  },
   terminalAuth: {
     getState: () => ipcRenderer.invoke("terminal-auth:get-state"),
     activate: (activationApiKey) =>
@@ -126,7 +119,9 @@ contextBridge.exposeInMainWorld("api", {
     deleteExpansion: (expansionId) => ipcRenderer.invoke("expansions:delete", expansionId)
   },
   inventorySync: {
-    getSyncStatus: (posId) => ipcRenderer.invoke("inventory-sync:getStatus", posId)
+    getSyncStatus: () => ipcRenderer.invoke("inventory-sync:getStatus"),
+    runSyncNow: () => ipcRenderer.invoke("inventory-sync:run"),
+    reconcileNow: () => ipcRenderer.invoke("inventory-sync:reconcile")
   },
   sync: {
     getSyncState: (provider) => ipcRenderer.invoke("sync:get", provider),

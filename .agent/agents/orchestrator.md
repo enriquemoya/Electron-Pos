@@ -10,6 +10,7 @@ allowed_write_paths: [".agent/**"]
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".codex/**",".memory-bank/**"]
 triggers: ["orchestrate","route task","governance flow","decide agent"]
 outputs: ["selected agents","routing decision","next steps"]
+recommended_skills: [backend-patterns, frontend-design, prisma-expert]
 ---
 
 Routing rules

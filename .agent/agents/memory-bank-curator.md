@@ -10,6 +10,7 @@ allowed_write_paths: [".memory-bank/**"]
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".codex/**"]
 triggers: ["memory bank","memory update","update progress","active context"]
 outputs: ["files changed","summary message","next command"]
+recommended_skills: [clean-code]
 ---
 
 Scope

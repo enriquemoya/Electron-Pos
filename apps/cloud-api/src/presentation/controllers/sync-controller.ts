@@ -13,6 +13,14 @@ function parseNullableNumber(value: unknown) {
 }
 
 export function createSyncController(useCases: SyncUseCases) {
+  const parseSyncRequestContext = (req: Request) => {
+    const terminal = (req as Request & { terminal?: { terminalId: string; branchId: string } }).terminal;
+    if (!terminal?.terminalId || !terminal?.branchId) {
+      throw ApiErrors.posSyncUnauthorized;
+    }
+    return terminal;
+  };
+
   return {
     async recordEventsHandler(req: Request, res: Response) {
       const events = Array.isArray(req.body?.events) ? req.body.events : [];
@@ -149,6 +157,108 @@ export function createSyncController(useCases: SyncUseCases) {
       } catch (error) {
         const apiError = asApiError(error, ApiErrors.serverError);
         res.status(apiError.status).json({ error: apiError.message });
+      }
+    },
+    async catalogSnapshotHandler(req: Request, res: Response) {
+      try {
+        const terminal = parseSyncRequestContext(req);
+        const page = parsePage(req.query.page, 1);
+        const pageSize = Math.max(1, Math.min(200, parsePage(req.query.pageSize, 200)));
+        if (!isPositiveNumber(page) || !isPositiveNumber(pageSize)) {
+          throw ApiErrors.invalidPagination;
+        }
+        const result = await useCases.getCatalogSnapshot({
+          branchId: terminal.branchId,
+          page,
+          pageSize
+        });
+        res.status(200).json(result);
+      } catch (error) {
+        const apiError = asApiError(error, ApiErrors.posCatalogSnapshotFailed);
+        res.status(apiError.status).json({ error: apiError.message, code: apiError.code });
+      }
+    },
+    async catalogDeltaHandler(req: Request, res: Response) {
+      try {
+        const terminal = parseSyncRequestContext(req);
+        const page = parsePage(req.query.page, 1);
+        const pageSize = Math.max(1, Math.min(200, parsePage(req.query.pageSize, 200)));
+        const since = req.query.since ? String(req.query.since) : null;
+        if (!isPositiveNumber(page) || !isPositiveNumber(pageSize)) {
+          throw ApiErrors.invalidPagination;
+        }
+        const result = await useCases.getCatalogDelta({
+          branchId: terminal.branchId,
+          since,
+          page,
+          pageSize
+        });
+        res.status(200).json(result);
+      } catch (error) {
+        const apiError = asApiError(error, ApiErrors.posCatalogDeltaFailed);
+        res.status(apiError.status).json({ error: apiError.message, code: apiError.code });
+      }
+    },
+    async reconcileCatalogHandler(req: Request, res: Response) {
+      try {
+        const terminal = parseSyncRequestContext(req);
+        const manifest = Array.isArray(req.body?.catalogManifest) ? req.body.catalogManifest : [];
+        if (manifest.length > 5000) {
+          throw ApiErrors.posCatalogManifestTooLarge;
+        }
+        const normalized = manifest.map((entry: Record<string, unknown>) => ({
+          entityType: String(entry.entityType || ""),
+          cloudId: String(entry.cloudId || ""),
+          localId: entry.localId == null ? null : String(entry.localId),
+          updatedAt: entry.updatedAt == null ? null : String(entry.updatedAt),
+          versionHash: entry.versionHash == null ? null : String(entry.versionHash)
+        }));
+        const result = await useCases.reconcileCatalog({
+          branchId: terminal.branchId,
+          manifest: normalized
+        });
+        res.status(200).json(result);
+      } catch (error) {
+        const apiError = asApiError(error, ApiErrors.posCatalogReconcileFailed);
+        res.status(apiError.status).json({ error: apiError.message, code: apiError.code });
+      }
+    },
+    async ingestSalesEventHandler(req: Request, res: Response) {
+      try {
+        const terminal = parseSyncRequestContext(req);
+        const localEventId = String(req.body?.localEventId || "");
+        const eventType = String(req.body?.eventType || "");
+        const payload = (req.body?.payload && typeof req.body.payload === "object")
+          ? (req.body.payload as Record<string, unknown>)
+          : null;
+
+        if (!localEventId || !eventType || !payload) {
+          throw ApiErrors.posSyncEventInvalid;
+        }
+        if (payload.branchId && String(payload.branchId) !== terminal.branchId) {
+          throw ApiErrors.posSyncEventInvalid;
+        }
+
+        const result = await useCases.ingestSalesEvent({
+          terminalId: terminal.terminalId,
+          branchId: terminal.branchId,
+          localEventId,
+          eventType,
+          payload
+        });
+
+        if (result.duplicate) {
+          res.status(200).json({
+            status: "duplicate",
+            code: ApiErrors.posSyncEventDuplicate.code
+          });
+          return;
+        }
+
+        res.status(201).json({ status: "synced" });
+      } catch (error) {
+        const apiError = asApiError(error, ApiErrors.posSyncStorageFailed);
+        res.status(apiError.status).json({ error: apiError.message, code: apiError.code });
       }
     }
   };

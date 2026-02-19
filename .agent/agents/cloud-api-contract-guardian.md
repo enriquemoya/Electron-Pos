@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["endpoint","contract","response shape","dto","compatibility"]
 outputs: ["contract issues","breaking change risks","audit notes"]
+recommended_skills: [backend-patterns, fullstack-developer]
 ---
 
 ## Capabilities

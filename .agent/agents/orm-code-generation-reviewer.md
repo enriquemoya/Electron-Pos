@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["prisma client","orm","codegen","data access","transaction"]
 outputs: ["orm usage risks","transaction issues","audit notes"]
+recommended_skills: [prisma-expert, backend-patterns]
 ---
 
 # ORM Code Generation Reviewer
