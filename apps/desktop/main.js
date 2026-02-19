@@ -40,6 +40,8 @@ const {
 } = require("../../packages/db/src/index.ts");
 const { DataSafetyManager } = require("./data-safety");
 const { MockCloudSyncClient } = require("./integrations/inventory-sync/cloud-client");
+const { TerminalCloudSyncClient } = require("./integrations/inventory-sync/terminal-cloud-client");
+const { createTerminalAuthService } = require("./integrations/terminal-auth/terminal-auth.ts");
 const { runInventorySync } = require("./integrations/inventory-sync/reconcile");
 const { registerProductIpc } = require("./ipc/product-ipc");
 const { registerInventoryIpc } = require("./ipc/inventory-ipc");
@@ -62,6 +64,7 @@ const { registerInventorySyncIpc } = require("./ipc/inventory-sync-ipc");
 const isDev = !app.isPackaged;
 const startUrl = process.env.ELECTRON_START_URL || "http://localhost:3000";
 let mainWindow = null;
+let terminalAuthService = null;
 
 const envPath = path.join(__dirname, "..", "..", ".env");
 if (fs.existsSync(envPath)) {
@@ -117,6 +120,75 @@ ipcMain.handle("drive:download", async (_event, localSnapshot) => {
   );
   saveSyncState(result.state);
   return result;
+});
+
+ipcMain.handle("terminal-auth:get-state", async () => {
+  if (!terminalAuthService) {
+    return {
+      activated: false,
+      terminalId: null,
+      branchId: null,
+      status: "not_activated",
+      activatedAt: null,
+      lastVerifiedAt: null,
+      messageCode: null
+    };
+  }
+
+  return terminalAuthService.getState();
+});
+
+ipcMain.handle("terminal-auth:activate", async (_event, payload) => {
+  if (!terminalAuthService) {
+    return { ok: false, error: "terminal auth unavailable", code: "TERMINAL_AUTH_UNAVAILABLE" };
+  }
+
+  const apiKey = typeof payload?.activationApiKey === "string" ? payload.activationApiKey : "";
+  try {
+    const state = await terminalAuthService.activate(apiKey);
+    if (mainWindow) {
+      mainWindow.webContents.send("terminal-auth:state-changed", state);
+    }
+    return { ok: true, state };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "activation failed",
+      code: error?.code || "UNKNOWN"
+    };
+  }
+});
+
+ipcMain.handle("terminal-auth:rotate", async () => {
+  if (!terminalAuthService) {
+    throw new Error("terminal auth unavailable");
+  }
+
+  const result = await terminalAuthService.rotate();
+  if (mainWindow) {
+    mainWindow.webContents.send("terminal-auth:state-changed", result.state);
+  }
+  return result;
+});
+
+ipcMain.handle("terminal-auth:clear", async () => {
+  if (!terminalAuthService) {
+    return {
+      activated: false,
+      terminalId: null,
+      branchId: null,
+      status: "not_activated",
+      activatedAt: null,
+      lastVerifiedAt: null,
+      messageCode: null
+    };
+  }
+
+  const state = terminalAuthService.clear("TERMINAL_REVOKED");
+  if (mainWindow) {
+    mainWindow.webContents.send("terminal-auth:state-changed", state);
+  }
+  return state;
 });
 
 function loadRoute(targetWindow, route = "/") {
@@ -271,6 +343,7 @@ app.whenReady().then(async () => {
   const tournamentRepo = createTournamentRepository(db);
   const participantRepo = createParticipantRepository(db);
   const prizeRepo = createTournamentPrizeRepository(db);
+  terminalAuthService = createTerminalAuthService();
 
   registerDataSafetyIpc(ipcMain, dataSafety);
   registerInventorySyncIpc(ipcMain, inventorySyncRepo);
@@ -316,7 +389,10 @@ app.whenReady().then(async () => {
   });
 
   const posId = process.env.POS_ID || "pos-local";
-  const cloudClient = new MockCloudSyncClient();
+  const cloudClient =
+    process.env.CLOUD_API_URL || process.env.API_URL || process.env.CLOUD_API_BASE_URL
+      ? new TerminalCloudSyncClient((pathname, init) => terminalAuthService.authenticatedRequest(pathname, init))
+      : new MockCloudSyncClient();
   runInventorySync({
     posId,
     cloudClient,

@@ -8,6 +8,20 @@ contextBridge.exposeInMainWorld("koyote", {
     complete: (deviceCode) => ipcRenderer.invoke("drive:complete", deviceCode),
     upload: (arrayBuffer) => ipcRenderer.invoke("drive:upload", arrayBuffer),
     download: (localSnapshot) => ipcRenderer.invoke("drive:download", localSnapshot)
+  },
+  terminalAuth: {
+    getState: () => ipcRenderer.invoke("terminal-auth:get-state"),
+    activate: (activationApiKey) =>
+      ipcRenderer.invoke("terminal-auth:activate", { activationApiKey }),
+    rotate: () => ipcRenderer.invoke("terminal-auth:rotate"),
+    clear: () => ipcRenderer.invoke("terminal-auth:clear"),
+    onStateChanged: (handler) => {
+      const listener = (_event, state) => {
+        handler(state);
+      };
+      ipcRenderer.on("terminal-auth:state-changed", listener);
+      return () => ipcRenderer.removeListener("terminal-auth:state-changed", listener);
+    }
   }
 });
 

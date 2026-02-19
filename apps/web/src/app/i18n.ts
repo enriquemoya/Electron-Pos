@@ -13,6 +13,20 @@ export const esMX = {
   navCustomers: "Clientes",
   navReports: "Reportes",
   navSettings: "Configuracion",
+  terminalActivationTitle: "Activacion de terminal",
+  terminalActivationDescription:
+    "Ingresa la llave de activacion generada en el panel admin para habilitar este POS.",
+  terminalActivationLabel: "Llave de activacion",
+  terminalActivationPlaceholder: "Pega la llave aqui",
+  terminalActivateAction: "Activar terminal",
+  terminalActivatingAction: "Activando...",
+  terminalActivatedMessage: "Terminal activada.",
+  terminalNotActivatedMessage: "Terminal no activada.",
+  terminalOfflineMessage: "Modo sin conexion. Ultima verificacion:",
+  terminalRevokedMessage: "Terminal revocada. Reactiva para continuar.",
+  terminalGenericError: "No se pudo completar la operacion.",
+  terminalInvalidKeyError: "La llave de activacion no es valida.",
+  terminalRateLimitedError: "Demasiados intentos. Intenta nuevamente en unos minutos.",
   metadataTitle: "Koyote POS",
   metadataDescription: "POS local para tienda TCG"
 } as const;
