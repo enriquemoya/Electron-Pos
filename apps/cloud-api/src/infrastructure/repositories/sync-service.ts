@@ -139,6 +139,7 @@ function toCatalogEntity(row: {
   available: number;
   updatedAt: Date;
   availabilityState: string | null;
+  isActive: boolean;
 }) {
   return {
     entityType: "PRODUCT",
@@ -164,7 +165,10 @@ function toCatalogEntity(row: {
       expansionId: row.expansionId ?? null,
       price: row.price == null ? null : Number(row.price),
       available: row.available,
-      availabilityState: row.availabilityState ?? null
+      availabilityState: row.availabilityState ?? null,
+      enabledPOS: row.isActive,
+      enabledOnlineStore: row.isActive,
+      isDeletedCloud: false
     }
   };
 }
@@ -207,7 +211,8 @@ export async function getCatalogSnapshot(params: { branchId: string; page: numbe
         price: true,
         available: true,
         updatedAt: true,
-        availabilityState: true
+        availabilityState: true,
+        isActive: true
       }
     }),
     prisma.readModelInventory.count({ where }),
@@ -246,6 +251,9 @@ export async function getCatalogDelta(params: {
     branchScopes: { some: { branchId: params.branchId } },
     ...(sinceDate && !Number.isNaN(sinceDate.getTime()) ? { updatedAt: { gt: sinceDate } } : {})
   };
+  const branchScopeWhere: Prisma.ReadModelInventoryWhereInput = {
+    branchScopes: { some: { branchId: params.branchId } }
+  };
   const [items, total, latest] = await prisma.$transaction([
     prisma.readModelInventory.findMany({
       where,
@@ -267,12 +275,13 @@ export async function getCatalogDelta(params: {
         price: true,
         available: true,
         updatedAt: true,
-        availabilityState: true
+        availabilityState: true,
+        isActive: true
       }
     }),
     prisma.readModelInventory.count({ where }),
     prisma.readModelInventory.findFirst({
-      where,
+      where: branchScopeWhere,
       orderBy: [{ updatedAt: "desc" }],
       select: { updatedAt: true }
     })

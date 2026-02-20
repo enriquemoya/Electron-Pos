@@ -28,7 +28,8 @@ const {
   createDashboardRepository,
   createTournamentRepository,
   createParticipantRepository,
-  createTournamentPrizeRepository
+  createTournamentPrizeRepository,
+  createCatalogProjectionRepository
 } = require("../../packages/db/src/index.ts");
 const { createPosSyncRepository } = require("../../packages/db/src/index.ts");
 const { DataSafetyManager } = require("./data-safety");
@@ -42,6 +43,7 @@ const {
   enqueueSaleSyncEvent
 } = require("./integrations/pos-sync/engine");
 const { uploadOrQueueProof } = require("./integrations/proofs/proof-upload-service");
+const { createCatalogProjectionService } = require("./integrations/pos-sync/catalog-projection");
 // MIGRATION NOTE (pos-offline-sync-engine-v1):
 // Legacy inventory sync IPC endpoints were removed from startup/runtime paths.
 // POS sync now uses terminal-authenticated cloud endpoints and local sync_journal storage.
@@ -356,6 +358,11 @@ app.whenReady().then(async () => {
   const saleRepo = createSaleRepository(db);
   const syncRepo = createSyncStateRepository(db);
   const posSyncRepo = createPosSyncRepository(db);
+  const catalogProjectionRepo = createCatalogProjectionRepository(db);
+  const catalogProjectionService = createCatalogProjectionService({
+    posSyncRepo,
+    projectionRepo: catalogProjectionRepo
+  });
   const shiftRepo = createShiftRepository(db);
   const customerRepo = createCustomerRepository(db);
   const gameTypeRepo = createGameTypeRepository(db);
@@ -397,7 +404,8 @@ app.whenReady().then(async () => {
     },
     runCatalogSync,
     runReconcile,
-    flushSalesJournal
+    flushSalesJournal,
+    catalogProjectionService
   });
   registerProductIpc(ipcMain, productRepo, expansionRepo, { authorize: assertPosPermission });
   registerInventoryIpc(ipcMain, inventoryRepo, productAlertRepo, inventoryAlertRepo, {
@@ -461,7 +469,8 @@ app.whenReady().then(async () => {
   if (cloudClient) {
     runCatalogSync({
       cloudClient,
-      posSyncRepo
+      posSyncRepo,
+      catalogProjectionService
     }).catch(() => {
       // Catalog sync failures should not block POS startup.
     });

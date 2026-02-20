@@ -7,7 +7,8 @@ function registerInventorySyncIpc(
     createCloudClient,
     runCatalogSync,
     runReconcile,
-    flushSalesJournal
+    flushSalesJournal,
+    catalogProjectionService
   }
 ) {
   ipcMain.handle("inventory-sync:getStatus", () => {
@@ -30,7 +31,8 @@ function registerInventorySyncIpc(
 
     const catalog = await runCatalogSync({
       cloudClient,
-      posSyncRepo
+      posSyncRepo,
+      catalogProjectionService
     });
 
     const queue = await flushSalesJournal({
@@ -54,7 +56,8 @@ function registerInventorySyncIpc(
 
     const plan = await runReconcile({
       cloudClient,
-      posSyncRepo
+      posSyncRepo,
+      catalogProjectionService
     });
 
     return {

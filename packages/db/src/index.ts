@@ -21,3 +21,4 @@ export { createParticipantRepository } from "./repositories/participant-repo";
 export { createTournamentPrizeRepository } from "./repositories/tournament-prize-repo";
 export { createDashboardRepository } from "./repositories/dashboard-repo";
 export { createPosSyncRepository } from "./repositories/pos-sync-repo";
+export { createCatalogProjectionRepository } from "./repositories/catalog-projection-repo";

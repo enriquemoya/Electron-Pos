@@ -45,7 +45,7 @@ async function fetchPaged(fetchPage, pageSize = 200) {
   };
 }
 
-async function applySnapshot({ cloudClient, posSyncRepo }) {
+async function applySnapshot({ cloudClient, posSyncRepo, catalogProjectionService }) {
   const snapshot = await fetchPaged(
     ({ page, pageSize }) => cloudClient.fetchCatalogSnapshot({ page, pageSize }),
     200
@@ -66,8 +66,14 @@ async function applySnapshot({ cloudClient, posSyncRepo }) {
     localId: entry.cloudId
   })));
 
+  const projectionResult = catalogProjectionService.projectSnapshot({
+    items: mapped,
+    remoteVersion: snapshot.snapshotVersion,
+    nowIso: nowIso()
+  });
+
   posSyncRepo.updateState({
-    catalogSnapshotVersion: snapshot.snapshotVersion,
+    catalogSnapshotVersion: projectionResult.nextVersion,
     snapshotAppliedAt: nowIso(),
     lastDeltaSyncAt: nowIso(),
     lastSyncErrorCode: null
@@ -75,12 +81,13 @@ async function applySnapshot({ cloudClient, posSyncRepo }) {
 
   return {
     mode: "snapshot",
-    itemCount: mapped.length,
-    snapshotVersion: snapshot.snapshotVersion
+    itemCount: projectionResult.appliedCount,
+    snapshotVersion: projectionResult.nextVersion,
+    projection: projectionResult.stats
   };
 }
 
-async function applyDelta({ cloudClient, posSyncRepo, since }) {
+async function applyDelta({ cloudClient, posSyncRepo, since, catalogProjectionService }) {
   const delta = await fetchPaged(
     ({ page, pageSize }) => cloudClient.fetchCatalogDelta({ since, page, pageSize }),
     200
@@ -103,28 +110,36 @@ async function applyDelta({ cloudClient, posSyncRepo, since }) {
     })));
   }
 
+  const projectionResult = catalogProjectionService.projectDelta({
+    items: mapped,
+    remoteVersion: delta.snapshotVersion,
+    nowIso: nowIso()
+  });
+
   posSyncRepo.updateState({
-    catalogSnapshotVersion: delta.snapshotVersion,
+    catalogSnapshotVersion: projectionResult.nextVersion,
     lastDeltaSyncAt: nowIso(),
     lastSyncErrorCode: null
   });
 
   return {
     mode: "delta",
-    itemCount: mapped.length,
-    snapshotVersion: delta.snapshotVersion
+    itemCount: projectionResult.appliedCount,
+    snapshotVersion: projectionResult.nextVersion,
+    projection: projectionResult.stats
   };
 }
 
-async function runCatalogSync({ cloudClient, posSyncRepo }) {
+async function runCatalogSync({ cloudClient, posSyncRepo, catalogProjectionService }) {
   const state = posSyncRepo.getState();
   if (!state.catalogSnapshotVersion || !state.snapshotAppliedAt) {
-    return applySnapshot({ cloudClient, posSyncRepo });
+    return applySnapshot({ cloudClient, posSyncRepo, catalogProjectionService });
   }
   return applyDelta({
     cloudClient,
     posSyncRepo,
-    since: state.lastDeltaSyncAt || state.snapshotAppliedAt
+    since: state.lastDeltaSyncAt || state.snapshotAppliedAt,
+    catalogProjectionService
   });
 }
 
@@ -240,7 +255,7 @@ async function flushProofUploadJournal({ cloudClient, posSyncRepo, saleRepo }) {
   };
 }
 
-async function runReconcile({ cloudClient, posSyncRepo }) {
+async function runReconcile({ cloudClient, posSyncRepo, catalogProjectionService }) {
   const manifest = posSyncRepo.listCatalogManifest(5000);
   const plan = await cloudClient.reconcileCatalog({ catalogManifest: manifest });
   const missing = Array.isArray(plan.missing) ? plan.missing : [];
@@ -273,6 +288,11 @@ async function runReconcile({ cloudClient, posSyncRepo }) {
         cloudId: entry.cloudId,
         localId: entry.cloudId
       })));
+      catalogProjectionService.projectDelta({
+        items: toApply,
+        remoteVersion: plan.snapshotVersion || null,
+        nowIso: nowIso()
+      });
     }
   }
 

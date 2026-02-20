@@ -63,6 +63,59 @@ export function initializeDb(config: DbConfig): DbHandle {
   if (productColumns.length > 0 && !hasProductColumn("expansion_id")) {
     safeAddColumn("products", "expansion_id", "TEXT");
   }
+  if (productColumns.length > 0 && !hasProductColumn("cloud_id")) {
+    safeAddColumn("products", "cloud_id", "TEXT");
+  }
+  if (productColumns.length > 0 && !hasProductColumn("enabled_pos")) {
+    safeAddColumn("products", "enabled_pos", "INTEGER NOT NULL DEFAULT 1");
+  }
+  if (productColumns.length > 0 && !hasProductColumn("enabled_online_store")) {
+    safeAddColumn("products", "enabled_online_store", "INTEGER NOT NULL DEFAULT 1");
+  }
+  if (productColumns.length > 0 && !hasProductColumn("cloud_updated_at")) {
+    safeAddColumn("products", "cloud_updated_at", "TEXT");
+  }
+  if (productColumns.length > 0 && !hasProductColumn("is_deleted_cloud")) {
+    safeAddColumn("products", "is_deleted_cloud", "INTEGER NOT NULL DEFAULT 0");
+  }
+
+  const gameTypeColumns = db.prepare("PRAGMA table_info(game_types)").all() as { name: string }[];
+  const hasGameTypeColumn = (name: string) =>
+    gameTypeColumns.some((column) => column.name === name);
+  if (gameTypeColumns.length > 0 && !hasGameTypeColumn("cloud_id")) {
+    safeAddColumn("game_types", "cloud_id", "TEXT");
+  }
+  if (gameTypeColumns.length > 0 && !hasGameTypeColumn("enabled_pos")) {
+    safeAddColumn("game_types", "enabled_pos", "INTEGER NOT NULL DEFAULT 1");
+  }
+  if (gameTypeColumns.length > 0 && !hasGameTypeColumn("enabled_online_store")) {
+    safeAddColumn("game_types", "enabled_online_store", "INTEGER NOT NULL DEFAULT 1");
+  }
+  if (gameTypeColumns.length > 0 && !hasGameTypeColumn("cloud_updated_at")) {
+    safeAddColumn("game_types", "cloud_updated_at", "TEXT");
+  }
+  if (gameTypeColumns.length > 0 && !hasGameTypeColumn("is_deleted_cloud")) {
+    safeAddColumn("game_types", "is_deleted_cloud", "INTEGER NOT NULL DEFAULT 0");
+  }
+
+  const expansionColumns = db.prepare("PRAGMA table_info(expansions)").all() as { name: string }[];
+  const hasExpansionColumn = (name: string) =>
+    expansionColumns.some((column) => column.name === name);
+  if (expansionColumns.length > 0 && !hasExpansionColumn("cloud_id")) {
+    safeAddColumn("expansions", "cloud_id", "TEXT");
+  }
+  if (expansionColumns.length > 0 && !hasExpansionColumn("enabled_pos")) {
+    safeAddColumn("expansions", "enabled_pos", "INTEGER NOT NULL DEFAULT 1");
+  }
+  if (expansionColumns.length > 0 && !hasExpansionColumn("enabled_online_store")) {
+    safeAddColumn("expansions", "enabled_online_store", "INTEGER NOT NULL DEFAULT 1");
+  }
+  if (expansionColumns.length > 0 && !hasExpansionColumn("cloud_updated_at")) {
+    safeAddColumn("expansions", "cloud_updated_at", "TEXT");
+  }
+  if (expansionColumns.length > 0 && !hasExpansionColumn("is_deleted_cloud")) {
+    safeAddColumn("expansions", "is_deleted_cloud", "INTEGER NOT NULL DEFAULT 0");
+  }
 
   const tournamentColumns = db
     .prepare("PRAGMA table_info(tournaments)")
@@ -101,6 +154,14 @@ export function initializeDb(config: DbConfig): DbHandle {
   if (tournamentColumns.length > 0) {
     db.prepare("UPDATE tournaments SET winner_count = COALESCE(winner_count, 1)").run();
   }
+
+  // Ensure cloud projection defaults for legacy local rows.
+  db.prepare("UPDATE products SET cloud_id = COALESCE(cloud_id, id)").run();
+  db.prepare("UPDATE products SET enabled_pos = COALESCE(enabled_pos, 1), enabled_online_store = COALESCE(enabled_online_store, 1), is_deleted_cloud = COALESCE(is_deleted_cloud, 0)").run();
+  db.prepare("UPDATE game_types SET cloud_id = COALESCE(cloud_id, id)").run();
+  db.prepare("UPDATE game_types SET enabled_pos = COALESCE(enabled_pos, 1), enabled_online_store = COALESCE(enabled_online_store, 1), is_deleted_cloud = COALESCE(is_deleted_cloud, 0)").run();
+  db.prepare("UPDATE expansions SET cloud_id = COALESCE(cloud_id, id)").run();
+  db.prepare("UPDATE expansions SET enabled_pos = COALESCE(enabled_pos, 1), enabled_online_store = COALESCE(enabled_online_store, 1), is_deleted_cloud = COALESCE(is_deleted_cloud, 0)").run();
 
   const prizeColumns = db
     .prepare("PRAGMA table_info(tournament_prizes)")

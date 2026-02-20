@@ -75,7 +75,11 @@ export function createExpansionRepository(db: DbHandle) {
 
   return {
     getById(id: string): Expansion | null {
-      const row = db.prepare("SELECT * FROM expansions WHERE id = ?").get(id) as
+      const row = db
+        .prepare(
+          "SELECT * FROM expansions WHERE id = ? AND enabled_pos = 1 AND is_deleted_cloud = 0"
+        )
+        .get(id) as
         | ExpansionRow
         | undefined;
       return row ? mapRow(row) : null;
@@ -86,6 +90,8 @@ export function createExpansionRepository(db: DbHandle) {
           `
           SELECT * FROM expansions
           WHERE game_type_id = ?
+          AND enabled_pos = 1
+          AND is_deleted_cloud = 0
           ${includeInactive ? "" : "AND active = 1"}
           ORDER BY name ASC
           `

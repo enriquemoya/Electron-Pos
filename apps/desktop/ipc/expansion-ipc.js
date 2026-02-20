@@ -1,7 +1,10 @@
-const { randomUUID } = require("crypto");
-
 function registerExpansionIpc(ipcMain, expansionRepo, options = {}) {
   const authorize = typeof options.authorize === "function" ? options.authorize : null;
+  const assertCatalogReadOnly = () => {
+    const error = new Error("Catalog is cloud-managed and read-only in POS.");
+    error.code = "CATALOG_READ_ONLY";
+    throw error;
+  };
   ipcMain.handle("expansions:listByGame", (_event, gameTypeId, includeInactive) => {
     if (!gameTypeId) {
       throw new Error("Game type required.");
@@ -18,65 +21,22 @@ function registerExpansionIpc(ipcMain, expansionRepo, options = {}) {
 
   ipcMain.handle("expansions:create", (_event, payload) => {
     authorize?.("catalog:write");
-    if (!payload?.gameTypeId) {
-      throw new Error("Game type required.");
-    }
-    if (!payload?.name?.trim()) {
-      throw new Error("Expansion name missing.");
-    }
-    const now = new Date().toISOString();
-    const expansion = {
-      id: randomUUID(),
-      gameTypeId: payload.gameTypeId,
-      name: payload.name.trim(),
-      code: payload.code ?? null,
-      releaseDate: payload.releaseDate ?? null,
-      active: true,
-      createdAt: now,
-      updatedAt: now
-    };
-    return expansionRepo.create(expansion);
+    assertCatalogReadOnly();
   });
 
   ipcMain.handle("expansions:update", (_event, payload) => {
     authorize?.("catalog:write");
-    if (!payload?.id) {
-      throw new Error("Expansion id missing.");
-    }
-    if (!payload?.gameTypeId) {
-      throw new Error("Game type required.");
-    }
-    if (!payload?.name?.trim()) {
-      throw new Error("Expansion name missing.");
-    }
-    const now = new Date().toISOString();
-    const expansion = {
-      id: payload.id,
-      gameTypeId: payload.gameTypeId,
-      name: payload.name.trim(),
-      code: payload.code ?? null,
-      releaseDate: payload.releaseDate ?? null,
-      active: Boolean(payload.active),
-      createdAt: payload.createdAt ?? now,
-      updatedAt: now
-    };
-    return expansionRepo.update(expansion);
+    assertCatalogReadOnly();
   });
 
   ipcMain.handle("expansions:deactivate", (_event, expansionId) => {
     authorize?.("catalog:write");
-    if (!expansionId) {
-      throw new Error("Expansion id missing.");
-    }
-    return expansionRepo.deactivate(expansionId);
+    assertCatalogReadOnly();
   });
 
   ipcMain.handle("expansions:delete", (_event, expansionId) => {
     authorize?.("catalog:write");
-    if (!expansionId) {
-      throw new Error("Expansion id missing.");
-    }
-    expansionRepo.delete(expansionId);
+    assertCatalogReadOnly();
   });
 }
 

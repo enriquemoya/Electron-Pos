@@ -86,18 +86,26 @@ export function createProductRepository(db: DbHandle) {
 
   return {
     getById(id: string): Product | null {
-      const row = db.prepare("SELECT * FROM products WHERE id = ?").get(id) as
+      const row = db.prepare(
+        "SELECT * FROM products WHERE id = ? AND enabled_pos = 1 AND is_deleted_cloud = 0"
+      ).get(id) as
         | ProductRow
         | undefined;
       return row ? mapRowToProduct(row) : null;
     },
     list(): Product[] {
-      const rows = db.prepare("SELECT * FROM products ORDER BY name ASC").all() as ProductRow[];
+      const rows = db
+        .prepare(
+          "SELECT * FROM products WHERE enabled_pos = 1 AND is_deleted_cloud = 0 ORDER BY name ASC"
+        )
+        .all() as ProductRow[];
       return rows.map(mapRowToProduct);
     },
     listRecent(limit: number): Product[] {
       const rows = db
-        .prepare("SELECT * FROM products ORDER BY created_at DESC LIMIT ?")
+        .prepare(
+          "SELECT * FROM products WHERE enabled_pos = 1 AND is_deleted_cloud = 0 ORDER BY created_at DESC LIMIT ?"
+        )
         .all(limit) as ProductRow[];
       return rows.map(mapRowToProduct);
     },
@@ -108,6 +116,7 @@ export function createProductRepository(db: DbHandle) {
           SELECT p.*
           FROM products p
           INNER JOIN sale_items si ON si.product_id = p.id
+          WHERE p.enabled_pos = 1 AND p.is_deleted_cloud = 0
           GROUP BY p.id
           ORDER BY SUM(si.quantity) DESC
           LIMIT ?
@@ -194,7 +203,10 @@ export function createProductRepository(db: DbHandle) {
         );
       }
 
-      const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+      const baseConditions = ["p.enabled_pos = 1", "p.is_deleted_cloud = 0"];
+      const whereClause = [...baseConditions, ...conditions].length
+        ? `WHERE ${[...baseConditions, ...conditions].join(" AND ")}`
+        : "";
 
       const sortBy = filters.sortBy ?? "CREATED_AT";
       const sortDir = filters.sortDir === "ASC" ? "ASC" : "DESC";
