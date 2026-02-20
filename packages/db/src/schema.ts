@@ -36,11 +36,27 @@ CREATE TABLE IF NOT EXISTS expansions (
   FOREIGN KEY (game_type_id) REFERENCES game_types(id)
 );
 
+CREATE TABLE IF NOT EXISTS categories (
+  id TEXT PRIMARY KEY,
+  cloud_id TEXT UNIQUE,
+  name TEXT NOT NULL,
+  active INTEGER NOT NULL DEFAULT 1,
+  enabled_pos INTEGER NOT NULL DEFAULT 1,
+  enabled_online_store INTEGER NOT NULL DEFAULT 1,
+  cloud_updated_at TEXT,
+  is_deleted_cloud INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY,
   cloud_id TEXT UNIQUE,
   name TEXT NOT NULL,
   category TEXT NOT NULL,
+  category_cloud_id TEXT,
+  game_cloud_id TEXT,
+  expansion_cloud_id TEXT,
   price_amount INTEGER NOT NULL,
   price_currency TEXT NOT NULL,
   game_type_id TEXT,
@@ -291,17 +307,26 @@ CREATE INDEX IF NOT EXISTS idx_applied_events_applied ON applied_events(applied_
 CREATE INDEX IF NOT EXISTS idx_products_game_type ON products(game_type_id);
 CREATE INDEX IF NOT EXISTS idx_products_expansion ON products(expansion_id);
 CREATE INDEX IF NOT EXISTS idx_products_enabled_visible ON products(enabled_pos, is_deleted_cloud);
+CREATE INDEX IF NOT EXISTS idx_products_category_cloud_id ON products(category_cloud_id);
+CREATE INDEX IF NOT EXISTS idx_products_game_cloud_id ON products(game_cloud_id);
+CREATE INDEX IF NOT EXISTS idx_products_expansion_cloud_id ON products(expansion_cloud_id);
+CREATE INDEX IF NOT EXISTS idx_products_cloud_updated_at ON products(cloud_updated_at);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_products_cloud_id ON products(cloud_id);
 CREATE INDEX IF NOT EXISTS idx_tournaments_game_type ON tournaments(game_type_id);
 CREATE INDEX IF NOT EXISTS idx_tournaments_expansion ON tournaments(expansion_id);
 CREATE INDEX IF NOT EXISTS idx_game_types_active ON game_types(active);
 CREATE INDEX IF NOT EXISTS idx_game_types_enabled_visible ON game_types(enabled_pos, is_deleted_cloud);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_game_types_cloud_id ON game_types(cloud_id);
+CREATE INDEX IF NOT EXISTS idx_game_types_cloud_updated_at ON game_types(cloud_updated_at);
 CREATE INDEX IF NOT EXISTS idx_expansions_game_type ON expansions(game_type_id);
 CREATE INDEX IF NOT EXISTS idx_expansions_active ON expansions(active);
 CREATE INDEX IF NOT EXISTS idx_expansions_enabled_visible ON expansions(enabled_pos, is_deleted_cloud);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_expansions_cloud_id ON expansions(cloud_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_expansions_game_type_name ON expansions(game_type_id, name);
+CREATE INDEX IF NOT EXISTS idx_expansions_cloud_updated_at ON expansions(cloud_updated_at);
+CREATE INDEX IF NOT EXISTS idx_categories_enabled_visible ON categories(enabled_pos, is_deleted_cloud);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_cloud_id ON categories(cloud_id);
+CREATE INDEX IF NOT EXISTS idx_categories_cloud_updated_at ON categories(cloud_updated_at);
 CREATE INDEX IF NOT EXISTS idx_customers_created_at ON customers(created_at);
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
 CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
@@ -310,4 +335,4 @@ CREATE INDEX IF NOT EXISTS idx_sync_journal_status_next_retry ON sync_journal(st
 CREATE INDEX IF NOT EXISTS idx_sync_journal_manual ON sync_journal(manual_intervention_required);
 `;
 
-export const latestSchemaVersion = 13;
+export const latestSchemaVersion = 14;

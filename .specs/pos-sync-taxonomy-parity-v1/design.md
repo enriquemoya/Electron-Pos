@@ -45,13 +45,22 @@ IPC Controller -> Use Case -> Repository -> Storage
 
 ## Projection Algorithms
 
+### Field Normalization
+Before projection, normalize incoming entities:
+- cloudUpdatedAt := updatedAt
+- deleted semantics:
+  - deleted := (isDeletedCloud === true) OR (deletedAt is non-null)
+  - if both are present, isDeletedCloud takes precedence
+  - store isDeletedCloud as canonical local deletion marker
+  - never force isDeletedCloud=false for rows missing from snapshot
+
 ### Snapshot Algorithm
 1. Start transaction.
 2. For each entityType, build incoming cloudId set.
 3. Soft-mark existing projected rows for that entityType as not selectable in pre-pass.
 4. Upsert incoming rows by cloudId.
 5. Resolve product taxonomy references against projected taxonomy cloudIds.
-6. Mark missing rows as isDeletedCloud=true or enabledPOS=false according to canonical deletion and enablement semantics.
+6. For rows missing from the incoming snapshot set, mark them as not selectable for new operations by setting enabledPOS=false (soft-disable) and keep deletion markers untouched unless the incoming payload explicitly indicates deletion (isDeletedCloud=true or deletedAt non-null).
 7. Update sync state only after successful projection.
 8. Commit transaction.
 
@@ -77,13 +86,16 @@ IPC Controller -> Use Case -> Repository -> Storage
 ## Canonical Reference and Timestamp Mapping
 - PRODUCT references use categoryCloudId, gameCloudId, expansionCloudId.
 - EXPANSION references use gameCloudId.
-- If expansionCloudId exists, gameCloudId must exist.
-- If categoryCloudId is null in payload, map to cloud Uncategorized CATEGORY row before UI consumption.
+- If expansionCloudId exists, gameCloudId MAY be present but is not required.
+- If categoryCloudId is null in payload, persist categoryCloudId as null and render a stable "Uncategorized" label in UI. Do not synthesize or require a cloud "Uncategorized" CATEGORY row.
 - Contract field updatedAt maps to local field cloudUpdatedAt in SQLite.
 
 ## POS UI Consumption Design
 - Product list, new sale search, and pickers read taxonomy and product values from projected SQLite tables.
-- Category picker must consume categories table records instead of static enum select options.
+- Category picker MUST load categories from projected SQLite categories table.
+- No hardcoded enum list is allowed as a runtime data source.
+- Uncategorized behavior:
+  - If product.categoryCloudId is null or does not resolve, UI displays "Uncategorized" and continues rendering without breaking list/detail views.
 - Minimal empty state behavior:
   - show no-options message
   - allow reconcile trigger
@@ -116,5 +128,20 @@ IPC Controller -> Use Case -> Repository -> Storage
 - Emit structured events per sync run with counts by entityType.
 - Include branchId, terminalId, syncSessionId, and projection result counters.
 - Emit explicit reconcile summary counters for missing and outdated entities.
-- Example projection log event:
-  - {"terminalId":"term_1","branchId":"branch_1","syncSessionId":"sync_20260220_010000","operation":"projection","entityType":"CATEGORY","appliedCounts":{"inserted":3,"updated":1,"disabled":0,"deleted":0},"errorCode":null}
+- Example structured projection event:
+```json
+{
+  "event": "pos_catalog_projection",
+  "terminalId": "term_123",
+  "branchId": "branch_abc",
+  "syncSessionId": "sync_789",
+  "operation": "snapshot",
+  "entityType": "CATEGORY",
+  "appliedCounts": {
+    "upserts": 12,
+    "disabled": 2,
+    "skipped": 0
+  },
+  "errorCode": null
+}
+```

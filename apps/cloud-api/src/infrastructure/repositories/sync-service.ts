@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { Prisma } from "@prisma/client";
+import { CatalogTaxonomyType, Prisma } from "@prisma/client";
 
 import { withClient } from "../db/pg";
 import { prisma } from "../db/prisma";
@@ -123,6 +123,13 @@ function buildVersionHash(params: { updatedAt: Date; available: number; price: P
     .digest("hex");
 }
 
+function buildTaxonomyVersionHash(params: { updatedAt: Date; name: string; type: string }) {
+  return crypto
+    .createHash("sha256")
+    .update(`${params.type}|${params.updatedAt.toISOString()}|${params.name}`)
+    .digest("hex");
+}
+
 function toCatalogEntity(row: {
   productId: string;
   slug: string | null;
@@ -135,6 +142,7 @@ function toCatalogEntity(row: {
   gameId: string | null;
   game: string | null;
   expansionId: string | null;
+  expansionName: string | null;
   price: Prisma.Decimal | null;
   available: number;
   updatedAt: Date;
@@ -159,10 +167,14 @@ function toCatalogEntity(row: {
       description: row.description ?? null,
       imageUrl: row.imageUrl ?? null,
       categoryId: row.categoryId ?? null,
+      categoryCloudId: row.categoryId ?? null,
       category: row.category ?? null,
       gameId: row.gameId ?? null,
+      gameCloudId: row.gameId ?? null,
       game: row.game ?? null,
       expansionId: row.expansionId ?? null,
+      expansionCloudId: row.expansionId ?? null,
+      expansion: row.expansionName ?? null,
       price: row.price == null ? null : Number(row.price),
       available: row.available,
       availabilityState: row.availabilityState ?? null,
@@ -171,6 +183,154 @@ function toCatalogEntity(row: {
       isDeletedCloud: false
     }
   };
+}
+
+type TaxonomyEntity = {
+  entityType: "CATEGORY" | "GAME" | "EXPANSION";
+  cloudId: string;
+  localId: null;
+  updatedAt: string;
+  versionHash: string;
+  payload: {
+    id: string;
+    name: string;
+    slug: string | null;
+    type: "CATEGORY" | "GAME" | "EXPANSION";
+    gameCloudId?: string | null;
+    enabledPOS: boolean;
+    enabledOnlineStore: boolean;
+    isDeletedCloud: boolean;
+    deletedAt: string | null;
+  };
+};
+
+function toTaxonomyEntity(params: {
+  id: string;
+  name: string;
+  slug: string | null;
+  updatedAt: Date;
+  type: "CATEGORY" | "GAME" | "EXPANSION";
+  gameCloudId?: string | null;
+  enabled: boolean;
+}): TaxonomyEntity {
+  return {
+    entityType: params.type,
+    cloudId: params.id,
+    localId: null,
+    updatedAt: params.updatedAt.toISOString(),
+    versionHash: buildTaxonomyVersionHash({
+      updatedAt: params.updatedAt,
+      name: params.name,
+      type: params.type
+    }),
+    payload: {
+      id: params.id,
+      name: params.name,
+      slug: params.slug,
+      type: params.type,
+      ...(params.type === "EXPANSION" ? { gameCloudId: params.gameCloudId ?? null } : {}),
+      enabledPOS: params.enabled,
+      enabledOnlineStore: params.enabled,
+      isDeletedCloud: false,
+      deletedAt: null
+    }
+  };
+}
+
+async function listTaxonomyEntitiesForRows(rows: Array<{
+  categoryId: string | null;
+  gameId: string | null;
+  expansionId: string | null;
+  updatedAt: Date;
+  isActive: boolean;
+}>) {
+  const categoryIds = [...new Set(rows.map((row) => row.categoryId).filter((value): value is string => Boolean(value)))];
+  const gameIds = [...new Set(rows.map((row) => row.gameId).filter((value): value is string => Boolean(value)))];
+  const expansionIds = [...new Set(rows.map((row) => row.expansionId).filter((value): value is string => Boolean(value)))];
+
+  if (categoryIds.length === 0 && gameIds.length === 0 && expansionIds.length === 0) {
+    return [] as TaxonomyEntity[];
+  }
+
+  const taxonomyRows = await prisma.catalogTaxonomy.findMany({
+    where: {
+      OR: [
+        categoryIds.length > 0 ? { id: { in: categoryIds }, type: CatalogTaxonomyType.CATEGORY } : undefined,
+        gameIds.length > 0 ? { id: { in: gameIds }, type: CatalogTaxonomyType.GAME } : undefined,
+        expansionIds.length > 0 ? { id: { in: expansionIds }, type: CatalogTaxonomyType.EXPANSION } : undefined
+      ].filter(Boolean) as Prisma.CatalogTaxonomyWhereInput[]
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      type: true,
+      parentId: true,
+      updatedAt: true
+    }
+  });
+
+  const byId = new Map(taxonomyRows.map((row) => [row.id, row]));
+  const activityByTaxonomyId = new Map<string, boolean>();
+  rows.forEach((row) => {
+    const enabled = row.isActive;
+    if (row.categoryId) {
+      activityByTaxonomyId.set(row.categoryId, activityByTaxonomyId.get(row.categoryId) === false ? false : enabled);
+    }
+    if (row.gameId) {
+      activityByTaxonomyId.set(row.gameId, activityByTaxonomyId.get(row.gameId) === false ? false : enabled);
+    }
+    if (row.expansionId) {
+      activityByTaxonomyId.set(row.expansionId, activityByTaxonomyId.get(row.expansionId) === false ? false : enabled);
+    }
+  });
+
+  const entities: TaxonomyEntity[] = [];
+  for (const taxonomy of taxonomyRows) {
+    const enabled = activityByTaxonomyId.get(taxonomy.id) ?? true;
+    if (taxonomy.type === CatalogTaxonomyType.CATEGORY) {
+      entities.push(
+        toTaxonomyEntity({
+          id: taxonomy.id,
+          name: taxonomy.name,
+          slug: taxonomy.slug,
+          updatedAt: taxonomy.updatedAt,
+          type: "CATEGORY",
+          enabled
+        })
+      );
+      continue;
+    }
+    if (taxonomy.type === CatalogTaxonomyType.GAME) {
+      entities.push(
+        toTaxonomyEntity({
+          id: taxonomy.id,
+          name: taxonomy.name,
+          slug: taxonomy.slug,
+          updatedAt: taxonomy.updatedAt,
+          type: "GAME",
+          enabled
+        })
+      );
+      continue;
+    }
+    if (taxonomy.type === CatalogTaxonomyType.EXPANSION) {
+      const parent = taxonomy.parentId && byId.has(taxonomy.parentId) ? taxonomy.parentId : taxonomy.parentId;
+      entities.push(
+        toTaxonomyEntity({
+          id: taxonomy.id,
+          name: taxonomy.name,
+          slug: taxonomy.slug,
+          updatedAt: taxonomy.updatedAt,
+          type: "EXPANSION",
+          gameCloudId: parent ?? null,
+          enabled
+        })
+      );
+    }
+  }
+
+  return entities;
 }
 
 export async function getCatalogSnapshot(params: { branchId: string; page: number; pageSize: number }) {
@@ -223,8 +383,27 @@ export async function getCatalogSnapshot(params: { branchId: string; page: numbe
     })
   ]);
 
+  const taxonomyEntities = await listTaxonomyEntitiesForRows(
+    items.map((row) => ({
+      categoryId: row.categoryId,
+      gameId: row.gameId,
+      expansionId: row.expansionId,
+      updatedAt: row.updatedAt,
+      isActive: row.isActive
+    }))
+  );
+  const taxonomyNameById = new Map(
+    taxonomyEntities.map((entry) => [entry.cloudId, entry.payload.name])
+  );
+  const productEntities = items.map((row) =>
+    toCatalogEntity({
+      ...row,
+      expansionName: row.expansionId ? taxonomyNameById.get(row.expansionId) ?? null : null
+    })
+  );
+
   return {
-    items: items.map(toCatalogEntity),
+    items: [...taxonomyEntities, ...productEntities],
     total,
     snapshotVersion: buildSnapshotVersion(latest?.updatedAt ?? null),
     appliedAt: new Date().toISOString()
@@ -287,8 +466,27 @@ export async function getCatalogDelta(params: {
     })
   ]);
 
+  const taxonomyEntities = await listTaxonomyEntitiesForRows(
+    items.map((row) => ({
+      categoryId: row.categoryId,
+      gameId: row.gameId,
+      expansionId: row.expansionId,
+      updatedAt: row.updatedAt,
+      isActive: row.isActive
+    }))
+  );
+  const taxonomyNameById = new Map(
+    taxonomyEntities.map((entry) => [entry.cloudId, entry.payload.name])
+  );
+  const productEntities = items.map((row) =>
+    toCatalogEntity({
+      ...row,
+      expansionName: row.expansionId ? taxonomyNameById.get(row.expansionId) ?? null : null
+    })
+  );
+
   return {
-    items: items.map(toCatalogEntity),
+    items: [...taxonomyEntities, ...productEntities],
     total,
     snapshotVersion: buildSnapshotVersion(latest?.updatedAt ?? null),
     appliedAt: new Date().toISOString()
@@ -320,37 +518,75 @@ export async function reconcileCatalog(params: {
     },
     select: {
       productId: true,
+      categoryId: true,
+      gameId: true,
+      expansionId: true,
+      isActive: true,
       updatedAt: true,
       available: true,
       price: true
     }
   });
-  const cloudMap = new Map(
-    cloudRows.map((row) => [
-      row.productId,
-      {
-        cloudId: row.productId,
-        updatedAt: row.updatedAt.toISOString(),
-        versionHash: buildVersionHash({
-          updatedAt: row.updatedAt,
-          available: row.available,
-          price: row.price
-        })
-      }
+  const taxonomyEntities = await listTaxonomyEntitiesForRows(
+    cloudRows.map((row) => ({
+      categoryId: row.categoryId,
+      gameId: row.gameId,
+      expansionId: row.expansionId,
+      updatedAt: row.updatedAt,
+      isActive: row.isActive
+    }))
+  );
+
+  const cloudMap = new Map<
+    string,
+    {
+      entityType: string;
+      cloudId: string;
+      updatedAt: string;
+      versionHash: string;
+    }
+  >();
+  for (const row of cloudRows) {
+    const key = `PRODUCT:${row.productId}`;
+    cloudMap.set(key, {
+      entityType: "PRODUCT",
+      cloudId: row.productId,
+      updatedAt: row.updatedAt.toISOString(),
+      versionHash: buildVersionHash({
+        updatedAt: row.updatedAt,
+        available: row.available,
+        price: row.price
+      })
+    });
+  }
+  for (const taxonomy of taxonomyEntities) {
+    const key = `${taxonomy.entityType}:${taxonomy.cloudId}`;
+    cloudMap.set(key, {
+      entityType: taxonomy.entityType,
+      cloudId: taxonomy.cloudId,
+      updatedAt: taxonomy.updatedAt,
+      versionHash: taxonomy.versionHash
+    });
+  }
+
+  const manifestMap = new Map(
+    params.manifest.map((entry) => [
+      `${String(entry.entityType || "").toUpperCase()}:${entry.cloudId}`,
+      entry
     ])
   );
-  const manifestMap = new Map(params.manifest.map((entry) => [entry.cloudId, entry]));
 
-  const missing = cloudRows
-    .filter((row) => !manifestMap.has(row.productId))
-    .map((row) => ({
-      entityType: "PRODUCT",
-      cloudId: row.productId
+  const missing = [...cloudMap.values()]
+    .filter((entry) => !manifestMap.has(`${entry.entityType}:${entry.cloudId}`))
+    .map((entry) => ({
+      entityType: entry.entityType,
+      cloudId: entry.cloudId
     }));
 
   const stale = params.manifest
     .filter((entry) => {
-      const cloud = cloudMap.get(entry.cloudId);
+      const key = `${String(entry.entityType || "").toUpperCase()}:${entry.cloudId}`;
+      const cloud = cloudMap.get(key);
       if (!cloud) {
         return false;
       }
@@ -360,14 +596,16 @@ export async function reconcileCatalog(params: {
       return entry.versionHash !== cloud.versionHash;
     })
     .map((entry) => ({
-      entityType: entry.entityType,
+      entityType: String(entry.entityType || "").toUpperCase(),
       cloudId: entry.cloudId
     }));
 
   const unknown = params.manifest
-    .filter((entry) => !cloudMap.has(entry.cloudId))
+    .filter(
+      (entry) => !cloudMap.has(`${String(entry.entityType || "").toUpperCase()}:${entry.cloudId}`)
+    )
     .map((entry) => ({
-      entityType: entry.entityType,
+      entityType: String(entry.entityType || "").toUpperCase(),
       cloudId: entry.cloudId,
       localId: entry.localId
     }));

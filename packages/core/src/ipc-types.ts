@@ -3,6 +3,7 @@ import type {
   InventoryState,
   InventoryAlert,
   Expansion,
+  Category,
   GameType,
   ProductAlertSettings,
   ProductListItem,
@@ -29,6 +30,7 @@ export type ProductsIpc = {
   listPaged: (filters: {
     search?: string;
     category?: ProductCategory;
+    categoryCloudId?: string;
     gameTypeId?: string;
     stockStatus?: ProductStockStatus;
     sortBy?: "NAME" | "CREATED_AT" | "STOCK";
@@ -43,6 +45,10 @@ export type ProductsIpc = {
   };
   createProduct: (product: Product) => void;
   updateProduct: (product: Product) => void;
+};
+
+export type CategoriesIpc = {
+  listCategories: (activeOnly?: boolean) => Category[];
 };
 
 export type InventoryIpc = {
@@ -255,6 +261,7 @@ export type IpcApi = {
   customers: CustomersIpc;
   storeCredit: StoreCreditIpc;
   tournaments: TournamentsIpc;
+  categories: CategoriesIpc;
   gameTypes: GameTypesIpc;
   expansions: ExpansionsIpc;
   dataSafety: {

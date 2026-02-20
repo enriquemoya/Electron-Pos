@@ -13,21 +13,6 @@ type ProductTableProps = {
   onConfigureAlerts: (product: Product) => void;
 };
 
-function categoryLabel(category: Product["category"]) {
-  switch (category) {
-    case "TCG_SEALED":
-      return t("categoryTCGSealed");
-    case "TCG_SINGLE":
-      return t("categoryTCGSingle");
-    case "ACCESSORY":
-      return t("categoryAccessory");
-    case "COMMODITY":
-      return t("categoryCommodity");
-    case "SERVICE":
-      return t("categoryService");
-  }
-}
-
 export function ProductTable({
   products,
   inventory,
@@ -69,7 +54,9 @@ export function ProductTable({
                     ) : null}
                   </div>
                 </td>
-                <td className="px-5 py-4 text-zinc-300">{categoryLabel(product.category)}</td>
+                <td className="px-5 py-4 text-zinc-300">
+                  {product.category || t("uncategorizedLabel")}
+                </td>
                 <td className="px-5 py-4 text-zinc-300">
                   {formatPrice(product.price.amount)}
                 </td>

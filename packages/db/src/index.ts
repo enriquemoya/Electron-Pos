@@ -15,6 +15,7 @@ export { createShiftRepository } from "./repositories/shift-repo";
 export { createCustomerRepository } from "./repositories/customer-repo";
 export { createGameTypeRepository } from "./repositories/game-type-repo";
 export { createExpansionRepository } from "./repositories/expansion-repo";
+export { createCategoryRepository } from "./repositories/category-repo";
 export { createStoreCreditRepository } from "./repositories/store-credit-repo";
 export { createTournamentRepository } from "./repositories/tournament-repo";
 export { createParticipantRepository } from "./repositories/participant-repo";

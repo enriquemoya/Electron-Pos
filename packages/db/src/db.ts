@@ -78,6 +78,15 @@ export function initializeDb(config: DbConfig): DbHandle {
   if (productColumns.length > 0 && !hasProductColumn("is_deleted_cloud")) {
     safeAddColumn("products", "is_deleted_cloud", "INTEGER NOT NULL DEFAULT 0");
   }
+  if (productColumns.length > 0 && !hasProductColumn("category_cloud_id")) {
+    safeAddColumn("products", "category_cloud_id", "TEXT");
+  }
+  if (productColumns.length > 0 && !hasProductColumn("game_cloud_id")) {
+    safeAddColumn("products", "game_cloud_id", "TEXT");
+  }
+  if (productColumns.length > 0 && !hasProductColumn("expansion_cloud_id")) {
+    safeAddColumn("products", "expansion_cloud_id", "TEXT");
+  }
 
   const gameTypeColumns = db.prepare("PRAGMA table_info(game_types)").all() as { name: string }[];
   const hasGameTypeColumn = (name: string) =>
@@ -115,6 +124,25 @@ export function initializeDb(config: DbConfig): DbHandle {
   }
   if (expansionColumns.length > 0 && !hasExpansionColumn("is_deleted_cloud")) {
     safeAddColumn("expansions", "is_deleted_cloud", "INTEGER NOT NULL DEFAULT 0");
+  }
+
+  const categoryColumns = db.prepare("PRAGMA table_info(categories)").all() as { name: string }[];
+  const hasCategoryColumn = (name: string) =>
+    categoryColumns.some((column) => column.name === name);
+  if (categoryColumns.length > 0 && !hasCategoryColumn("cloud_id")) {
+    safeAddColumn("categories", "cloud_id", "TEXT");
+  }
+  if (categoryColumns.length > 0 && !hasCategoryColumn("enabled_pos")) {
+    safeAddColumn("categories", "enabled_pos", "INTEGER NOT NULL DEFAULT 1");
+  }
+  if (categoryColumns.length > 0 && !hasCategoryColumn("enabled_online_store")) {
+    safeAddColumn("categories", "enabled_online_store", "INTEGER NOT NULL DEFAULT 1");
+  }
+  if (categoryColumns.length > 0 && !hasCategoryColumn("cloud_updated_at")) {
+    safeAddColumn("categories", "cloud_updated_at", "TEXT");
+  }
+  if (categoryColumns.length > 0 && !hasCategoryColumn("is_deleted_cloud")) {
+    safeAddColumn("categories", "is_deleted_cloud", "INTEGER NOT NULL DEFAULT 0");
   }
 
   const tournamentColumns = db
@@ -158,10 +186,42 @@ export function initializeDb(config: DbConfig): DbHandle {
   // Ensure cloud projection defaults for legacy local rows.
   db.prepare("UPDATE products SET cloud_id = COALESCE(cloud_id, id)").run();
   db.prepare("UPDATE products SET enabled_pos = COALESCE(enabled_pos, 1), enabled_online_store = COALESCE(enabled_online_store, 1), is_deleted_cloud = COALESCE(is_deleted_cloud, 0)").run();
+  db.prepare("UPDATE products SET game_cloud_id = COALESCE(game_cloud_id, game_type_id), expansion_cloud_id = COALESCE(expansion_cloud_id, expansion_id)").run();
   db.prepare("UPDATE game_types SET cloud_id = COALESCE(cloud_id, id)").run();
   db.prepare("UPDATE game_types SET enabled_pos = COALESCE(enabled_pos, 1), enabled_online_store = COALESCE(enabled_online_store, 1), is_deleted_cloud = COALESCE(is_deleted_cloud, 0)").run();
   db.prepare("UPDATE expansions SET cloud_id = COALESCE(cloud_id, id)").run();
   db.prepare("UPDATE expansions SET enabled_pos = COALESCE(enabled_pos, 1), enabled_online_store = COALESCE(enabled_online_store, 1), is_deleted_cloud = COALESCE(is_deleted_cloud, 0)").run();
+  db.prepare("UPDATE categories SET cloud_id = COALESCE(cloud_id, id)").run();
+  db.prepare("UPDATE categories SET enabled_pos = COALESCE(enabled_pos, 1), enabled_online_store = COALESCE(enabled_online_store, 1), is_deleted_cloud = COALESCE(is_deleted_cloud, 0), active = COALESCE(active, 1)").run();
+  db.prepare(
+    `INSERT INTO categories (id, cloud_id, name, active, enabled_pos, enabled_online_store, cloud_updated_at, is_deleted_cloud, created_at, updated_at)
+     SELECT
+       'legacy:category:' || lower(replace(trim(category), ' ', '-')) AS id,
+       'legacy:category:' || lower(replace(trim(category), ' ', '-')) AS cloud_id,
+       trim(category) AS name,
+       1,
+       1,
+       1,
+       COALESCE(MAX(cloud_updated_at), MAX(updated_at)),
+       0,
+       MIN(created_at),
+       MAX(updated_at)
+     FROM products
+     WHERE category IS NOT NULL
+       AND trim(category) <> ''
+     GROUP BY lower(replace(trim(category), ' ', '-'))
+     ON CONFLICT(id) DO NOTHING`
+  ).run();
+  db.prepare(
+    `UPDATE products
+     SET category_cloud_id = COALESCE(
+       category_cloud_id,
+       CASE
+         WHEN category IS NULL OR trim(category) = '' THEN NULL
+         ELSE 'legacy:category:' || lower(replace(trim(category), ' ', '-'))
+       END
+     )`
+  ).run();
 
   const prizeColumns = db
     .prepare("PRAGMA table_info(tournament_prizes)")

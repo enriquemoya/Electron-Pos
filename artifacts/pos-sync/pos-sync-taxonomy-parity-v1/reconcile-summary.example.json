@@ -1,0 +1,12 @@
+{
+  "requestSummary": {
+    "manifestCount": 3,
+    "entityTypes": ["CATEGORY", "GAME", "PRODUCT"]
+  },
+  "responseSummary": {
+    "missing": 1,
+    "stale": 0,
+    "unknown": 0,
+    "snapshotVersion": "2026-02-20T04:00:00.000Z"
+  }
+}

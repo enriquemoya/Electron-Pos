@@ -104,6 +104,10 @@ type GameTypesApi = {
   updateGameType: AsyncFn;
 };
 
+type CategoriesApi = {
+  listCategories: AsyncFn;
+};
+
 type ExpansionsApi = {
   getExpansionsByGame: AsyncFn;
   getExpansionById: AsyncFn;
@@ -186,6 +190,7 @@ type ElectronApi = {
   dashboard: DashboardApi;
   dataSafety: DataSafetyApi;
   tournaments: TournamentsApi;
+  categories: CategoriesApi;
   gameTypes: GameTypesApi;
   expansions: ExpansionsApi;
   inventorySync: InventorySyncApi;

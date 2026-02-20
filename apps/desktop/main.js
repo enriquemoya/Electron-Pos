@@ -23,6 +23,7 @@ const {
   createShiftRepository,
   createCustomerRepository,
   createGameTypeRepository,
+  createCategoryRepository,
   createExpansionRepository,
   createStoreCreditRepository,
   createDashboardRepository,
@@ -57,6 +58,7 @@ const { registerPaymentsIpc } = require("./ipc/payments-ipc");
 const { registerSalesHistoryIpc } = require("./ipc/sales-history-ipc");
 const { registerCustomerIpc } = require("./ipc/customer-ipc");
 const { registerGameTypeIpc } = require("./ipc/game-type-ipc");
+const { registerCategoryIpc } = require("./ipc/category-ipc");
 const { registerExpansionIpc } = require("./ipc/expansion-ipc");
 const { registerStoreCreditIpc } = require("./ipc/store-credit-ipc");
 const { registerDailyReportsIpc } = require("./ipc/daily-reports-ipc");
@@ -366,6 +368,7 @@ app.whenReady().then(async () => {
   const shiftRepo = createShiftRepository(db);
   const customerRepo = createCustomerRepository(db);
   const gameTypeRepo = createGameTypeRepository(db);
+  const categoryRepo = createCategoryRepository(db);
   const expansionRepo = createExpansionRepository(db);
   const storeCreditRepo = createStoreCreditRepository(db);
   const dashboardRepo = createDashboardRepository(db);
@@ -447,6 +450,7 @@ app.whenReady().then(async () => {
   registerSalesHistoryIpc(ipcMain, saleRepo, uploadProof);
   registerCustomerIpc(ipcMain, customerRepo);
   registerGameTypeIpc(ipcMain, gameTypeRepo, { authorize: assertPosPermission });
+  registerCategoryIpc(ipcMain, categoryRepo);
   registerExpansionIpc(ipcMain, expansionRepo, { authorize: assertPosPermission });
   registerStoreCreditIpc(ipcMain, storeCreditRepo);
   registerDailyReportsIpc(ipcMain, saleRepo, shiftRepo, storeCreditRepo, {

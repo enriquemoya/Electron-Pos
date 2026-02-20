@@ -32,7 +32,7 @@ async function fetchPaged(fetchPage, pageSize = 200) {
     total = Number(response.total || chunk.length);
     snapshotVersion = response.snapshotVersion || snapshotVersion;
     items.push(...chunk);
-    if (items.length >= total || chunk.length === 0) {
+    if (chunk.length === 0 || page * pageSize >= total) {
       break;
     }
     page += 1;
@@ -259,6 +259,7 @@ async function runReconcile({ cloudClient, posSyncRepo, catalogProjectionService
   const manifest = posSyncRepo.listCatalogManifest(5000);
   const plan = await cloudClient.reconcileCatalog({ catalogManifest: manifest });
   const missing = Array.isArray(plan.missing) ? plan.missing : [];
+  let resolvedSnapshotVersion = posSyncRepo.getState().catalogSnapshotVersion ?? null;
 
   if (missing.length > 0) {
     const delta = await fetchPaged(
@@ -268,10 +269,10 @@ async function runReconcile({ cloudClient, posSyncRepo, catalogProjectionService
     const map = new Map(
       delta.items
         .filter((item) => item && item.cloudId)
-        .map((item) => [String(item.cloudId), item])
+        .map((item) => [`${String(item.entityType || "PRODUCT").toUpperCase()}:${String(item.cloudId)}`, item])
     );
     const toApply = missing
-      .map((entry) => map.get(String(entry.cloudId || "")))
+      .map((entry) => map.get(`${String(entry.entityType || "PRODUCT").toUpperCase()}:${String(entry.cloudId || "")}`))
       .filter(Boolean)
       .map((item) => ({
         entityType: String(item.entityType || "PRODUCT"),
@@ -288,16 +289,26 @@ async function runReconcile({ cloudClient, posSyncRepo, catalogProjectionService
         cloudId: entry.cloudId,
         localId: entry.cloudId
       })));
-      catalogProjectionService.projectDelta({
+      const projectionResult = catalogProjectionService.projectDelta({
         items: toApply,
         remoteVersion: plan.snapshotVersion || null,
         nowIso: nowIso()
       });
+      resolvedSnapshotVersion = projectionResult.nextVersion;
     }
   }
 
+  if (resolvedSnapshotVersion == null) {
+    const projectionResult = catalogProjectionService.projectDelta({
+      items: [],
+      remoteVersion: plan.snapshotVersion || null,
+      nowIso: nowIso()
+    });
+    resolvedSnapshotVersion = projectionResult.nextVersion;
+  }
+
   posSyncRepo.updateState({
-    catalogSnapshotVersion: typeof plan.snapshotVersion === "string" ? plan.snapshotVersion : null,
+    catalogSnapshotVersion: resolvedSnapshotVersion,
     lastReconcileAt: nowIso(),
     lastSyncErrorCode: null
   });

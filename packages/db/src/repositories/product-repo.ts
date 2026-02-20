@@ -3,8 +3,12 @@ import type { Product } from "@pos/core";
 
 type ProductRow = {
   id: string;
+  cloud_id: string | null;
   name: string;
   category: Product["category"];
+  category_cloud_id: string | null;
+  game_cloud_id: string | null;
+  expansion_cloud_id: string | null;
   price_amount: number;
   price_currency: "MXN";
   game_type_id: string | null;
@@ -24,6 +28,7 @@ function mapRowToProduct(row: ProductRow): Product {
     id: row.id,
     name: row.name,
     category: row.category,
+    categoryCloudId: row.category_cloud_id ?? null,
     price: {
       amount: row.price_amount,
       currency: row.price_currency
@@ -31,6 +36,8 @@ function mapRowToProduct(row: ProductRow): Product {
     isStockTracked: row.is_stock_tracked === 1,
     gameTypeId: row.game_type_id ?? null,
     expansionId: row.expansion_id ?? null,
+    gameCloudId: row.game_cloud_id ?? null,
+    expansionCloudId: row.expansion_cloud_id ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     tcg: row.game || row.expansion || row.rarity || row.condition || row.image_url
@@ -51,6 +58,9 @@ export function createProductRepository(db: DbHandle) {
       id,
       name,
       category,
+      category_cloud_id,
+      game_cloud_id,
+      expansion_cloud_id,
       price_amount,
       price_currency,
       game_type_id,
@@ -63,13 +73,16 @@ export function createProductRepository(db: DbHandle) {
       is_stock_tracked,
       created_at,
       updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const updateStmt = db.prepare(`
     UPDATE products SET
       name = ?,
       category = ?,
+      category_cloud_id = ?,
+      game_cloud_id = ?,
+      expansion_cloud_id = ?,
       price_amount = ?,
       price_currency = ?,
       game_type_id = ?,
@@ -130,6 +143,9 @@ export function createProductRepository(db: DbHandle) {
         product.id,
         product.name,
         product.category,
+        product.categoryCloudId ?? null,
+        product.gameCloudId ?? product.gameTypeId ?? null,
+        product.expansionCloudId ?? product.expansionId ?? null,
         product.price.amount,
         product.price.currency,
         product.gameTypeId ?? null,
@@ -148,6 +164,9 @@ export function createProductRepository(db: DbHandle) {
       updateStmt.run(
         product.name,
         product.category,
+        product.categoryCloudId ?? null,
+        product.gameCloudId ?? product.gameTypeId ?? null,
+        product.expansionCloudId ?? product.expansionId ?? null,
         product.price.amount,
         product.price.currency,
         product.gameTypeId ?? null,
@@ -168,6 +187,7 @@ export function createProductRepository(db: DbHandle) {
     listPaged(filters: {
       search?: string;
       category?: Product["category"];
+      categoryCloudId?: string;
       gameTypeId?: string;
       stockStatus?: "NORMAL" | "LOW" | "OUT";
       sortBy?: "NAME" | "CREATED_AT" | "STOCK";
@@ -185,6 +205,10 @@ export function createProductRepository(db: DbHandle) {
       if (filters.category) {
         conditions.push("p.category = ?");
         values.push(filters.category);
+      }
+      if (filters.categoryCloudId) {
+        conditions.push("p.category_cloud_id = ?");
+        values.push(filters.categoryCloudId);
       }
       if (filters.gameTypeId) {
         conditions.push("p.game_type_id = ?");

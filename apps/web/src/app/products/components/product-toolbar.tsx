@@ -1,14 +1,14 @@
 "use client";
 
 import { useRef } from "react";
-import type { ProductCategory } from "@pos/core";
 import { t } from "../i18n";
 
 type ProductToolbarProps = {
   search: string;
-  category: ProductCategory | "ALL";
+  category: string | "ALL";
+  categories: Array<{ id: string; name: string }>;
   onSearchChange: (value: string) => void;
-  onCategoryChange: (value: ProductCategory | "ALL") => void;
+  onCategoryChange: (value: string | "ALL") => void;
   onAddProduct: () => void;
   onExport: () => void;
   onImport: (file: File) => void;
@@ -17,6 +17,7 @@ type ProductToolbarProps = {
 export function ProductToolbar({
   search,
   category,
+  categories,
   onSearchChange,
   onCategoryChange,
   onAddProduct,
@@ -53,15 +54,15 @@ export function ProductToolbar({
           </label>
           <select
             value={category}
-            onChange={(event) => onCategoryChange(event.target.value as ProductCategory | "ALL")}
+            onChange={(event) => onCategoryChange(event.target.value as string | "ALL")}
             className="rounded-xl border border-white/10 bg-base-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
           >
             <option value="ALL">{t("filterAll")}</option>
-            <option value="TCG_SEALED">{t("categoryTCGSealed")}</option>
-            <option value="TCG_SINGLE">{t("categoryTCGSingle")}</option>
-            <option value="ACCESSORY">{t("categoryAccessory")}</option>
-            <option value="COMMODITY">{t("categoryCommodity")}</option>
-            <option value="SERVICE">{t("categoryService")}</option>
+            {categories.map((entry) => (
+              <option key={entry.id} value={entry.id}>
+                {entry.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>

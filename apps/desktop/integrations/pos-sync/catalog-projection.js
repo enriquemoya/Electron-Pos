@@ -16,8 +16,9 @@ function isValidIso(value) {
 
 function sanitizeEntity(raw) {
   const payload = raw && typeof raw.payload === "object" ? raw.payload : {};
+  const entityType = String(raw?.entityType || "PRODUCT").toUpperCase();
   return {
-    entityType: String(raw?.entityType || "PRODUCT"),
+    entityType,
     cloudId: String(raw?.cloudId || payload.id || ""),
     updatedAt: String(raw?.updatedAt || new Date().toISOString()),
     versionHash: String(raw?.versionHash || ""),
@@ -30,9 +31,15 @@ function sanitizeItems(items) {
     return [];
   }
 
-  return items
-    .map(sanitizeEntity)
-    .filter((item) => item.cloudId && item.entityType === "PRODUCT");
+  return items.map(sanitizeEntity).filter((item) => {
+    if (!item.cloudId) {
+      return false;
+    }
+    if (!["PRODUCT", "GAME", "EXPANSION", "CATEGORY"].includes(item.entityType)) {
+      throw buildError("SYNC_ENTITYTYPE_UNSUPPORTED", `Unsupported entityType ${item.entityType}`);
+    }
+    return true;
+  });
 }
 
 function resolveNextVersion({ currentVersion, remoteVersion }) {
@@ -45,7 +52,7 @@ function resolveNextVersion({ currentVersion, remoteVersion }) {
   }
 
   if (!isValidIso(remoteVersion)) {
-    throw buildError("POS_CATALOG_VERSION_INVALID", "Invalid snapshot version payload");
+    throw buildError("SYNC_VERSION_REGRESSION", "Invalid snapshot version payload");
   }
 
   if (!currentVersion || !isValidIso(currentVersion)) {
@@ -53,7 +60,7 @@ function resolveNextVersion({ currentVersion, remoteVersion }) {
   }
 
   if (Date.parse(remoteVersion) < Date.parse(currentVersion)) {
-    return currentVersion;
+    throw buildError("SYNC_VERSION_REGRESSION", "Snapshot version regression rejected");
   }
 
   return remoteVersion;

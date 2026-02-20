@@ -1,11 +1,10 @@
 import * as XLSX from "xlsx";
-import type { InventoryState, Product, ProductCategory } from "@pos/core";
+import type { InventoryState, Product } from "@pos/core";
 import { createMoney, createInventoryState, getAvailableStock, increaseStock, decreaseStock } from "@pos/core";
 
 export type ImportErrorCode =
   | "MISSING_NAME"
   | "MISSING_CATEGORY"
-  | "INVALID_CATEGORY"
   | "INVALID_PRICE"
   | "INVALID_STOCK_TRACKED"
   | "INVALID_STOCK"
@@ -40,7 +39,7 @@ export type ImportParams = {
 type ParsedRow = {
   productId?: string;
   name?: string;
-  category?: ProductCategory;
+  category?: string;
   price?: number;
   isStockTracked?: boolean;
   stock?: number;
@@ -50,14 +49,6 @@ type ParsedRow = {
   condition?: string;
   imageUrl?: string;
 };
-
-const categoryValues: ProductCategory[] = [
-  "TCG_SEALED",
-  "TCG_SINGLE",
-  "ACCESSORY",
-  "COMMODITY",
-  "SERVICE"
-];
 
 function parseBoolean(value: unknown): boolean | null {
   if (typeof value === "boolean") {
@@ -124,11 +115,8 @@ function parseRows(rows: unknown[][]): { parsed: ParsedRow[]; errors: ImportErro
     }
 
     const categoryRaw = String(getCell("category") ?? "").trim();
-    const category = categoryValues.find((value) => value === categoryRaw);
     if (!categoryRaw) {
       errors.push({ row: rowNumber, code: "MISSING_CATEGORY" });
-    } else if (!category) {
-      errors.push({ row: rowNumber, code: "INVALID_CATEGORY" });
     }
 
     const priceValue = parseNumber(getCell("price"));
@@ -149,7 +137,7 @@ function parseRows(rows: unknown[][]): { parsed: ParsedRow[]; errors: ImportErro
     parsed.push({
       productId: String(getCell("product_id") ?? "").trim() || undefined,
       name: name || undefined,
-      category: category ?? undefined,
+      category: categoryRaw || undefined,
       price: priceValue ?? undefined,
       isStockTracked: stockTrackedValue ?? undefined,
       stock: stockValue ?? undefined,

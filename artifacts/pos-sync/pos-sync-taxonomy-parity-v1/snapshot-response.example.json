@@ -1,0 +1,38 @@
+{
+  "items": [
+    {
+      "entityType": "CATEGORY",
+      "cloudId": "00000000-0000-0000-0000-00000000c001",
+      "updatedAt": "2026-02-20T03:00:00.000Z",
+      "versionHash": "<redacted>",
+      "payload": {
+        "id": "00000000-0000-0000-0000-00000000c001",
+        "name": "Sleeves",
+        "type": "CATEGORY",
+        "enabledPOS": true,
+        "enabledOnlineStore": true,
+        "isDeletedCloud": false,
+        "deletedAt": null
+      }
+    },
+    {
+      "entityType": "PRODUCT",
+      "cloudId": "00000000-0000-0000-0000-00000000p001",
+      "updatedAt": "2026-02-20T03:00:00.000Z",
+      "versionHash": "<redacted>",
+      "payload": {
+        "id": "00000000-0000-0000-0000-00000000p001",
+        "name": "Sample Product",
+        "categoryCloudId": "00000000-0000-0000-0000-00000000c001",
+        "gameCloudId": null,
+        "expansionCloudId": null,
+        "enabledPOS": true,
+        "enabledOnlineStore": true,
+        "isDeletedCloud": false
+      }
+    }
+  ],
+  "total": 1,
+  "snapshotVersion": "2026-02-20T03:00:00.000Z",
+  "appliedAt": "2026-02-20T03:00:01.000Z"
+}

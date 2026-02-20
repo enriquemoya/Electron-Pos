@@ -115,6 +115,9 @@ contextBridge.exposeInMainWorld("api", {
     createGameType: (payload) => ipcRenderer.invoke("game-types:create", payload),
     updateGameType: (payload) => ipcRenderer.invoke("game-types:update", payload)
   },
+  categories: {
+    listCategories: (activeOnly) => ipcRenderer.invoke("categories:list", activeOnly)
+  },
   expansions: {
     getExpansionsByGame: (gameTypeId, includeInactive) =>
       ipcRenderer.invoke("expansions:listByGame", gameTypeId, includeInactive),

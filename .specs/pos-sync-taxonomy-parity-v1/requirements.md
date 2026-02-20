@@ -46,15 +46,15 @@ Close the POS taxonomy parity gap so cloud catalog taxonomy becomes the source o
   - name
   - enabledPOS
   - enabledOnlineStore
-  - isDeleted
-  - updatedAt
+  - isDeletedCloud or deletedAt
+  - cloudUpdatedAt (mapped from updatedAt)
   - versionHash or equivalent version signal
 - Product references:
   - Products must reference taxonomy by cloud identity fields, not hardcoded enum assumptions.
   - POS UI resolves display labels using local taxonomy tables.
 - Snapshot behavior:
   - First run downloads full snapshot and projects taxonomy and products transactionally.
-  - Snapshot projection uses soft-disable or soft-delete for missing entities and must not hard-delete by default.
+  - Snapshot projection marks missing entities as soft-disabled for new operations and must not hard-delete by default.
 - Delta behavior:
   - Delta updates must be idempotent and applied by entityType plus cloudId.
   - Enable flag updates and deletion markers must update local visibility rules.
@@ -76,27 +76,37 @@ Close the POS taxonomy parity gap so cloud catalog taxonomy becomes the source o
   - Delta version regression guard must reject epoch or invalid values from overwriting last valid local version.
 
 ### Canonical Taxonomy Reference Fields
-- PRODUCT payload canonical cloud reference fields:
-  - categoryCloudId (nullable in contract)
-  - gameCloudId (nullable)
-  - expansionCloudId (nullable)
-- EXPANSION payload canonical cloud reference fields:
-  - gameCloudId (required)
-- Reference integrity rules:
-  - If expansionCloudId is present, gameCloudId must also be present.
-  - If categoryCloudId is null, POS must map the product to a cloud-defined Uncategorized CATEGORY row.
-  - PRODUCT and taxonomy local tables must store both row cloudId and product taxonomy reference columns:
-    - categoryCloudId
-    - gameCloudId
-    - expansionCloudId
+Define canonical taxonomy references for PRODUCT and EXPANSION payloads. These reference fields MUST use cloud identity values (cloudId) only.
+
+PRODUCT payload canonical reference fields:
+- categoryCloudId: nullable
+- gameCloudId: nullable
+- expansionCloudId: nullable
+
+EXPANSION payload canonical reference fields:
+- gameCloudId: nullable
+
+Rules:
+- If expansionCloudId is present, gameCloudId MAY be present but is not required. POS MUST resolve display labels from taxonomy tables by cloudId.
+- If categoryCloudId is null, POS MUST treat the product as uncategorized. UI must render a stable "Uncategorized" label and keep the product selectable only if enabledPOS is true and the product is not deleted.
+- POS local storage MUST persist PRODUCT reference columns as text fields:
+  - categoryCloudId, gameCloudId, expansionCloudId
 
 ### Deletion and Enablement Semantics
-- enabledPOS controls POS visibility, selectability, and sellability for new operations.
-- enabledOnlineStore is stored for parity and audit and does not control POS sellability.
-- Canonical deletion input is isDeletedCloud.
-- deletedAt may be accepted as a contract alias, but projection must normalize to isDeletedCloud for local decisions.
-- If isDeletedCloud is true or deletedAt is non-null, POS must treat the entity as not selectable, regardless of enabledPOS.
-- Deleted or disabled taxonomy and product rows remain resolvable for historical records.
+This spec uses a single canonical semantics model for enablement vs deletion.
+
+- enabledPOS:
+  - Controls POS visibility, selectability, and sellability for new operations.
+- enabledOnlineStore:
+  - Stored for parity and audit only. It MUST NOT affect POS sellability.
+- Deletion marker:
+  - Canonical contract field is updatedAt plus either isDeletedCloud (boolean) OR deletedAt (timestamp). If both exist, isDeletedCloud takes precedence.
+  - If isDeletedCloud is true OR deletedAt is non-null, POS MUST treat the entity as deleted:
+    - Hidden for new selection, regardless of enabledPOS.
+    - Still resolvable for historical records (no hard delete).
+
+Missing rows behavior (snapshot):
+- If an entity is missing from the incoming snapshot set, POS MUST mark it as not selectable for new operations (soft-disabled) but MUST NOT hard delete.
 
 ## Data Model
 POS SQLite additive requirements:
@@ -123,12 +133,24 @@ POS SQLite additive requirements:
 - indexes:
   - unique cloudId per entity table
   - enabledPOS plus deletion filter indexes
-  - updatedAt indexes for sync comparisons
+  - cloudUpdatedAt indexes for sync comparisons
 
-### Timestamp Mapping
+### Timestamp Naming and Mapping
+Canonical timestamp naming:
 - Contract timestamp field is updatedAt.
 - Local SQLite timestamp field is cloudUpdatedAt.
-- Mapping rule is cloudUpdatedAt := updatedAt.
+
+Mapping rule:
+- cloudUpdatedAt := updatedAt
+
+Data model confirmations:
+- products table MUST include:
+  - categoryCloudId, gameCloudId, expansionCloudId (TEXT nullable)
+  - cloudUpdatedAt (timestamp or ISO string, consistent with existing local schema patterns)
+- categories or game_types or expansions tables MUST include:
+  - cloudUpdatedAt
+  - enabledPOS, enabledOnlineStore
+  - isDeletedCloud or deletedAt (store canonical local representation, but apply semantics above)
 
 Cloud data model statement:
 - No Prisma schema or migration changes are required if sync payload already includes taxonomy entities and flags.

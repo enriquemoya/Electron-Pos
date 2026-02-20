@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "entityType": "CATEGORY",
+      "cloudId": "00000000-0000-0000-0000-00000000c001",
+      "updatedAt": "2026-02-20T04:00:00.000Z",
+      "versionHash": "<redacted>",
+      "payload": {
+        "id": "00000000-0000-0000-0000-00000000c001",
+        "name": "Sleeves",
+        "type": "CATEGORY",
+        "enabledPOS": false,
+        "enabledOnlineStore": true,
+        "isDeletedCloud": false,
+        "deletedAt": null
+      }
+    }
+  ],
+  "total": 1,
+  "snapshotVersion": "2026-02-20T04:00:00.000Z",
+  "appliedAt": "2026-02-20T04:00:01.000Z"
+}

@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type {
+  Category,
   Expansion,
   GameType,
   Product,
-  ProductCategory,
   ProductListItem,
   ProductStockStatus,
   ProductAlertSettings
@@ -25,7 +25,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 type ProductFormState = {
   name: string;
-  category: ProductCategory;
+  categoryCloudId: string;
   price: string;
   isStockTracked: boolean;
   initialStock: string;
@@ -41,7 +41,7 @@ type AlertFormState = {
 
 const initialForm: ProductFormState = {
   name: "",
-  category: "TCG_SEALED",
+  categoryCloudId: "none",
   price: "",
   isStockTracked: true,
   initialStock: "",
@@ -59,21 +59,6 @@ function formatMoney(amount: number) {
   return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(amount / 100);
 }
 
-function categoryLabel(category: ProductCategory) {
-  switch (category) {
-    case "TCG_SEALED":
-      return t("categoryTCGSealed");
-    case "TCG_SINGLE":
-      return t("categoryTCGSingle");
-    case "ACCESSORY":
-      return t("categoryAccessory");
-    case "COMMODITY":
-      return t("categoryCommodity");
-    case "SERVICE":
-      return t("categoryService");
-  }
-}
-
 export default function ProductsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<ProductListItem[]>([]);
@@ -84,10 +69,11 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<ReturnType<typeof importProductsFromExcel>["summary"] | null>(null);
   const [gameTypes, setGameTypes] = useState<GameType[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [expansions, setExpansions] = useState<Expansion[]>([]);
 
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<ProductCategory | "ALL">("ALL");
+  const [category, setCategory] = useState<string | "ALL">("ALL");
   const [gameTypeId, setGameTypeId] = useState<string>("ALL");
   const [stockStatus, setStockStatus] = useState<ProductStockStatus | "ALL">("ALL");
   const [sortBy, setSortBy] = useState<"NAME" | "CREATED_AT" | "STOCK">("CREATED_AT");
@@ -108,6 +94,12 @@ export default function ProductsPage() {
     return map;
   }, [gameTypes]);
 
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, Category>();
+    categories.forEach((entry) => map.set(entry.cloudId, entry));
+    return map;
+  }, [categories]);
+
   const expansionMap = useMemo(() => {
     const map = new Map<string, Expansion>();
     expansions.forEach((expansion) => map.set(expansion.id, expansion));
@@ -125,6 +117,15 @@ export default function ProductsPage() {
     setGameTypes(list ?? []);
   };
 
+  const loadCategories = async () => {
+    const api = window.api;
+    if (!api) {
+      return;
+    }
+    const list = await api.categories.listCategories(true);
+    setCategories(list ?? []);
+  };
+
   const loadProducts = async () => {
     const api = window.api;
     if (!api) {
@@ -134,7 +135,7 @@ export default function ProductsPage() {
     try {
       const response = await api.products.listPaged({
         search: search.trim() || undefined,
-        category: category === "ALL" ? undefined : category,
+        categoryCloudId: category === "ALL" ? undefined : category,
         gameTypeId: gameTypeId === "ALL" ? undefined : gameTypeId,
         stockStatus: stockStatus === "ALL" ? undefined : stockStatus,
         sortBy,
@@ -154,6 +155,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     loadGameTypes();
+    loadCategories();
   }, []);
 
   useEffect(() => {
@@ -239,7 +241,7 @@ export default function ProductsPage() {
     setSelectedProduct(product);
     setForm({
       name: product.name,
-      category: product.category,
+      categoryCloudId: product.categoryCloudId ?? "none",
       price: (product.price.amount / 100).toFixed(2),
       isStockTracked: product.isStockTracked,
       initialStock: "",
@@ -289,6 +291,8 @@ export default function ProductsPage() {
 
     const now = new Date().toISOString();
     const gameType = form.gameTypeId !== "none" ? gameTypeMap.get(form.gameTypeId) : null;
+    const selectedCategory =
+      form.categoryCloudId !== "none" ? categoryMap.get(form.categoryCloudId) : null;
     const selectedExpansion =
       form.expansionId !== "none" ? expansionMap.get(form.expansionId) : null;
     if (selectedExpansion && selectedExpansion.gameTypeId !== gameType?.id) {
@@ -317,11 +321,14 @@ export default function ProductsPage() {
         const newProduct: Product = {
           id: crypto.randomUUID(),
           name: form.name.trim(),
-          category: form.category,
+          category: selectedCategory?.name ?? t("uncategorizedLabel"),
+          categoryCloudId: selectedCategory?.cloudId ?? null,
           price: createMoney(Math.round(priceValue * 100)),
           isStockTracked: form.isStockTracked,
           gameTypeId: gameType?.id ?? null,
           expansionId: selectedExpansion?.id ?? null,
+          gameCloudId: gameType?.id ?? null,
+          expansionCloudId: selectedExpansion?.id ?? null,
           createdAt: now,
           updatedAt: now,
           tcg
@@ -344,11 +351,14 @@ export default function ProductsPage() {
         const updated: Product = {
           ...selectedProduct,
           name: form.name.trim(),
-          category: form.category,
+          category: selectedCategory?.name ?? t("uncategorizedLabel"),
+          categoryCloudId: selectedCategory?.cloudId ?? null,
           price: createMoney(Math.round(priceValue * 100)),
           isStockTracked: form.isStockTracked,
           gameTypeId: gameType?.id ?? null,
           expansionId: selectedExpansion?.id ?? null,
+          gameCloudId: gameType?.id ?? null,
+          expansionCloudId: selectedExpansion?.id ?? null,
           tcg,
           updatedAt: now
         };
@@ -456,7 +466,7 @@ export default function ProductsPage() {
             <Select
               value={category}
               onValueChange={(value) => {
-                setCategory(value as ProductCategory | "ALL");
+                setCategory(value as string | "ALL");
                 setPage(1);
               }}
             >
@@ -465,11 +475,11 @@ export default function ProductsPage() {
               </SelectTrigger>
               <SelectContent className="border-white/10 bg-base-900 text-white">
                 <SelectItem value="ALL">{t("filterAll")}</SelectItem>
-                <SelectItem value="TCG_SEALED">{t("categoryTCGSealed")}</SelectItem>
-                <SelectItem value="TCG_SINGLE">{t("categoryTCGSingle")}</SelectItem>
-                <SelectItem value="ACCESSORY">{t("categoryAccessory")}</SelectItem>
-                <SelectItem value="COMMODITY">{t("categoryCommodity")}</SelectItem>
-                <SelectItem value="SERVICE">{t("categoryService")}</SelectItem>
+                {categories.map((entry) => (
+                  <SelectItem key={entry.cloudId} value={entry.cloudId}>
+                    {entry.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -592,7 +602,7 @@ export default function ProductsPage() {
                 return (
                   <TableRow key={item.product.id}>
                     <TableCell className="font-semibold text-white">{item.product.name}</TableCell>
-                    <TableCell>{categoryLabel(item.product.category)}</TableCell>
+                    <TableCell>{item.product.category || t("uncategorizedLabel")}</TableCell>
                     <TableCell>{gameName}</TableCell>
                     <TableCell>{formatMoney(item.product.price.amount)}</TableCell>
                     <TableCell>{stockLabel}</TableCell>
@@ -700,6 +710,7 @@ export default function ProductsPage() {
           <ProductForm
             form={form}
             onChange={setForm}
+            categories={categories}
             gameTypes={gameTypes}
             expansions={expansions}
             allowInitialStock
@@ -728,6 +739,7 @@ export default function ProductsPage() {
           <ProductForm
             form={form}
             onChange={setForm}
+            categories={categories}
             gameTypes={gameTypes}
             expansions={expansions}
           />
@@ -802,12 +814,14 @@ export default function ProductsPage() {
 function ProductForm({
   form,
   onChange,
+  categories,
   gameTypes,
   expansions,
   allowInitialStock = false
 }: {
   form: ProductFormState;
   onChange: (next: ProductFormState) => void;
+  categories: Category[];
   gameTypes: GameType[];
   expansions: Expansion[];
   allowInitialStock?: boolean;
@@ -830,18 +844,19 @@ function ProductForm({
           {t("createCategoryLabel")}
         </label>
         <Select
-          value={form.category}
-          onValueChange={(value) => onChange({ ...form, category: value as ProductCategory })}
+          value={form.categoryCloudId}
+          onValueChange={(value) => onChange({ ...form, categoryCloudId: value })}
         >
           <SelectTrigger className="border-white/10 bg-base-900 text-white">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="border-white/10 bg-base-900 text-white">
-            <SelectItem value="TCG_SEALED">{t("categoryTCGSealed")}</SelectItem>
-            <SelectItem value="TCG_SINGLE">{t("categoryTCGSingle")}</SelectItem>
-            <SelectItem value="ACCESSORY">{t("categoryAccessory")}</SelectItem>
-            <SelectItem value="COMMODITY">{t("categoryCommodity")}</SelectItem>
-            <SelectItem value="SERVICE">{t("categoryService")}</SelectItem>
+            <SelectItem value="none">{t("uncategorizedLabel")}</SelectItem>
+            {categories.map((entry) => (
+              <SelectItem key={entry.cloudId} value={entry.cloudId}>
+                {entry.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -967,5 +982,3 @@ function ToggleSelect({
     </div>
   );
 }
-
-
