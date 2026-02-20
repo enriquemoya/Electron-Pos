@@ -40,7 +40,7 @@ IPC Controller -> Use Case -> Repository -> Storage
 ### Projection Layer
 - Separate materializer module under POS sync use case.
 - Input: normalized cloud entities by type.
-- Output: transactional upserts and soft-disable markers in local SQLite domain tables.
+- Output: transactional upserts and canonical soft-delete or disable markers in local SQLite domain tables.
 - No UI logic inside projector.
 
 ## Projection Algorithms
@@ -48,10 +48,10 @@ IPC Controller -> Use Case -> Repository -> Storage
 ### Snapshot Algorithm
 1. Start transaction.
 2. For each entityType, build incoming cloudId set.
-3. Soft-disable existing projected rows for that entityType as pre-pass.
+3. Soft-mark existing projected rows for that entityType as not selectable in pre-pass.
 4. Upsert incoming rows by cloudId.
 5. Resolve product taxonomy references against projected taxonomy cloudIds.
-6. Mark missing rows as soft-deleted or disabled.
+6. Mark missing rows as isDeletedCloud=true or enabledPOS=false according to canonical deletion and enablement semantics.
 7. Update sync state only after successful projection.
 8. Commit transaction.
 
@@ -59,7 +59,7 @@ IPC Controller -> Use Case -> Repository -> Storage
 1. Start transaction.
 2. Validate each entityType and required fields.
 3. Upsert entities by cloudId.
-4. Apply enabled flags and soft-delete markers.
+4. Apply enabledPOS and enabledOnlineStore flags and normalize deletion markers to isDeletedCloud.
 5. Validate PRODUCT taxonomy references after taxonomy upserts in same transaction.
 6. Update sync state timestamps and version if valid.
 7. Commit transaction.
@@ -73,6 +73,13 @@ IPC Controller -> Use Case -> Repository -> Storage
 - Ignore epoch placeholder versions when they would regress state.
 - Never overwrite last valid local version with regressive value.
 - Emit stable version regression code for observability.
+
+## Canonical Reference and Timestamp Mapping
+- PRODUCT references use categoryCloudId, gameCloudId, expansionCloudId.
+- EXPANSION references use gameCloudId.
+- If expansionCloudId exists, gameCloudId must exist.
+- If categoryCloudId is null in payload, map to cloud Uncategorized CATEGORY row before UI consumption.
+- Contract field updatedAt maps to local field cloudUpdatedAt in SQLite.
 
 ## POS UI Consumption Design
 - Product list, new sale search, and pickers read taxonomy and product values from projected SQLite tables.
@@ -109,3 +116,5 @@ IPC Controller -> Use Case -> Repository -> Storage
 - Emit structured events per sync run with counts by entityType.
 - Include branchId, terminalId, syncSessionId, and projection result counters.
 - Emit explicit reconcile summary counters for missing and outdated entities.
+- Example projection log event:
+  - {"terminalId":"term_1","branchId":"branch_1","syncSessionId":"sync_20260220_010000","operation":"projection","entityType":"CATEGORY","appliedCounts":{"inserted":3,"updated":1,"disabled":0,"deleted":0},"errorCode":null}

@@ -5,6 +5,10 @@
 - [ ] Confirm enabledPOS and enabledOnlineStore flag availability in payload.
 - [ ] If taxonomy entities are missing, define additive cloud-api contract extension.
 - [ ] Confirm branch scoping behavior remains terminal-derived.
+- [ ] Capture and commit redacted contract verification artifacts under artifacts/pos-sync/pos-sync-taxonomy-parity-v1/:
+  - [ ] snapshot response example
+  - [ ] delta response example
+  - [ ] reconcile request and response summary example when available
 
 ## Phase 2 - SQLite Schema and Migration
 - [ ] Add additive SQLite taxonomy parity schema updates for categories, game_types, expansions, and product taxonomy references.
@@ -46,6 +50,8 @@
 - [ ] Run guard searches:
   - [ ] rg -n "console\\.(log|warn|error)" apps/desktop apps/cloud-api/src -S
   - [ ] rg -n "categoryTCGSealed|categoryTCGSingle|categoryAccessory|categoryCommodity|categoryService" apps/web/src -S
+  - [ ] rg -n "enum\\s+ProductCategory|ProductCategory\\b" apps/web/src apps/desktop -S
+  - [ ] rg -n "SelectItem\\s*\\{.*category|category.*SelectItem" apps/web/src -S
 
 ## Spec Audit Command
 - [ ] npm run gov:spec:audit -- "pos-sync-taxonomy-parity-v1"

@@ -75,6 +75,29 @@ Close the POS taxonomy parity gap so cloud catalog taxonomy becomes the source o
 - Version safety:
   - Delta version regression guard must reject epoch or invalid values from overwriting last valid local version.
 
+### Canonical Taxonomy Reference Fields
+- PRODUCT payload canonical cloud reference fields:
+  - categoryCloudId (nullable in contract)
+  - gameCloudId (nullable)
+  - expansionCloudId (nullable)
+- EXPANSION payload canonical cloud reference fields:
+  - gameCloudId (required)
+- Reference integrity rules:
+  - If expansionCloudId is present, gameCloudId must also be present.
+  - If categoryCloudId is null, POS must map the product to a cloud-defined Uncategorized CATEGORY row.
+  - PRODUCT and taxonomy local tables must store both row cloudId and product taxonomy reference columns:
+    - categoryCloudId
+    - gameCloudId
+    - expansionCloudId
+
+### Deletion and Enablement Semantics
+- enabledPOS controls POS visibility, selectability, and sellability for new operations.
+- enabledOnlineStore is stored for parity and audit and does not control POS sellability.
+- Canonical deletion input is isDeletedCloud.
+- deletedAt may be accepted as a contract alias, but projection must normalize to isDeletedCloud for local decisions.
+- If isDeletedCloud is true or deletedAt is non-null, POS must treat the entity as not selectable, regardless of enabledPOS.
+- Deleted or disabled taxonomy and product rows remain resolvable for historical records.
+
 ## Data Model
 POS SQLite additive requirements:
 - categories table or equivalent taxonomy table:
@@ -94,12 +117,18 @@ POS SQLite additive requirements:
 - products table:
   - ensure taxonomy cloud references exist and remain consistent with projected taxonomy
   - enforce enabledPOS and deletion filtering for read paths
+  - store categoryCloudId, gameCloudId, expansionCloudId as cloud reference columns
 - mapping table support:
   - cloudId to localId per entityType for reconcile and projection integrity
 - indexes:
   - unique cloudId per entity table
   - enabledPOS plus deletion filter indexes
   - updatedAt indexes for sync comparisons
+
+### Timestamp Mapping
+- Contract timestamp field is updatedAt.
+- Local SQLite timestamp field is cloudUpdatedAt.
+- Mapping rule is cloudUpdatedAt := updatedAt.
 
 Cloud data model statement:
 - No Prisma schema or migration changes are required if sync payload already includes taxonomy entities and flags.
@@ -159,6 +188,7 @@ Rules:
 ## Acceptance Criteria
 - After first snapshot, POS category picker is dynamic from SQLite and no hardcoded category enum options are used in runtime picker data source.
 - Product list and new sale flow resolve category, game, and expansion labels from projected taxonomy tables.
+- Product and expansion taxonomy references follow canonical cloudId fields and integrity rules.
 - Disabled or deleted taxonomy entities are not selectable for new operations but historical records remain readable.
 - Reconcile reports missing or outdated taxonomy entities and applies safe correction without breaking historical sales views.
 - Cross-branch sync leakage is prevented by terminal branch scoping.
