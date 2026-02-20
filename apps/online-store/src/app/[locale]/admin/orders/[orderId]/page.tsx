@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 
 import { createAdminRefund, fetchAdminOrder, transitionAdminOrderStatus } from "@/lib/admin-api";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireAdminOrEmployee } from "@/lib/admin-guard";
 import { OrderStatusTransitionForm } from "@/components/admin/order-status-transition-form";
 import { OrderStatusToast } from "@/components/admin/order-status-toast";
 import { OrderRefundForm } from "@/components/admin/order-refund-form";
@@ -76,7 +76,7 @@ export default async function AdminOrderDetailPage({
   searchParams?: { error?: string; success?: string };
 }) {
   setRequestLocale(params.locale);
-  requireAdmin(params.locale);
+  const auth = requireAdminOrEmployee(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminOrders" });
   const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
@@ -126,7 +126,7 @@ export default async function AdminOrderDetailPage({
           <h1 className="text-2xl font-semibold text-white">{t("detailTitle")}</h1>
           <p className="text-sm text-white/60">{order.orderCode}</p>
         </div>
-        {order.status === "COMPLETED" ? (
+        {order.status === "COMPLETED" && auth.role === "ADMIN" ? (
           <OrderRefundForm
             action={createRefundAction}
             locale={params.locale}

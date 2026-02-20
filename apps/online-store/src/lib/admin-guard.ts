@@ -6,9 +6,11 @@ import { redirect } from "next/navigation";
 
 type JwtPayload = {
   role?: string;
+  branchId?: string | null;
+  sub?: string;
 };
 
-export function requireAdmin(locale: string) {
+function getPayload(locale: string): JwtPayload {
   const token = cookies().get("auth_access")?.value;
   if (!token) {
     redirect(`/${locale}`);
@@ -20,11 +22,24 @@ export function requireAdmin(locale: string) {
   }
 
   try {
-    const payload = jwt.verify(token, secret) as JwtPayload;
-    if (payload.role !== "ADMIN") {
-      redirect(`/${locale}`);
-    }
+    return jwt.verify(token, secret) as JwtPayload;
   } catch {
     redirect(`/${locale}`);
   }
+}
+
+export function requireAdmin(locale: string) {
+  const payload = getPayload(locale);
+  if (payload.role !== "ADMIN") {
+    redirect(`/${locale}`);
+  }
+  return payload;
+}
+
+export function requireAdminOrEmployee(locale: string) {
+  const payload = getPayload(locale);
+  if (payload.role !== "ADMIN" && payload.role !== "EMPLOYEE") {
+    redirect(`/${locale}`);
+  }
+  return payload;
 }

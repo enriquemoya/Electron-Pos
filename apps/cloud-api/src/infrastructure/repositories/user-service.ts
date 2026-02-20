@@ -1,6 +1,12 @@
 import { Prisma } from "@prisma/client";
+import crypto from "crypto";
 
 import { prisma } from "../db/prisma";
+import { ApiErrors } from "../../errors/api-error";
+
+function hashPin(pin: string) {
+  return crypto.createHash("sha256").update(pin).digest("hex");
+}
 
 export async function listUsers(page: number, pageSize: number) {
   const [items, total] = await Promise.all([
@@ -24,21 +30,33 @@ export async function createUser(data: {
   phone?: string | null;
   firstName?: string | null;
   lastName?: string | null;
+  displayName?: string | null;
+  branchId?: string | null;
+  pin?: string | null;
   birthDate?: Date | null;
-  role?: "CUSTOMER" | "ADMIN";
+  role?: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
   status?: "ACTIVE" | "DISABLED";
 }) {
-  return prisma.user.create({
-    data: {
+  if (data.role === "EMPLOYEE" && !data.branchId) {
+    throw ApiErrors.branchForbidden;
+  }
+  if (data.role === "EMPLOYEE" && !data.pin) {
+    throw ApiErrors.invalidRequest;
+  }
+  const createData: Prisma.UserUncheckedCreateInput = {
       email: data.email ?? null,
       phone: data.phone ?? null,
       firstName: data.firstName ?? null,
       lastName: data.lastName ?? null,
+      displayName: data.displayName ?? null,
+      branchId: data.branchId ?? null,
+      pinHash: data.pin ? hashPin(data.pin) : null,
+      pinUpdatedAt: data.pin ? new Date() : null,
       birthDate: data.birthDate ?? null,
       role: data.role ?? "CUSTOMER",
       status: data.status ?? "ACTIVE"
-    }
-  });
+  };
+  return prisma.user.create({ data: createData });
 }
 
 export async function updateUser(id: string, data: {
@@ -46,11 +64,32 @@ export async function updateUser(id: string, data: {
   phone?: string | null;
   firstName?: string | null;
   lastName?: string | null;
+  displayName?: string | null;
+  branchId?: string | null;
+  pin?: string | null;
   birthDate?: Date | null;
-  role?: "CUSTOMER" | "ADMIN";
+  role?: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
   status?: "ACTIVE" | "DISABLED";
 }) {
-  return prisma.user.update({ where: { id }, data });
+  const nextData: Prisma.UserUncheckedUpdateInput = {
+    email: data.email,
+    phone: data.phone,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    displayName: data.displayName,
+    branchId: data.branchId,
+    birthDate: data.birthDate,
+    role: data.role,
+    status: data.status,
+    pinHash: data.pin === undefined ? undefined : data.pin ? hashPin(data.pin) : null,
+    pinUpdatedAt: data.pin === undefined ? undefined : new Date()
+  };
+
+  if (data.role === "EMPLOYEE" && !data.branchId) {
+    throw ApiErrors.branchForbidden;
+  }
+
+  return prisma.user.update({ where: { id }, data: nextData });
 }
 
 export async function disableUser(id: string) {

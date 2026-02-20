@@ -5,7 +5,9 @@ import os from "os";
 import path from "path";
 
 const AUTH_FILE = "terminal-auth.bin";
+const USER_AUTH_FILE = "terminal-user-auth.bin";
 const INSTALL_ID_FILE = "terminal-install.id";
+const USER_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 
 type TerminalCredentials = {
   terminalId: string;
@@ -31,6 +33,16 @@ type RotateResult = {
   state: TerminalState;
 };
 
+type PosUserSession = {
+  userId: string;
+  role: "ADMIN" | "EMPLOYEE";
+  branchId: string | null;
+  displayName: string;
+  accessToken: string;
+  expiresAt: string;
+  cachedAt: string;
+};
+
 type CloudError = Error & {
   code?: string;
   status?: number;
@@ -47,6 +59,10 @@ const TERMINAL_AUTH_FAILURE_CODES = new Set([
 
 function getAuthPath() {
   return path.join(app.getPath("userData"), AUTH_FILE);
+}
+
+function getUserAuthPath() {
+  return path.join(app.getPath("userData"), USER_AUTH_FILE);
 }
 
 function getInstallIdPath() {
@@ -149,6 +165,30 @@ function loadCredentials(): TerminalCredentials | null {
 
 function clearCredentials() {
   const authPath = getAuthPath();
+  if (fs.existsSync(authPath)) {
+    fs.unlinkSync(authPath);
+  }
+}
+
+function saveUserSession(session: PosUserSession) {
+  assertEncryptionAvailable();
+  const encrypted = safeStorage.encryptString(JSON.stringify(session));
+  fs.writeFileSync(getUserAuthPath(), encrypted);
+}
+
+function loadUserSession(): PosUserSession | null {
+  const authPath = getUserAuthPath();
+  if (!fs.existsSync(authPath)) {
+    return null;
+  }
+  assertEncryptionAvailable();
+  const encrypted = fs.readFileSync(authPath);
+  const payload = safeStorage.decryptString(encrypted);
+  return JSON.parse(payload) as PosUserSession;
+}
+
+function clearUserSession() {
+  const authPath = getUserAuthPath();
   if (fs.existsSync(authPath)) {
     fs.unlinkSync(authPath);
   }
@@ -305,7 +345,80 @@ export function createTerminalAuthService() {
 
   function clear(messageCode: string | null = null) {
     clearCredentials();
+    clearUserSession();
     return toState(null, "not_activated", messageCode);
+  }
+
+  async function loginPosUserWithPin(pin: string) {
+    if (!/^\d{6}$/.test(pin)) {
+      const error = new Error("invalid credentials") as CloudError;
+      error.code = "AUTH_INVALID_CREDENTIALS";
+      throw error;
+    }
+
+    const payload = await authenticatedRequest("/pos/auth/pin-login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ pin })
+    });
+
+    const user = payload.user as {
+      id?: string;
+      role?: "ADMIN" | "EMPLOYEE";
+      branchId?: string | null;
+      displayName?: string;
+    };
+    const accessToken = String(payload.accessToken || "");
+    if (!user?.id || !user?.role || !accessToken) {
+      const error = new Error("session invalid") as CloudError;
+      error.code = "AUTH_INVALID_CREDENTIALS";
+      throw error;
+    }
+
+    const session: PosUserSession = {
+      userId: user.id,
+      role: user.role,
+      branchId: user.branchId ?? null,
+      displayName: user.displayName || "POS User",
+      accessToken,
+      expiresAt: new Date(Date.now() + USER_SESSION_TTL_MS).toISOString(),
+      cachedAt: nowIso()
+    };
+    saveUserSession(session);
+    return session;
+  }
+
+  function getUserSessionState() {
+    const session = loadUserSession();
+    if (!session) {
+      return {
+        authenticated: false,
+        status: "not_authenticated",
+        user: null
+      };
+    }
+
+    const expiresAtMs = new Date(session.expiresAt).valueOf();
+    if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
+      clearUserSession();
+      return {
+        authenticated: false,
+        status: "expired",
+        user: null
+      };
+    }
+
+    return {
+      authenticated: true,
+      status: "active",
+      user: {
+        id: session.userId,
+        role: session.role,
+        branchId: session.branchId,
+        displayName: session.displayName,
+        expiresAt: session.expiresAt
+      }
+    };
   }
 
   async function authenticatedRequest(pathname: string, init?: RequestInit) {
@@ -342,6 +455,9 @@ export function createTerminalAuthService() {
     activate,
     rotate,
     clear,
+    loginPosUserWithPin,
+    getUserSessionState,
+    clearUserSession,
     authenticatedRequest
   };
 }

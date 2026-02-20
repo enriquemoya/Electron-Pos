@@ -1,4 +1,5 @@
-function registerProductIpc(ipcMain, repo, expansionRepo) {
+function registerProductIpc(ipcMain, repo, expansionRepo, options = {}) {
+  const authorize = typeof options.authorize === "function" ? options.authorize : null;
   // Products CRUD is explicit and synchronous in the main process.
   ipcMain.handle("products:getAll", () => {
     return repo.list();
@@ -17,6 +18,7 @@ function registerProductIpc(ipcMain, repo, expansionRepo) {
   });
 
   ipcMain.handle("products:create", (_event, product) => {
+    authorize?.("catalog:write");
     if (product?.expansionId && !product?.gameTypeId) {
       throw new Error("Expansion requires game type.");
     }
@@ -33,6 +35,7 @@ function registerProductIpc(ipcMain, repo, expansionRepo) {
   });
 
   ipcMain.handle("products:update", (_event, product) => {
+    authorize?.("catalog:write");
     if (product?.expansionId && !product?.gameTypeId) {
       throw new Error("Expansion requires game type.");
     }

@@ -8,8 +8,11 @@ export type UsersUseCases = {
     phone?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    displayName?: string | null;
+    branchId?: string | null;
+    pin?: string | null;
     birthDate?: Date | null;
-    role?: "CUSTOMER" | "ADMIN";
+    role?: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
     status?: "ACTIVE" | "DISABLED";
   }) => Promise<Record<string, unknown>>;
   updateUser: (id: string, data: {
@@ -17,8 +20,11 @@ export type UsersUseCases = {
     phone?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    displayName?: string | null;
+    branchId?: string | null;
+    pin?: string | null;
     birthDate?: Date | null;
-    role?: "CUSTOMER" | "ADMIN";
+    role?: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
     status?: "ACTIVE" | "DISABLED";
   }) => Promise<Record<string, unknown>>;
   disableUser: (id: string) => Promise<Record<string, unknown>>;

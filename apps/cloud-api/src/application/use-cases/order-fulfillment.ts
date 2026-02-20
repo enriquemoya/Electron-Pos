@@ -22,12 +22,18 @@ export type OrderFulfillmentUseCases = {
   listAdminOrders: (params: {
     page: number;
     pageSize: number;
+    actorRole?: string;
+    actorBranchId?: string | null;
     query?: string;
     status?: string;
     sort?: "createdAt" | "status" | "expiresAt" | "subtotal";
     direction?: "asc" | "desc";
   }) => Promise<{ items: Array<Record<string, unknown>>; total: number }>;
-  getAdminOrder: (params: { orderId: string }) => Promise<Record<string, unknown> | null>;
+  getAdminOrder: (params: {
+    orderId: string;
+    actorRole?: string;
+    actorBranchId?: string | null;
+  }) => Promise<Record<string, unknown> | null>;
   listCustomerOrders: (params: {
     userId: string;
     page: number;
@@ -41,6 +47,9 @@ export type OrderFulfillmentUseCases = {
     orderId: string;
     toStatus: string;
     actorUserId: string;
+    actorRole?: string;
+    actorBranchId?: string | null;
+    actorDisplayName?: string | null;
     reason: string | null;
     adminMessage: string | null;
   }) => Promise<{
@@ -53,6 +62,9 @@ export type OrderFulfillmentUseCases = {
   createRefund: (params: {
     orderId: string;
     actorUserId: string;
+    actorRole?: string;
+    actorBranchId?: string | null;
+    actorDisplayName?: string | null;
     orderItemId: string | null;
     amount: number;
     refundMethod: "CASH" | "CARD" | "STORE_CREDIT" | "TRANSFER" | "OTHER";
@@ -106,12 +118,25 @@ export function createOrderFulfillmentUseCases(deps: {
   orderFulfillmentRepository: OrderFulfillmentRepository;
   emailService: EmailService;
 }): OrderFulfillmentUseCases {
+  function assertEmployeeBranch(actorRole?: string, actorBranchId?: string | null) {
+    if (actorRole === "EMPLOYEE" && !actorBranchId) {
+      throw ApiErrors.branchForbidden;
+    }
+  }
+
   return {
-    listAdminOrders: (params) => deps.orderFulfillmentRepository.listAdminOrders(params),
-    getAdminOrder: (params) => deps.orderFulfillmentRepository.getAdminOrder(params),
+    listAdminOrders: (params) => {
+      assertEmployeeBranch(params.actorRole, params.actorBranchId);
+      return deps.orderFulfillmentRepository.listAdminOrders(params);
+    },
+    getAdminOrder: (params) => {
+      assertEmployeeBranch(params.actorRole, params.actorBranchId);
+      return deps.orderFulfillmentRepository.getAdminOrder(params);
+    },
     listCustomerOrders: (params) => deps.orderFulfillmentRepository.listCustomerOrders(params),
     getCustomerOrder: (params) => deps.orderFulfillmentRepository.getCustomerOrder(params),
     async transitionOrderStatus(params) {
+      assertEmployeeBranch(params.actorRole, params.actorBranchId);
       const context = await deps.orderFulfillmentRepository.getOrderTransitionContext({
         orderId: params.orderId
       });
@@ -144,11 +169,25 @@ export function createOrderFulfillmentUseCases(deps: {
         throw ApiErrors.orderTransitionReasonRequired;
       }
 
+      if (params.actorRole === "EMPLOYEE") {
+        const employeeAllowedTargets = new Set<OnlineOrderStatus>([
+          OnlineOrderStatus.READY_FOR_PICKUP,
+          OnlineOrderStatus.SHIPPED,
+          OnlineOrderStatus.COMPLETED
+        ]);
+        if (!employeeAllowedTargets.has(toStatus)) {
+          throw ApiErrors.rbacForbidden;
+        }
+      }
+
       const updated = await deps.orderFulfillmentRepository.transitionOrderStatus({
         orderId: params.orderId,
         fromStatus: toApiStatus(fromStatus),
         toStatus: toApiStatus(toStatus),
         actorUserId: params.actorUserId,
+        actorRole: params.actorRole,
+        actorBranchId: params.actorBranchId,
+        actorDisplayName: params.actorDisplayName,
         reason: params.reason,
         adminMessage: params.adminMessage,
         source: "admin"
@@ -172,12 +211,16 @@ export function createOrderFulfillmentUseCases(deps: {
       };
     },
     async createRefund(params) {
+      assertEmployeeBranch(params.actorRole, params.actorBranchId);
       return deps.orderFulfillmentRepository.createRefund({
         orderId: params.orderId,
         orderItemId: params.orderItemId,
         amount: params.amount,
         refundMethod: params.refundMethod,
         adminId: params.actorUserId,
+        actorRole: params.actorRole,
+        actorBranchId: params.actorBranchId,
+        actorDisplayName: params.actorDisplayName ?? null,
         adminMessage: params.adminMessage
       });
     },

@@ -9,7 +9,7 @@ type AdminUser = {
   firstName: string | null;
   lastName: string | null;
   birthDate: string | null;
-  role: "CUSTOMER" | "ADMIN";
+  role: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
   status: "ACTIVE" | "DISABLED";
   createdAt: string;
   updatedAt: string;
@@ -328,7 +328,7 @@ export async function fetchAdminUser(id: string): Promise<UserResponse> {
 export async function updateAdminUser(
   id: string,
   data: {
-    role: "CUSTOMER" | "ADMIN";
+    role: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
     status: "ACTIVE" | "DISABLED";
   }
 ): Promise<UserResponse> {

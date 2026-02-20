@@ -219,6 +219,16 @@
         "success": "Password updated.",
         "errorInvalid": "Passwords must match.",
         "errorServer": "Unable to update password."
+      },
+      "pin": {
+        "title": "POS PIN",
+        "description": "Only for Admin and Employee users. PIN must be 6 digits.",
+        "pin": "PIN",
+        "confirm": "Confirm PIN",
+        "submit": "Save PIN",
+        "success": "PIN updated.",
+        "errorInvalid": "PIN must be 6 digits and both fields must match.",
+        "errorServer": "Unable to update PIN."
       }
     }
   },
@@ -381,7 +391,8 @@
     },
     "roles": {
       "CUSTOMER": "Customer",
-      "ADMIN": "Admin"
+      "ADMIN": "Admin",
+      "EMPLOYEE": "Employee"
     },
     "statuses": {
       "ACTIVE": "Active",

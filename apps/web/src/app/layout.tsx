@@ -60,7 +60,24 @@ export default function RootLayout({
               revokedMessage: t("terminalRevokedMessage"),
               genericError: t("terminalGenericError"),
               invalidKeyError: t("terminalInvalidKeyError"),
-              rateLimitedError: t("terminalRateLimitedError")
+              rateLimitedError: t("terminalRateLimitedError"),
+              terminalAlreadyActivatedError: t("terminalAlreadyActivatedError"),
+              terminalRevokedError: t("terminalRevokedError"),
+              terminalFingerprintMismatchError: t("terminalFingerprintMismatchError"),
+              pinTitle: t("pinTitle"),
+              pinDescription: t("pinDescription"),
+              pinLabel: t("pinLabel"),
+              pinPlaceholder: t("pinPlaceholder"),
+              pinClear: t("pinClear"),
+              pinBackspace: t("pinBackspace"),
+              pinSubmit: t("pinSubmit"),
+              pinSubmitting: t("pinSubmitting"),
+              pinInvalidError: t("pinInvalidError"),
+              pinForbiddenError: t("pinForbiddenError"),
+              pinBranchError: t("pinBranchError"),
+              sessionExpiredError: t("sessionExpiredError"),
+              permissionDeniedTitle: t("permissionDeniedTitle"),
+              permissionDeniedDescription: t("permissionDeniedDescription")
             }}
           >
             {children}

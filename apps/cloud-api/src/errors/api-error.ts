@@ -11,6 +11,12 @@ export class ApiError extends Error {
 
 export const ApiErrors = {
   unauthorized: new ApiError(401, "UNAUTHORIZED", "unauthorized"),
+  authInvalidCredentials: new ApiError(401, "AUTH_INVALID_CREDENTIALS", "auth invalid credentials"),
+  authForbidden: new ApiError(403, "AUTH_FORBIDDEN", "auth forbidden"),
+  authSessionExpired: new ApiError(401, "AUTH_SESSION_EXPIRED", "auth session expired"),
+  rbacForbidden: new ApiError(403, "RBAC_FORBIDDEN", "rbac forbidden"),
+  rbacRoleRequired: new ApiError(403, "RBAC_ROLE_REQUIRED", "rbac role required"),
+  branchForbidden: new ApiError(403, "BRANCH_FORBIDDEN", "branch forbidden"),
   serverError: new ApiError(500, "SERVER_ERROR", "server error"),
   invalidRequest: new ApiError(400, "INVALID_REQUEST", "invalid request"),
   catalogFiltersInvalid: new ApiError(400, "CATALOG_FILTERS_INVALID", "catalog filters invalid"),

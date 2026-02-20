@@ -377,6 +377,8 @@ function mapStatusTimeline(statusLogs: Array<{
   approvedByAdminName?: string | null;
   adminMessage?: string | null;
   actorUserId: string | null;
+  actorRole?: string | null;
+  actorDisplayName?: string | null;
   createdAt: Date;
 }>) {
   return statusLogs
@@ -389,8 +391,9 @@ function mapStatusTimeline(statusLogs: Array<{
       reason: row.reason,
       approvedByAdminName: row.approvedByAdminName ?? null,
       adminMessage: row.adminMessage ?? null,
-      actorDisplayName: row.approvedByAdminName ?? (row.actorUserId ? "Admin" : "System"),
-      actorType: row.actorUserId ? "ADMIN" : "SYSTEM",
+      actorDisplayName:
+        row.actorDisplayName ?? row.approvedByAdminName ?? (row.actorUserId ? "Admin" : "System"),
+      actorType: row.actorRole ?? (row.actorUserId ? "ADMIN" : "SYSTEM"),
       createdAt: row.createdAt.toISOString()
     }));
 }
@@ -807,6 +810,8 @@ export async function getOrder(params: { userId: string; orderId: string }) {
 export async function listAdminOrders(params: {
   page: number;
   pageSize: number;
+  actorRole?: string;
+  actorBranchId?: string | null;
   query?: string;
   status?: string;
   sort?: "createdAt" | "status" | "expiresAt" | "subtotal";
@@ -820,6 +825,7 @@ export async function listAdminOrders(params: {
   const orderCodeQuery = search ? search.toUpperCase() : null;
 
   const where: Prisma.OnlineOrderWhereInput = {
+    ...(params.actorRole === "EMPLOYEE" ? { pickupBranchId: params.actorBranchId ?? "__NO_BRANCH__" } : {}),
     ...(params.status ? { status: toDbStatus(params.status) } : {}),
     ...(search
       ? {
@@ -968,7 +974,7 @@ export async function getOrderTransitionContext(params: { orderId: string }) {
   };
 }
 
-export async function getAdminOrder(params: { orderId: string }) {
+export async function getAdminOrder(params: { orderId: string; actorRole?: string; actorBranchId?: string | null }) {
   const order = await prisma.onlineOrder.findUnique({
     where: { id: params.orderId },
     include: {
@@ -986,6 +992,9 @@ export async function getAdminOrder(params: { orderId: string }) {
 
   if (!order) {
     return null;
+  }
+  if (params.actorRole === "EMPLOYEE" && order.pickupBranchId !== params.actorBranchId) {
+    throw ApiErrors.branchForbidden;
   }
 
   const refundsTotal = order.refunds.reduce((sum, refund) => sum + toMoney(refund.amount), 0);
@@ -1243,6 +1252,9 @@ export async function transitionOrderStatus(params: {
   fromStatus: string;
   toStatus: string;
   actorUserId: string | null;
+  actorRole?: string;
+  actorBranchId?: string | null;
+  actorDisplayName?: string | null;
   reason: string | null;
   adminMessage: string | null;
   source: "admin" | "system";
@@ -1260,6 +1272,9 @@ export async function transitionOrderStatus(params: {
 
     if (!order) {
       throw ApiErrors.checkoutOrderNotFound;
+    }
+    if (params.actorRole === "EMPLOYEE" && order.pickupBranchId !== params.actorBranchId) {
+      throw ApiErrors.branchForbidden;
     }
 
     const currentStatus = normalizeStatus(order.status);
@@ -1322,6 +1337,8 @@ export async function transitionOrderStatus(params: {
         toStatus: toDbStatus(toStatus),
         reason: params.reason,
         actorUserId: params.actorUserId,
+        actorRole: params.actorRole ?? null,
+        actorDisplayName: params.actorDisplayName ?? null,
         approvedByAdminId: toStatus === "PAID_BY_TRANSFER" ? params.actorUserId : null,
         approvedByAdminName: toStatus === "PAID_BY_TRANSFER" ? approvedByAdminName : null,
         adminMessage: toStatus === "PAID_BY_TRANSFER" ? params.adminMessage : null
@@ -1391,6 +1408,9 @@ export async function createRefund(params: {
   amount: number;
   refundMethod: RefundMethod;
   adminId: string | null;
+  actorRole?: string;
+  actorBranchId?: string | null;
+  actorDisplayName?: string | null;
   adminMessage: string;
 }) {
   await prisma.$transaction(async (tx) => {
@@ -1406,6 +1426,9 @@ export async function createRefund(params: {
     if (!order) {
       throw ApiErrors.checkoutOrderNotFound;
     }
+    if (params.actorRole === "EMPLOYEE" && order.pickupBranchId !== params.actorBranchId) {
+      throw ApiErrors.branchForbidden;
+    }
 
     if (order.status !== "COMPLETED") {
       throw ApiErrors.refundNotAllowedForStatus;
@@ -1417,7 +1440,11 @@ export async function createRefund(params: {
           select: { firstName: true, lastName: true, email: true }
         })
       : null;
-    const adminName = [admin?.firstName, admin?.lastName].filter(Boolean).join(" ") || admin?.email || "Admin";
+    const adminName =
+      (params.actorDisplayName ??
+      [admin?.firstName, admin?.lastName].filter(Boolean).join(" ")) ||
+      admin?.email ||
+      "Admin";
 
     const subtotal = toMoney(order.subtotal);
     const paidLimit = order.paymentLedger ? toMoney(order.paymentLedger.totalPaid) : subtotal;

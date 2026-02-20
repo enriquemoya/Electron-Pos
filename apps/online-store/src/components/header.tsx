@@ -25,7 +25,8 @@ export async function Header({ locale }: { locale: string }) {
       role = null;
     }
   }
-  const isAdmin = role === "ADMIN";
+  const canAccessAdmin = role === "ADMIN" || role === "EMPLOYEE";
+  const adminHref = role === "EMPLOYEE" ? "/admin/orders" : "/admin/home";
   const taxonomy = await fetchTaxonomyBundle();
   const categoriesByGame = await fetchCategoriesByGame(taxonomy.games);
 
@@ -189,7 +190,7 @@ export async function Header({ locale }: { locale: string }) {
             <AccountMenu
               profileHref="/account/profile"
               ordersHref="/account/orders"
-              adminHref="/admin/home"
+              adminHref={adminHref}
               profileLabel={t("navigation.account.menu.profile")}
               ordersLabel={t("navigation.account.menu.orders")}
               adminLabel={t("navigation.account.menu.admin")}
@@ -199,7 +200,7 @@ export async function Header({ locale }: { locale: string }) {
               signInHref="/auth/login"
               logoutHref="/auth/logout"
               isAuthenticated={Boolean(token)}
-              isAdmin={isAdmin}
+              isAdmin={canAccessAdmin}
             />
             <Cart />
             <LocaleSwitcher />
@@ -209,7 +210,7 @@ export async function Header({ locale }: { locale: string }) {
             <AccountMenu
               profileHref="/account/profile"
               ordersHref="/account/orders"
-              adminHref="/admin/home"
+              adminHref={adminHref}
               profileLabel={t("navigation.account.menu.profile")}
               ordersLabel={t("navigation.account.menu.orders")}
               adminLabel={t("navigation.account.menu.admin")}
@@ -219,7 +220,7 @@ export async function Header({ locale }: { locale: string }) {
               signInHref="/auth/login"
               logoutHref="/auth/logout"
               isAuthenticated={Boolean(token)}
-              isAdmin={isAdmin}
+              isAdmin={canAccessAdmin}
             />
             <Cart />
             <LocaleSwitcher />

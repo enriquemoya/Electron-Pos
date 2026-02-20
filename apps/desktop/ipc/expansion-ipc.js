@@ -1,6 +1,7 @@
 const { randomUUID } = require("crypto");
 
-function registerExpansionIpc(ipcMain, expansionRepo) {
+function registerExpansionIpc(ipcMain, expansionRepo, options = {}) {
+  const authorize = typeof options.authorize === "function" ? options.authorize : null;
   ipcMain.handle("expansions:listByGame", (_event, gameTypeId, includeInactive) => {
     if (!gameTypeId) {
       throw new Error("Game type required.");
@@ -16,6 +17,7 @@ function registerExpansionIpc(ipcMain, expansionRepo) {
   });
 
   ipcMain.handle("expansions:create", (_event, payload) => {
+    authorize?.("catalog:write");
     if (!payload?.gameTypeId) {
       throw new Error("Game type required.");
     }
@@ -37,6 +39,7 @@ function registerExpansionIpc(ipcMain, expansionRepo) {
   });
 
   ipcMain.handle("expansions:update", (_event, payload) => {
+    authorize?.("catalog:write");
     if (!payload?.id) {
       throw new Error("Expansion id missing.");
     }
@@ -61,6 +64,7 @@ function registerExpansionIpc(ipcMain, expansionRepo) {
   });
 
   ipcMain.handle("expansions:deactivate", (_event, expansionId) => {
+    authorize?.("catalog:write");
     if (!expansionId) {
       throw new Error("Expansion id missing.");
     }
@@ -68,6 +72,7 @@ function registerExpansionIpc(ipcMain, expansionRepo) {
   });
 
   ipcMain.handle("expansions:delete", (_event, expansionId) => {
+    authorize?.("catalog:write");
     if (!expansionId) {
       throw new Error("Expansion id missing.");
     }

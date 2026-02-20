@@ -18,6 +18,12 @@ contextBridge.exposeInMainWorld("koyote", {
   }
 });
 
+contextBridge.exposeInMainWorld("koyotePosUserAuth", {
+  getSession: () => ipcRenderer.invoke("pos-user-auth:get-session"),
+  loginWithPin: (pin) => ipcRenderer.invoke("pos-user-auth:login-pin", { pin }),
+  logout: () => ipcRenderer.invoke("pos-user-auth:logout")
+});
+
 contextBridge.exposeInMainWorld("api", {
   products: {
     getProducts: () => ipcRenderer.invoke("products:getAll"),

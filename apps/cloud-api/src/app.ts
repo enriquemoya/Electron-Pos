@@ -20,6 +20,7 @@ import { createBranchUseCases } from "./application/use-cases/branches";
 import { createMediaUseCases } from "./application/use-cases/media";
 import { createBlogUseCases } from "./application/use-cases/blog";
 import { createTerminalUseCases } from "./application/use-cases/terminals";
+import { createPosAuthUseCases } from "./application/use-cases/pos-auth";
 import { env, envChecks } from "./config/env";
 import * as adminDashboardRepository from "./infrastructure/repositories/admin-dashboard-service";
 import * as authRepository from "./infrastructure/repositories/auth-service";
@@ -79,6 +80,7 @@ export function createApp() {
   const mediaUseCases = createMediaUseCases({ mediaRepository });
   const blogUseCases = createBlogUseCases({ blogRepository, mediaStorage });
   const terminalUseCases = createTerminalUseCases({ terminalRepository });
+  const posAuthUseCases = createPosAuthUseCases({ authRepository });
 
   app.use(createPublicRoutes({ catalogUseCases, authUseCases, branchUseCases, blogUseCases }));
   app.use(requireSecret);
@@ -96,7 +98,8 @@ export function createApp() {
       usersUseCases,
       mediaUseCases,
       blogUseCases,
-      terminalUseCases
+      terminalUseCases,
+      posAuthUseCases
     })
   );
 

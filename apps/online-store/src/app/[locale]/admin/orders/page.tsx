@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { fetchAdminOrders } from "@/lib/admin-api";
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireAdminOrEmployee } from "@/lib/admin-guard";
 import { OrderTotalPopover } from "@/components/admin/order-total-popover";
 import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
@@ -58,7 +58,7 @@ export default async function AdminOrdersPage({
   };
 }) {
   setRequestLocale(params.locale);
-  requireAdmin(params.locale);
+  requireAdminOrEmployee(params.locale);
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminOrders" });
   const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });

@@ -18,6 +18,25 @@ export type AuthRepository = {
   refreshTokens: (refreshToken: string) => Promise<AuthTokens | null>;
   revokeRefreshToken: (refreshToken: string) => Promise<void>;
   loginWithPassword: (email: string, password: string) => Promise<AuthTokens | null>;
+  loginPosUserWithPin: (params: {
+    pin: string;
+    terminalBranchId: string;
+  }) => Promise<
+    | {
+        accessToken: string;
+        user: {
+          id: string;
+          role: string;
+          branchId: string | null;
+          displayName: string;
+        };
+      }
+    | { forbidden: true }
+    | { branchForbidden: true }
+    | null
+  >;
+  findPosUserByPin: (pin: string) => Promise<{ id: string } | null>;
+  increasePinFailure: (params: { userId?: string | null; pin?: string }) => Promise<void>;
   buildMagicLink: (locale: "ES_MX" | "EN_US" | null, token: string) => string;
 };
 
@@ -202,6 +221,8 @@ export type OrderFulfillmentRepository = {
   listAdminOrders: (params: {
     page: number;
     pageSize: number;
+    actorRole?: string;
+    actorBranchId?: string | null;
     query?: string;
     status?: string;
     sort?: "createdAt" | "status" | "expiresAt" | "subtotal";
@@ -215,7 +236,11 @@ export type OrderFulfillmentRepository = {
     paymentMethod: string;
     pickupBranchId: string | null;
   } | null>;
-  getAdminOrder: (params: { orderId: string }) => Promise<Record<string, unknown> | null>;
+  getAdminOrder: (params: {
+    orderId: string;
+    actorRole?: string;
+    actorBranchId?: string | null;
+  }) => Promise<Record<string, unknown> | null>;
   listCustomerOrders: (params: {
     userId: string;
     page: number;
@@ -230,6 +255,9 @@ export type OrderFulfillmentRepository = {
     fromStatus: string;
     toStatus: string;
     actorUserId: string | null;
+    actorRole?: string;
+    actorBranchId?: string | null;
+    actorDisplayName?: string | null;
     reason: string | null;
     adminMessage: string | null;
     source: "admin" | "system";
@@ -249,6 +277,9 @@ export type OrderFulfillmentRepository = {
     amount: number;
     refundMethod: "CASH" | "CARD" | "STORE_CREDIT" | "TRANSFER" | "OTHER";
     adminId: string | null;
+    actorRole?: string;
+    actorBranchId?: string | null;
+    actorDisplayName?: string | null;
     adminMessage: string;
   }) => Promise<Record<string, unknown>>;
   expirePendingOrders: () => Promise<Array<{
@@ -406,6 +437,7 @@ export type ProfileRepository = {
     };
   }) => Promise<Record<string, unknown>>;
   updatePassword: (userId: string, password: string) => Promise<void>;
+  updatePin: (userId: string, pin: string) => Promise<void>;
 };
 
 export type UsersRepository = {
@@ -416,8 +448,11 @@ export type UsersRepository = {
     phone?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    displayName?: string | null;
+    branchId?: string | null;
+    pin?: string | null;
     birthDate?: Date | null;
-    role?: "CUSTOMER" | "ADMIN";
+    role?: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
     status?: "ACTIVE" | "DISABLED";
   }) => Promise<Record<string, unknown>>;
   updateUser: (id: string, data: {
@@ -425,8 +460,11 @@ export type UsersRepository = {
     phone?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    displayName?: string | null;
+    branchId?: string | null;
+    pin?: string | null;
     birthDate?: Date | null;
-    role?: "CUSTOMER" | "ADMIN";
+    role?: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
     status?: "ACTIVE" | "DISABLED";
   }) => Promise<Record<string, unknown>>;
   disableUser: (id: string) => Promise<Record<string, unknown>>;

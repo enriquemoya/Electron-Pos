@@ -149,6 +149,29 @@ type TerminalAuthApi = {
   onStateChanged: (handler: (state: TerminalAuthState) => void) => () => void;
 };
 
+type PosUserSession = {
+  authenticated: boolean;
+  status: "active" | "expired" | "not_authenticated";
+  user: {
+    id: string;
+    role: "ADMIN" | "EMPLOYEE";
+    branchId: string | null;
+    displayName: string;
+    expiresAt: string;
+  } | null;
+};
+
+type PosUserAuthApi = {
+  getSession: () => Promise<PosUserSession>;
+  loginWithPin: (
+    pin: string
+  ) => Promise<
+    | { ok: true; session: PosUserSession["user"] & { accessToken: string; cachedAt: string } }
+    | { ok: false; error: string; code: string }
+  >;
+  logout: () => Promise<PosUserSession>;
+};
+
 type ElectronApi = {
   products: ProductApi;
   inventory: InventoryApi;
@@ -178,5 +201,6 @@ declare global {
   interface Window {
     api?: ElectronApi;
     koyote?: KoyoteBridge;
+    koyotePosUserAuth?: PosUserAuthApi;
   }
 }

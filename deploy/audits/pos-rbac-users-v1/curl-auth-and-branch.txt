@@ -1,0 +1,13 @@
+# Curl Auth and Branch Evidence
+Base URL: http://localhost:4000
+
+## Activation request (TerminalB)
+Headers: x-cloud-secret present, content-type=application/json
+Status: HTTP/1.1 200 OK
+Response: {"terminalId":"cmlu444g700012fotgcsa8e3r","branchId":"00000000-0000-0000-0000-0000000000b2","deviceToken":"f0d724777976f939b0f59e5895d0b89ed3a0c96f7a54626f0e5f96d1f971020000e61c2596f4249a704c607d089353f2"}
+deviceToken: f0d724777976...9353f2
+
+## Branch mismatch PIN login
+Request: POST /pos/auth/pin-login with EMPLOYEE_A pin (BranchA) using TerminalB token (BranchB)
+Status: HTTP/1.1 403 Forbidden
+Body: {"error":"branch forbidden","code":"BRANCH_FORBIDDEN"}

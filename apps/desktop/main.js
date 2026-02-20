@@ -150,6 +150,68 @@ ipcMain.handle("terminal-auth:clear", async () => {
   return state;
 });
 
+function getAuthenticatedPosUser() {
+  if (!terminalAuthService) {
+    return null;
+  }
+  const session = terminalAuthService.getUserSessionState();
+  if (!session?.authenticated || !session.user) {
+    return null;
+  }
+  return session.user;
+}
+
+function assertPosPermission(action) {
+  const user = getAuthenticatedPosUser();
+  if (!user) {
+    const error = new Error("session expired");
+    error.code = "AUTH_SESSION_EXPIRED";
+    throw error;
+  }
+
+  if (user.role === "ADMIN") {
+    return;
+  }
+
+  if (action === "catalog:write" || action === "reports:view" || action === "inventory:decrement") {
+    const error = new Error("forbidden");
+    error.code = "RBAC_FORBIDDEN";
+    throw error;
+  }
+}
+
+ipcMain.handle("pos-user-auth:get-session", async () => {
+  if (!terminalAuthService) {
+    return { authenticated: false, status: "not_authenticated", user: null };
+  }
+  return terminalAuthService.getUserSessionState();
+});
+
+ipcMain.handle("pos-user-auth:login-pin", async (_event, payload) => {
+  if (!terminalAuthService) {
+    return { ok: false, error: "terminal auth unavailable", code: "TERMINAL_AUTH_UNAVAILABLE" };
+  }
+  const pin = typeof payload?.pin === "string" ? payload.pin : "";
+  try {
+    const session = await terminalAuthService.loginPosUserWithPin(pin);
+    return { ok: true, session };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "pin login failed",
+      code: error?.code || "AUTH_INVALID_CREDENTIALS"
+    };
+  }
+});
+
+ipcMain.handle("pos-user-auth:logout", async () => {
+  if (!terminalAuthService) {
+    return { authenticated: false, status: "not_authenticated", user: null };
+  }
+  terminalAuthService.clearUserSession();
+  return terminalAuthService.getUserSessionState();
+});
+
 function loadRoute(targetWindow, route = "/") {
   if (!targetWindow) {
     return;
@@ -304,6 +366,9 @@ app.whenReady().then(async () => {
   const participantRepo = createParticipantRepository(db);
   const prizeRepo = createTournamentPrizeRepository(db);
   terminalAuthService = createTerminalAuthService();
+  // Enforce user re-authentication on every app launch.
+  // Terminal activation state is kept, but POS user session is not reused across restarts.
+  terminalAuthService.clearUserSession();
   const cloudClient =
     process.env.CLOUD_API_URL || process.env.API_URL || process.env.CLOUD_API_BASE_URL
       ? new PosSyncCloudClient((pathname, init) => terminalAuthService.authenticatedRequest(pathname, init))
@@ -334,8 +399,10 @@ app.whenReady().then(async () => {
     runReconcile,
     flushSalesJournal
   });
-  registerProductIpc(ipcMain, productRepo, expansionRepo);
-  registerInventoryIpc(ipcMain, inventoryRepo, productAlertRepo, inventoryAlertRepo);
+  registerProductIpc(ipcMain, productRepo, expansionRepo, { authorize: assertPosPermission });
+  registerInventoryIpc(ipcMain, inventoryRepo, productAlertRepo, inventoryAlertRepo, {
+    authorize: assertPosPermission
+  });
   registerInventoryAlertsIpc(ipcMain, {
     productAlertRepo,
     inventoryAlertRepo,
@@ -371,10 +438,12 @@ app.whenReady().then(async () => {
   registerPaymentsIpc(ipcMain, saleRepo, uploadProof);
   registerSalesHistoryIpc(ipcMain, saleRepo, uploadProof);
   registerCustomerIpc(ipcMain, customerRepo);
-  registerGameTypeIpc(ipcMain, gameTypeRepo);
-  registerExpansionIpc(ipcMain, expansionRepo);
+  registerGameTypeIpc(ipcMain, gameTypeRepo, { authorize: assertPosPermission });
+  registerExpansionIpc(ipcMain, expansionRepo, { authorize: assertPosPermission });
   registerStoreCreditIpc(ipcMain, storeCreditRepo);
-  registerDailyReportsIpc(ipcMain, saleRepo, shiftRepo, storeCreditRepo);
+  registerDailyReportsIpc(ipcMain, saleRepo, shiftRepo, storeCreditRepo, {
+    authorize: assertPosPermission
+  });
   registerDashboardIpc(ipcMain, { saleRepo, shiftRepo, dashboardRepo });
   registerTournamentIpc(ipcMain, {
     tournamentRepo,

@@ -39,6 +39,8 @@ export async function GET(request: Request, { params }: { params: { locale: stri
       const payload = jwt.verify(data.accessToken, secret) as { role?: string };
       if (payload.role === "ADMIN") {
         redirectPath = `/${params.locale}/admin/home`;
+      } else if (payload.role === "EMPLOYEE") {
+        redirectPath = `/${params.locale}/admin/orders`;
       }
     } catch {
       // ignore and fall back to default redirect

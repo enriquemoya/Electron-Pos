@@ -1,0 +1,29 @@
+# RBAC Matrix Evidence
+Web base: http://localhost:3002
+API base: http://localhost:4000
+
+[allowed_orders_list] /es/admin/orders
+  status: HTTP/1.1 200 OK
+
+[allowed_orders_detail] /es/admin/orders/00000000-0000-0000-0000-000000000001
+  status: HTTP/1.1 500 Internal Server Error
+
+[denied_users] /es/admin/users
+  status: HTTP/1.1 307 Temporary Redirect
+  location: /es
+
+[denied_products] /es/admin/products
+  status: HTTP/1.1 307 Temporary Redirect
+  location: /es
+
+[allowed_admin_orders] /admin/orders?page=1&pageSize=20
+  status: HTTP/1.1 200 OK
+  body: {"items":[],"page":1,"pageSize":20,"total":0,"hasMore":false}
+
+[denied_admin_users] /admin/users?page=1&pageSize=20
+  status: HTTP/1.1 403 Forbidden
+  body: {"error":"rbac role required","code":"RBAC_ROLE_REQUIRED"}
+
+[denied_admin_products] /admin/catalog/products?page=1&pageSize=20
+  status: HTTP/1.1 403 Forbidden
+  body: {"error":"rbac role required","code":"RBAC_ROLE_REQUIRED"}

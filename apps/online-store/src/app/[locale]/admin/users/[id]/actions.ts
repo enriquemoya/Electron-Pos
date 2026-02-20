@@ -7,7 +7,7 @@ import { updateAdminUser } from "@/lib/admin-api";
 export async function updateUserAction(
   locale: string,
   id: string,
-  payload: { role: "CUSTOMER" | "ADMIN"; status: "ACTIVE" | "DISABLED" }
+  payload: { role: "CUSTOMER" | "ADMIN" | "EMPLOYEE"; status: "ACTIVE" | "DISABLED" }
 ) {
   try {
     await updateAdminUser(id, payload);

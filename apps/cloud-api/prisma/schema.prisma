@@ -75,6 +75,7 @@ model ReadModelInventory {
 enum UserRole {
   CUSTOMER
   ADMIN
+  EMPLOYEE
 }
 
 enum UserStatus {
@@ -198,10 +199,16 @@ model User {
   id         String      @id @default(uuid()) @db.Uuid
   email      String?     @unique
   phone      String?     @unique
+  displayName String?    @map("display_name")
   firstName  String?     @map("first_name")
   lastName   String?     @map("last_name")
   passwordHash String?   @map("password_hash")
   passwordUpdatedAt DateTime? @map("password_updated_at") @db.Timestamptz(6)
+  pinHash    String?     @map("pin_hash")
+  pinUpdatedAt DateTime? @map("pin_updated_at") @db.Timestamptz(6)
+  failedPinAttempts Int  @default(0) @map("failed_pin_attempts")
+  pinLockedUntil DateTime? @map("pin_locked_until") @db.Timestamptz(6)
+  branchId   String?     @map("branch_id") @db.Uuid
   birthDate  DateTime?   @map("birth_date") @db.Date
   role       UserRole    @default(CUSTOMER)
   status     UserStatus  @default(ACTIVE)
@@ -222,7 +229,10 @@ model User {
   paymentEntries OrderPaymentEntry[] @relation("OrderPaymentEntryActor")
   refunds      OnlineOrderRefund[]   @relation("OnlineOrderRefundAdmin")
   revokedTerminals Terminal[]        @relation("TerminalRevokedByAdmin")
+  branch     PickupBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
 
+  @@index([branchId], name: "idx_users_branch")
+  @@index([role, branchId], name: "idx_users_role_branch")
   @@map("users")
 }
 
@@ -336,6 +346,7 @@ model PickupBranch {
   posSyncEvents PosSyncEvent[]
   catalogScopes BranchCatalogScope[]
   proofMedia ProofMedia[]
+  users User[]
 
   @@index([city], name: "idx_pickup_branches_city")
   @@map("pickup_branches")
@@ -599,6 +610,8 @@ model OnlineOrderStatusLog {
   approvedByAdminName String?  @map("approved_by_admin_name")
   adminMessage String?         @map("admin_message")
   actorUserId String?          @map("actor_user_id") @db.Uuid
+  actorRole   String?          @map("actor_role")
+  actorDisplayName String?     @map("actor_display_name")
   createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   order       OnlineOrder      @relation(fields: [orderId], references: [id], onDelete: Cascade)
   actor       User?            @relation("OnlineOrderStatusLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)

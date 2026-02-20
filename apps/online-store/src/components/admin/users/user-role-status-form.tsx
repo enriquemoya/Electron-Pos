@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-type Role = "CUSTOMER" | "ADMIN";
+type Role = "CUSTOMER" | "ADMIN" | "EMPLOYEE";
 type Status = "ACTIVE" | "DISABLED";
 
 type Labels = {
@@ -12,6 +12,7 @@ type Labels = {
   statusLabel: string;
   roleCustomer: string;
   roleAdmin: string;
+  roleEmployee: string;
   statusActive: string;
   statusDisabled: string;
   updateAction: string;
@@ -69,6 +70,7 @@ export function UserRoleStatusForm({ initialRole, initialStatus, labels, onUpdat
           >
             <option value="CUSTOMER">{labels.roleCustomer}</option>
             <option value="ADMIN">{labels.roleAdmin}</option>
+            <option value="EMPLOYEE">{labels.roleEmployee}</option>
           </select>
         </label>
         <label className="space-y-2 text-sm text-white/70">

@@ -182,6 +182,10 @@ export async function getCatalogSnapshot(params: { branchId: string; page: numbe
   const where: Prisma.ReadModelInventoryWhereInput = {
     branchScopes: { some: { branchId: params.branchId } }
   };
+  const branchScopeWhere: Prisma.ReadModelInventoryWhereInput = {
+    branchScopes: { some: { branchId: params.branchId } }
+  };
+
   const [items, total, latest] = await prisma.$transaction([
     prisma.readModelInventory.findMany({
       where,
@@ -208,7 +212,7 @@ export async function getCatalogSnapshot(params: { branchId: string; page: numbe
     }),
     prisma.readModelInventory.count({ where }),
     prisma.readModelInventory.findFirst({
-      where,
+      where: branchScopeWhere,
       orderBy: [{ updatedAt: "desc" }],
       select: { updatedAt: true }
     })

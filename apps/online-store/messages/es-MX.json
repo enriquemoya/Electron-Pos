@@ -219,6 +219,16 @@
         "success": "Contrasena actualizada.",
         "errorInvalid": "Las contrasenas no coinciden.",
         "errorServer": "No se pudo actualizar la contrasena."
+      },
+      "pin": {
+        "title": "PIN para POS",
+        "description": "Solo para usuarios Admin y Empleado. Debe ser de 6 digitos.",
+        "pin": "PIN",
+        "confirm": "Confirmar PIN",
+        "submit": "Guardar PIN",
+        "success": "PIN actualizado.",
+        "errorInvalid": "El PIN debe tener 6 digitos y coincidir.",
+        "errorServer": "No se pudo actualizar el PIN."
       }
     }
   },
@@ -381,7 +391,8 @@
     },
     "roles": {
       "CUSTOMER": "Cliente",
-      "ADMIN": "Admin"
+      "ADMIN": "Admin",
+      "EMPLOYEE": "Empleado"
     },
     "statuses": {
       "ACTIVE": "Activo",

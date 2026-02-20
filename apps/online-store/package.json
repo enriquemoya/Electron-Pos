@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
     "build": "next build",
     "start": "node -e \"require('child_process').spawn('npx',['next','start','-H','0.0.0.0','-p',String(process.env.PORT||3000)],{stdio:'inherit',shell:false})\"",
     "lint": "next lint"

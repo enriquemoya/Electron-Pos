@@ -13,14 +13,15 @@ import type { BranchUseCases } from "../../application/use-cases/branches";
 import type { MediaUseCases } from "../../application/use-cases/media";
 import type { BlogUseCases } from "../../application/use-cases/blog";
 import type { TerminalUseCases } from "../../application/use-cases/terminals";
+import type { PosAuthUseCases } from "../../application/use-cases/pos-auth";
 import { createCatalogController } from "../controllers/catalog-controller";
 import { createAdminDashboardController } from "../controllers/admin-dashboard-controller";
 import { createCatalogAdminController } from "../controllers/catalog-admin-controller";
 import { createInventoryController } from "../controllers/inventory-controller";
 import { createSyncController } from "../controllers/sync-controller";
 import { createProfileController } from "../controllers/profile-controller";
-import { requireAdmin } from "../middleware/require-admin";
 import { requireAuth } from "../middleware/require-auth";
+import { requireRoles } from "../middleware/require-rbac";
 import { createUsersController } from "../controllers/users-controller";
 import { createCheckoutController } from "../controllers/checkout-controller";
 import { createBranchesController } from "../controllers/branches-controller";
@@ -33,6 +34,7 @@ import { ApiErrors } from "../../errors/api-error";
 import { createTerminalController } from "../controllers/terminal-controller";
 import { requireTerminalAuth } from "../middleware/require-terminal-auth";
 import { posProofUploadMiddleware } from "../middleware/pos-proof-upload";
+import { createPosAuthController } from "../controllers/pos-auth-controller";
 
 export function createProtectedRoutes(params: {
   adminDashboardUseCases: AdminDashboardUseCases;
@@ -48,6 +50,7 @@ export function createProtectedRoutes(params: {
   mediaUseCases: MediaUseCases;
   blogUseCases: BlogUseCases;
   terminalUseCases: TerminalUseCases;
+  posAuthUseCases: PosAuthUseCases;
 }) {
   const router = Router();
   const catalogController = createCatalogController(params.catalogUseCases);
@@ -63,6 +66,7 @@ export function createProtectedRoutes(params: {
   const mediaController = createMediaController(params.mediaUseCases);
   const blogController = createBlogController(params.blogUseCases);
   const terminalController = createTerminalController(params.terminalUseCases);
+  const posAuthController = createPosAuthController(params.posAuthUseCases);
   const blogMutationsRateLimit = createRateLimitMiddleware({
     limit: 30,
     windowMs: 60_000,
@@ -120,6 +124,7 @@ export function createProtectedRoutes(params: {
   router.post("/pos/catalog/reconcile", terminalSyncRateLimit, requirePosToken, syncController.reconcileCatalogHandler);
   router.post("/pos/sync/sales-events", terminalSyncRateLimit, requirePosToken, syncController.ingestSalesEventHandler);
   router.post("/pos/media/proofs/upload", posProofUploadRateLimit, requirePosToken, posProofUploadMiddleware, mediaController.uploadPosProofHandler);
+  router.post("/pos/auth/pin-login", terminalSyncRateLimit, requirePosToken, posAuthController.loginWithPinHandler);
   router.post("/orders", terminalSyncRateLimit, requirePosToken, syncController.createOrderHandler);
   router.get("/read/products", syncController.readProductsHandler);
   router.post("/pos/activate", terminalActivationRateLimit, terminalController.activateHandler);
@@ -130,6 +135,7 @@ export function createProtectedRoutes(params: {
   router.get("/profile/me", profileController.getProfileHandler);
   router.patch("/profile/me", profileController.updateProfileHandler);
   router.patch("/profile/password", profileController.updatePasswordHandler);
+  router.patch("/profile/pin", profileController.updatePinHandler);
 
   router.use("/checkout", requireAuth);
   router.post("/checkout/drafts", checkoutController.createDraftHandler);
@@ -142,52 +148,55 @@ export function createProtectedRoutes(params: {
   router.get("/orders", orderFulfillmentController.listCustomerOrdersHandler);
   router.get("/orders/:orderId", orderFulfillmentController.getCustomerOrderHandler);
 
-  router.use("/admin", requireAdmin);
-  router.get("/admin/dashboard/summary", adminDashboardController.getAdminSummaryHandler);
-  router.get("/admin/inventory", inventoryController.listInventoryHandler);
-  router.post("/admin/inventory/:productId/adjust", inventoryController.adjustInventoryHandler);
-  router.get("/admin/catalog/products", catalogAdminController.listCatalogProductsHandler);
-  router.get("/admin/catalog/products/:productId", catalogAdminController.getCatalogProductHandler);
-  router.post("/admin/catalog/products", catalogAdminController.createCatalogProductHandler);
-  router.patch("/admin/catalog/products/:productId", catalogAdminController.updateCatalogProductHandler);
-  router.get("/admin/catalog/taxonomies", catalogAdminController.listTaxonomiesHandler);
-  router.post("/admin/catalog/taxonomies", catalogAdminController.createTaxonomyHandler);
-  router.patch("/admin/catalog/taxonomies/:id", catalogAdminController.updateTaxonomyHandler);
-  router.delete("/admin/catalog/taxonomies/:id", catalogAdminController.deleteTaxonomyHandler);
-  router.get("/admin/branches", branchesController.listBranchesHandler);
-  router.post("/admin/branches", branchesController.createBranchHandler);
-  router.patch("/admin/branches/:id", branchesController.updateBranchHandler);
-  router.delete("/admin/branches/:id", branchesController.deleteBranchHandler);
-  router.get("/admin/orders", orderFulfillmentController.listAdminOrdersHandler);
-  router.get("/admin/orders/:orderId", orderFulfillmentController.getAdminOrderHandler);
-  router.post("/admin/orders/:orderId/status", orderFulfillmentController.transitionOrderStatusHandler);
-  router.post("/admin/orders/:orderId/refunds", orderFulfillmentController.createRefundHandler);
-  router.post("/admin/orders/expire", orderFulfillmentController.runExpirationSweepHandler);
-  router.get("/admin/media", mediaReadRateLimit, mediaController.listAdminMediaHandler);
-  router.get("/admin/media/proofs", adminProofReadRateLimit, mediaController.listAdminProofsHandler);
-  router.get("/admin/media/proofs/:id", adminProofReadRateLimit, mediaController.getAdminProofByIdHandler);
-  router.post("/admin/media/upload", mediaWriteRateLimit, adminMediaUploadMiddleware, mediaController.uploadAdminMediaHandler);
-  router.delete("/admin/media/*", mediaWriteRateLimit, mediaController.deleteAdminMediaHandler);
-  router.get("/admin/blog/posts", blogController.listAdminPostsHandler);
-  router.get("/admin/blog/posts/:id", blogController.getAdminPostHandler);
-  router.post("/admin/blog/posts", blogMutationsRateLimit, blogController.createPostHandler);
-  router.patch("/admin/blog/posts/:id", blogMutationsRateLimit, blogController.updatePostHandler);
-  router.post("/admin/blog/posts/:id/publish", blogMutationsRateLimit, blogController.publishPostHandler);
-  router.post("/admin/blog/posts/:id/unpublish", blogMutationsRateLimit, blogController.unpublishPostHandler);
-  router.delete("/admin/blog/posts/:id", blogMutationsRateLimit, blogController.deletePostHandler);
-  router.get("/admin/terminals", terminalController.listAdminTerminalsHandler);
-  router.post("/admin/terminals", terminalController.createAdminTerminalHandler);
-  router.post("/admin/terminals/:id/regenerate-key", terminalController.regenerateAdminTerminalKeyHandler);
-  router.post("/admin/terminals/:id/revoke", terminalController.revokeAdminTerminalHandler);
-  router.get("/admin/users", usersController.listUsersHandler);
-  router.get("/admin/users/:id", usersController.getUserHandler);
-  router.post("/admin/users", usersController.createUserHandler);
-  router.patch("/admin/users/:id", usersController.updateUserHandler);
-  router.delete("/admin/users/:id", usersController.deleteUserHandler);
-  router.get("/admin/users/:id/addresses", usersController.listAddressesHandler);
-  router.post("/admin/users/:id/addresses", usersController.createAddressHandler);
-  router.patch("/admin/users/:id/addresses/:addressId", usersController.updateAddressHandler);
-  router.delete("/admin/users/:id/addresses/:addressId", usersController.deleteAddressHandler);
+  const requireAdminRole = requireRoles(["ADMIN"]);
+  const requireAdminOrEmployeeRole = requireRoles(["ADMIN", "EMPLOYEE"]);
+
+  router.use("/admin", requireAuth);
+  router.get("/admin/dashboard/summary", requireAdminRole, adminDashboardController.getAdminSummaryHandler);
+  router.get("/admin/inventory", requireAdminRole, inventoryController.listInventoryHandler);
+  router.post("/admin/inventory/:productId/adjust", requireAdminRole, inventoryController.adjustInventoryHandler);
+  router.get("/admin/catalog/products", requireAdminRole, catalogAdminController.listCatalogProductsHandler);
+  router.get("/admin/catalog/products/:productId", requireAdminRole, catalogAdminController.getCatalogProductHandler);
+  router.post("/admin/catalog/products", requireAdminRole, catalogAdminController.createCatalogProductHandler);
+  router.patch("/admin/catalog/products/:productId", requireAdminRole, catalogAdminController.updateCatalogProductHandler);
+  router.get("/admin/catalog/taxonomies", requireAdminRole, catalogAdminController.listTaxonomiesHandler);
+  router.post("/admin/catalog/taxonomies", requireAdminRole, catalogAdminController.createTaxonomyHandler);
+  router.patch("/admin/catalog/taxonomies/:id", requireAdminRole, catalogAdminController.updateTaxonomyHandler);
+  router.delete("/admin/catalog/taxonomies/:id", requireAdminRole, catalogAdminController.deleteTaxonomyHandler);
+  router.get("/admin/branches", requireAdminRole, branchesController.listBranchesHandler);
+  router.post("/admin/branches", requireAdminRole, branchesController.createBranchHandler);
+  router.patch("/admin/branches/:id", requireAdminRole, branchesController.updateBranchHandler);
+  router.delete("/admin/branches/:id", requireAdminRole, branchesController.deleteBranchHandler);
+  router.get("/admin/orders", requireAdminOrEmployeeRole, orderFulfillmentController.listAdminOrdersHandler);
+  router.get("/admin/orders/:orderId", requireAdminOrEmployeeRole, orderFulfillmentController.getAdminOrderHandler);
+  router.post("/admin/orders/:orderId/status", requireAdminOrEmployeeRole, orderFulfillmentController.transitionOrderStatusHandler);
+  router.post("/admin/orders/:orderId/refunds", requireAdminRole, orderFulfillmentController.createRefundHandler);
+  router.post("/admin/orders/expire", requireAdminRole, orderFulfillmentController.runExpirationSweepHandler);
+  router.get("/admin/media", requireAdminRole, mediaReadRateLimit, mediaController.listAdminMediaHandler);
+  router.get("/admin/media/proofs", requireAdminRole, adminProofReadRateLimit, mediaController.listAdminProofsHandler);
+  router.get("/admin/media/proofs/:id", requireAdminRole, adminProofReadRateLimit, mediaController.getAdminProofByIdHandler);
+  router.post("/admin/media/upload", requireAdminRole, mediaWriteRateLimit, adminMediaUploadMiddleware, mediaController.uploadAdminMediaHandler);
+  router.delete("/admin/media/*", requireAdminRole, mediaWriteRateLimit, mediaController.deleteAdminMediaHandler);
+  router.get("/admin/blog/posts", requireAdminRole, blogController.listAdminPostsHandler);
+  router.get("/admin/blog/posts/:id", requireAdminRole, blogController.getAdminPostHandler);
+  router.post("/admin/blog/posts", requireAdminRole, blogMutationsRateLimit, blogController.createPostHandler);
+  router.patch("/admin/blog/posts/:id", requireAdminRole, blogMutationsRateLimit, blogController.updatePostHandler);
+  router.post("/admin/blog/posts/:id/publish", requireAdminRole, blogMutationsRateLimit, blogController.publishPostHandler);
+  router.post("/admin/blog/posts/:id/unpublish", requireAdminRole, blogMutationsRateLimit, blogController.unpublishPostHandler);
+  router.delete("/admin/blog/posts/:id", requireAdminRole, blogMutationsRateLimit, blogController.deletePostHandler);
+  router.get("/admin/terminals", requireAdminRole, terminalController.listAdminTerminalsHandler);
+  router.post("/admin/terminals", requireAdminRole, terminalController.createAdminTerminalHandler);
+  router.post("/admin/terminals/:id/regenerate-key", requireAdminRole, terminalController.regenerateAdminTerminalKeyHandler);
+  router.post("/admin/terminals/:id/revoke", requireAdminRole, terminalController.revokeAdminTerminalHandler);
+  router.get("/admin/users", requireAdminRole, usersController.listUsersHandler);
+  router.get("/admin/users/:id", requireAdminRole, usersController.getUserHandler);
+  router.post("/admin/users", requireAdminRole, usersController.createUserHandler);
+  router.patch("/admin/users/:id", requireAdminRole, usersController.updateUserHandler);
+  router.delete("/admin/users/:id", requireAdminRole, usersController.deleteUserHandler);
+  router.get("/admin/users/:id/addresses", requireAdminRole, usersController.listAddressesHandler);
+  router.post("/admin/users/:id/addresses", requireAdminRole, usersController.createAddressHandler);
+  router.patch("/admin/users/:id/addresses/:addressId", requireAdminRole, usersController.updateAddressHandler);
+  router.delete("/admin/users/:id/addresses/:addressId", requireAdminRole, usersController.deleteAddressHandler);
 
   return router;
 }

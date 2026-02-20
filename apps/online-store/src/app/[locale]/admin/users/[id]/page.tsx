@@ -72,6 +72,7 @@ export default async function AdminUserDetailPage({
                 statusLabel: t("fields.status"),
                 roleCustomer: t("roles.CUSTOMER"),
                 roleAdmin: t("roles.ADMIN"),
+                roleEmployee: t("roles.EMPLOYEE"),
                 statusActive: t("statuses.ACTIVE"),
                 statusDisabled: t("statuses.DISABLED"),
                 updateAction: t("updateAction"),

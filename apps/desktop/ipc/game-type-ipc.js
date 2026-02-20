@@ -1,11 +1,13 @@
 const { randomUUID } = require("crypto");
 
-function registerGameTypeIpc(ipcMain, repo) {
+function registerGameTypeIpc(ipcMain, repo, options = {}) {
+  const authorize = typeof options.authorize === "function" ? options.authorize : null;
   ipcMain.handle("game-types:list", (_event, activeOnly = false) => {
     return repo.list(Boolean(activeOnly));
   });
 
   ipcMain.handle("game-types:create", (_event, payload) => {
+    authorize?.("catalog:write");
     if (!payload?.name?.trim()) {
       throw new Error("Game type name missing.");
     }
@@ -20,6 +22,7 @@ function registerGameTypeIpc(ipcMain, repo) {
   });
 
   ipcMain.handle("game-types:update", (_event, payload) => {
+    authorize?.("catalog:write");
     if (!payload?.id || !payload?.name?.trim()) {
       throw new Error("Game type payload invalid.");
     }

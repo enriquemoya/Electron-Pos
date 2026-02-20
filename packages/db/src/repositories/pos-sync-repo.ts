@@ -166,7 +166,12 @@ export function createPosSyncRepository(db: DbHandle) {
     listCatalogManifest(limit = 5000): CatalogManifestEntry[] {
       const rows = db
         .prepare(
-          `SELECT entity_type, cloud_id, local_id, updated_at, version_hash
+          `SELECT
+             cm.entity_type AS entity_type,
+             cm.cloud_id AS cloud_id,
+             map.local_id AS local_id,
+             cm.updated_at AS updated_at,
+             cm.version_hash AS version_hash
            FROM catalog_meta cm
            LEFT JOIN catalog_id_map map
              ON map.entity_type = cm.entity_type AND map.cloud_id = cm.cloud_id
