@@ -2,13 +2,26 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("koyote", {
   version: "0.0.0",
-  driveSync: {
-    getState: () => ipcRenderer.invoke("drive:getState"),
-    connect: () => ipcRenderer.invoke("drive:connect"),
-    complete: (deviceCode) => ipcRenderer.invoke("drive:complete", deviceCode),
-    upload: (arrayBuffer) => ipcRenderer.invoke("drive:upload", arrayBuffer),
-    download: (localSnapshot) => ipcRenderer.invoke("drive:download", localSnapshot)
+  terminalAuth: {
+    getState: () => ipcRenderer.invoke("terminal-auth:get-state"),
+    activate: (activationApiKey) =>
+      ipcRenderer.invoke("terminal-auth:activate", { activationApiKey }),
+    rotate: () => ipcRenderer.invoke("terminal-auth:rotate"),
+    clear: () => ipcRenderer.invoke("terminal-auth:clear"),
+    onStateChanged: (handler) => {
+      const listener = (_event, state) => {
+        handler(state);
+      };
+      ipcRenderer.on("terminal-auth:state-changed", listener);
+      return () => ipcRenderer.removeListener("terminal-auth:state-changed", listener);
+    }
   }
+});
+
+contextBridge.exposeInMainWorld("koyotePosUserAuth", {
+  getSession: () => ipcRenderer.invoke("pos-user-auth:get-session"),
+  loginWithPin: (pin) => ipcRenderer.invoke("pos-user-auth:login-pin", { pin }),
+  logout: () => ipcRenderer.invoke("pos-user-auth:logout")
 });
 
 contextBridge.exposeInMainWorld("api", {
@@ -22,7 +35,9 @@ contextBridge.exposeInMainWorld("api", {
   },
   inventory: {
     getInventory: () => ipcRenderer.invoke("inventory:get"),
-    updateStock: (productId, delta) => ipcRenderer.invoke("inventory:updateStock", productId, delta)
+    updateStock: (productId, delta, reason) =>
+      ipcRenderer.invoke("inventory:updateStock", productId, delta, reason),
+    adjustManual: (payload) => ipcRenderer.invoke("inventory:adjustManual", payload)
   },
   inventoryAlerts: {
     getActiveInventoryAlerts: (filters) => ipcRenderer.invoke("inventory-alerts:getActive", filters),
@@ -102,6 +117,9 @@ contextBridge.exposeInMainWorld("api", {
     createGameType: (payload) => ipcRenderer.invoke("game-types:create", payload),
     updateGameType: (payload) => ipcRenderer.invoke("game-types:update", payload)
   },
+  categories: {
+    listCategories: (activeOnly) => ipcRenderer.invoke("categories:list", activeOnly)
+  },
   expansions: {
     getExpansionsByGame: (gameTypeId, includeInactive) =>
       ipcRenderer.invoke("expansions:listByGame", gameTypeId, includeInactive),
@@ -112,7 +130,9 @@ contextBridge.exposeInMainWorld("api", {
     deleteExpansion: (expansionId) => ipcRenderer.invoke("expansions:delete", expansionId)
   },
   inventorySync: {
-    getSyncStatus: (posId) => ipcRenderer.invoke("inventory-sync:getStatus", posId)
+    getSyncStatus: () => ipcRenderer.invoke("inventory-sync:getStatus"),
+    runSyncNow: () => ipcRenderer.invoke("inventory-sync:run"),
+    reconcileNow: () => ipcRenderer.invoke("inventory-sync:reconcile")
   },
   sync: {
     getSyncState: (provider) => ipcRenderer.invoke("sync:get", provider),

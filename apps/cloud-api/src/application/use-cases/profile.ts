@@ -22,12 +22,14 @@ export type ProfileUseCases = {
     };
   }) => Promise<Record<string, unknown>>;
   updatePassword: (userId: string, password: string) => Promise<void>;
+  updatePin: (userId: string, pin: string) => Promise<void>;
 };
 
 export function createProfileUseCases(deps: { profileRepository: ProfileRepository }): ProfileUseCases {
   return {
     getProfile: (userId) => deps.profileRepository.getProfile(userId),
     updateProfile: (userId, payload) => deps.profileRepository.updateProfile(userId, payload),
-    updatePassword: (userId, password) => deps.profileRepository.updatePassword(userId, password)
+    updatePassword: (userId, password) => deps.profileRepository.updatePassword(userId, password),
+    updatePin: (userId, pin) => deps.profileRepository.updatePin(userId, pin)
   };
 }

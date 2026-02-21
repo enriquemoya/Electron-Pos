@@ -7,8 +7,7 @@ type PickupBranch = {
   name: string;
   address: string;
   city: string;
-  latitude: number;
-  longitude: number;
+  googleMapsUrl: string | null;
   imageUrl: string | null;
 };
 

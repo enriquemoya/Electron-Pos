@@ -18,6 +18,25 @@ export type AuthRepository = {
   refreshTokens: (refreshToken: string) => Promise<AuthTokens | null>;
   revokeRefreshToken: (refreshToken: string) => Promise<void>;
   loginWithPassword: (email: string, password: string) => Promise<AuthTokens | null>;
+  loginPosUserWithPin: (params: {
+    pin: string;
+    terminalBranchId: string;
+  }) => Promise<
+    | {
+        accessToken: string;
+        user: {
+          id: string;
+          role: string;
+          branchId: string | null;
+          displayName: string;
+        };
+      }
+    | { forbidden: true }
+    | { branchForbidden: true }
+    | null
+  >;
+  findPosUserByPin: (pin: string) => Promise<{ id: string } | null>;
+  increasePinFailure: (params: { userId?: string | null; pin?: string }) => Promise<void>;
   buildMagicLink: (locale: "ES_MX" | "EN_US" | null, token: string) => string;
 };
 
@@ -120,11 +139,48 @@ export type InventoryRepository = {
     query?: string;
     sort?: "updatedAt" | "available" | "name";
     direction?: "asc" | "desc";
+    scopeType?: "ONLINE_STORE" | "BRANCH";
+    branchId?: string | null;
   }) => Promise<{ items: Array<Record<string, unknown>>; total: number }>;
-  adjustInventory: (params: { productId: string; delta: number; reason: string; actorUserId: string }) => Promise<{
+  adjustInventory: (params: {
+    productId: string;
+    delta: number;
+    reason: string;
+    actorUserId: string;
+    scopeType?: "ONLINE_STORE" | "BRANCH";
+    branchId?: string | null;
+    idempotencyKey?: string | null;
+  }) => Promise<{
     item: Record<string, unknown>;
     adjustment: Record<string, unknown>;
   } | null>;
+  createMovement: (params: {
+    productId: string;
+    scopeType: "ONLINE_STORE" | "BRANCH";
+    branchId: string | null;
+    delta: number;
+    reason: string;
+    actorRole: "ADMIN" | "EMPLOYEE" | "TERMINAL";
+    actorUserId?: string | null;
+    actorTerminalId?: string | null;
+    idempotencyKey: string;
+  }) => Promise<{
+    item: Record<string, unknown>;
+    adjustment: Record<string, unknown>;
+  } | null>;
+  getInventoryStockDetail: (params: {
+    productId: string;
+  }) => Promise<Record<string, unknown> | null>;
+  listInventoryMovements: (params: {
+    page: number;
+    pageSize: number;
+    productId?: string;
+    branchId?: string | null;
+    scopeType?: "ONLINE_STORE" | "BRANCH";
+    direction?: "asc" | "desc";
+    from?: string | null;
+    to?: string | null;
+  }) => Promise<{ items: Array<Record<string, unknown>>; total: number }>;
 };
 
 export type CheckoutRepository = {
@@ -194,6 +250,7 @@ export type CheckoutRepository = {
     subtotal: number;
     currency: string;
     pickupBranchName: string | null;
+    pickupBranchMapUrl: string | null;
   }>;
   getOrder: (params: { userId: string; orderId: string }) => Promise<Record<string, unknown> | null>;
 };
@@ -202,6 +259,8 @@ export type OrderFulfillmentRepository = {
   listAdminOrders: (params: {
     page: number;
     pageSize: number;
+    actorRole?: string;
+    actorBranchId?: string | null;
     query?: string;
     status?: string;
     sort?: "createdAt" | "status" | "expiresAt" | "subtotal";
@@ -215,7 +274,11 @@ export type OrderFulfillmentRepository = {
     paymentMethod: string;
     pickupBranchId: string | null;
   } | null>;
-  getAdminOrder: (params: { orderId: string }) => Promise<Record<string, unknown> | null>;
+  getAdminOrder: (params: {
+    orderId: string;
+    actorRole?: string;
+    actorBranchId?: string | null;
+  }) => Promise<Record<string, unknown> | null>;
   listCustomerOrders: (params: {
     userId: string;
     page: number;
@@ -230,6 +293,9 @@ export type OrderFulfillmentRepository = {
     fromStatus: string;
     toStatus: string;
     actorUserId: string | null;
+    actorRole?: string;
+    actorBranchId?: string | null;
+    actorDisplayName?: string | null;
     reason: string | null;
     adminMessage: string | null;
     source: "admin" | "system";
@@ -249,6 +315,9 @@ export type OrderFulfillmentRepository = {
     amount: number;
     refundMethod: "CASH" | "CARD" | "STORE_CREDIT" | "TRANSFER" | "OTHER";
     adminId: string | null;
+    actorRole?: string;
+    actorBranchId?: string | null;
+    actorDisplayName?: string | null;
     adminMessage: string;
   }) => Promise<Record<string, unknown>>;
   expirePendingOrders: () => Promise<Array<{
@@ -269,16 +338,14 @@ export type BranchRepository = {
     name: string;
     address: string;
     city: string;
-    latitude: number;
-    longitude: number;
+    googleMapsUrl?: string | null;
     imageUrl?: string | null;
   }) => Promise<Record<string, unknown>>;
   updateBranch: (id: string, data: {
     name?: string;
     address?: string;
     city?: string;
-    latitude?: number;
-    longitude?: number;
+    googleMapsUrl?: string | null;
     imageUrl?: string | null;
   }) => Promise<Record<string, unknown> | null>;
   deleteBranch: (id: string) => Promise<Record<string, unknown> | null>;
@@ -339,7 +406,40 @@ export type SyncRepository = {
   recordEvents: (events: any[]) => Promise<{ accepted: string[]; duplicates: string[] }>;
   getPendingEvents: (posId: string, since: string | null) => Promise<any[]>;
   acknowledgeEvents: (posId: string, eventIds: string[]) => Promise<void>;
-  createOrder: (orderId: string, items: any[]) => Promise<{ duplicate: boolean }>;
+  createOrder: (orderId: string, items: any[], branchId: string) => Promise<{ duplicate: boolean }>;
+  getCatalogSnapshot: (params: {
+    branchId: string;
+    page: number;
+    pageSize: number;
+  }) => Promise<{ items: any[]; total: number; snapshotVersion: string; appliedAt: string }>;
+  getCatalogDelta: (params: {
+    branchId: string;
+    since: string | null;
+    page: number;
+    pageSize: number;
+  }) => Promise<{ items: any[]; total: number; snapshotVersion: string; appliedAt: string }>;
+  reconcileCatalog: (params: {
+    branchId: string;
+    manifest: Array<{
+      entityType: string;
+      cloudId: string;
+      localId: string | null;
+      updatedAt: string | null;
+      versionHash: string | null;
+    }>;
+  }) => Promise<{
+    missing: any[];
+    stale: any[];
+    unknown: any[];
+    snapshotVersion: string;
+  }>;
+  ingestSalesEvent: (params: {
+    terminalId: string;
+    branchId: string;
+    localEventId: string;
+    eventType: string;
+    payload: Record<string, unknown>;
+  }) => Promise<{ duplicate: boolean }>;
   readProducts: (params: {
     page: number;
     pageSize: number;
@@ -373,6 +473,7 @@ export type ProfileRepository = {
     };
   }) => Promise<Record<string, unknown>>;
   updatePassword: (userId: string, password: string) => Promise<void>;
+  updatePin: (userId: string, pin: string) => Promise<void>;
 };
 
 export type UsersRepository = {
@@ -383,8 +484,11 @@ export type UsersRepository = {
     phone?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    displayName?: string | null;
+    branchId?: string | null;
+    pin?: string | null;
     birthDate?: Date | null;
-    role?: "CUSTOMER" | "ADMIN";
+    role?: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
     status?: "ACTIVE" | "DISABLED";
   }) => Promise<Record<string, unknown>>;
   updateUser: (id: string, data: {
@@ -392,8 +496,11 @@ export type UsersRepository = {
     phone?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    displayName?: string | null;
+    branchId?: string | null;
+    pin?: string | null;
     birthDate?: Date | null;
-    role?: "CUSTOMER" | "ADMIN";
+    role?: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
     status?: "ACTIVE" | "DISABLED";
   }) => Promise<Record<string, unknown>>;
   disableUser: (id: string) => Promise<Record<string, unknown>>;

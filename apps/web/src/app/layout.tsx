@@ -1,7 +1,7 @@
 import "./globals.css";
 import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
-import { Sidebar } from "@pos/ui";
 import { t } from "./i18n";
+import { ActivationGate } from "@/components/terminal/activation-gate";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -30,29 +30,58 @@ export default function RootLayout({
     <html lang="es" className={`${spaceGrotesk.variable} ${plexMono.variable}`}>
       <body className="min-h-screen bg-base-900 text-zinc-100">
         <div className="flex min-h-screen">
-          <Sidebar
-            appName={t("appName")}
-            eyebrow={t("sidebarEyebrow")}
-            activeBadge={t("sidebarActiveBadge")}
-            inactiveBadge={t("sidebarInactiveBadge")}
-            footerText={t("sidebarFooter")}
-            items={[
-              { href: "/dashboard", label: t("navDashboard") },
-              { href: "/products", label: t("navProducts") },
-              { href: "/new-sale", label: t("navNewSale") },
-              { href: "/inventory", label: t("navInventory") },
-              { href: "/sales", label: t("navSales") },
-              { href: "/tournaments", label: t("navTournaments") },
-              { href: "/customers", label: t("navCustomers") },
-              { href: "/reports/daily", label: t("navReports") },
-              { href: "/settings", label: t("navSettings") }
-            ]}
-          />
-          <main className="flex-1 bg-base-800 p-8">
-            <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-              {children}
-            </div>
-          </main>
+          <ActivationGate
+            copy={{
+              appName: t("appName"),
+              sidebarEyebrow: t("sidebarEyebrow"),
+              sidebarActiveBadge: t("sidebarActiveBadge"),
+              sidebarInactiveBadge: t("sidebarInactiveBadge"),
+              sidebarFooter: t("sidebarFooter"),
+              nav: [
+                { href: "/dashboard", label: t("navDashboard") },
+                { href: "/products", label: t("navProducts") },
+                { href: "/new-sale", label: t("navNewSale") },
+                { href: "/inventory", label: t("navInventory") },
+                { href: "/sales", label: t("navSales") },
+                { href: "/tournaments", label: t("navTournaments") },
+                { href: "/customers", label: t("navCustomers") },
+                { href: "/reports/daily", label: t("navReports") },
+                { href: "/settings", label: t("navSettings") }
+              ],
+              activationTitle: t("terminalActivationTitle"),
+              activationDescription: t("terminalActivationDescription"),
+              activationLabel: t("terminalActivationLabel"),
+              activationPlaceholder: t("terminalActivationPlaceholder"),
+              activateAction: t("terminalActivateAction"),
+              activatingAction: t("terminalActivatingAction"),
+              activatedMessage: t("terminalActivatedMessage"),
+              notActivatedMessage: t("terminalNotActivatedMessage"),
+              offlineMessage: t("terminalOfflineMessage"),
+              revokedMessage: t("terminalRevokedMessage"),
+              genericError: t("terminalGenericError"),
+              invalidKeyError: t("terminalInvalidKeyError"),
+              rateLimitedError: t("terminalRateLimitedError"),
+              terminalAlreadyActivatedError: t("terminalAlreadyActivatedError"),
+              terminalRevokedError: t("terminalRevokedError"),
+              terminalFingerprintMismatchError: t("terminalFingerprintMismatchError"),
+              pinTitle: t("pinTitle"),
+              pinDescription: t("pinDescription"),
+              pinLabel: t("pinLabel"),
+              pinPlaceholder: t("pinPlaceholder"),
+              pinClear: t("pinClear"),
+              pinBackspace: t("pinBackspace"),
+              pinSubmit: t("pinSubmit"),
+              pinSubmitting: t("pinSubmitting"),
+              pinInvalidError: t("pinInvalidError"),
+              pinForbiddenError: t("pinForbiddenError"),
+              pinBranchError: t("pinBranchError"),
+              sessionExpiredError: t("sessionExpiredError"),
+              permissionDeniedTitle: t("permissionDeniedTitle"),
+              permissionDeniedDescription: t("permissionDeniedDescription")
+            }}
+          >
+            {children}
+          </ActivationGate>
         </div>
       </body>
     </html>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "seo-review"
+  short_description: "SEO audit workflow for developer concept pages."
+  default_prompt: "Use this skill to audit and optimize concept pages for search visibility and snippets."

@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["database change","index addition","performance issue","query"]
 outputs: ["index gaps","query risks","audit notes"]
+recommended_skills: [prisma-expert, backend-patterns]
 ---
 
 ## Capabilities

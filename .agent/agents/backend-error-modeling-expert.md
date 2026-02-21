@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["endpoint","api","error handling","status code","validation"]
 outputs: ["error model gaps","risk severity","audit notes"]
+recommended_skills: [backend-patterns, clean-code]
 ---
 
 ## Capabilities

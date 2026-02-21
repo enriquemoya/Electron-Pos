@@ -9,6 +9,7 @@ import { ApiErrors } from "../../errors/api-error";
 import type { AdminMediaListItem, AdminMediaUploadResult, MediaFolder, MediaListResult, MediaStorage } from "../../application/use-cases/media";
 
 const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
+const PROOF_ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const MAX_WIDTH = 1600;
 
@@ -134,9 +135,11 @@ export function createR2MediaService(): MediaStorage {
 
       return {
         url: buildCdnUrl(key),
+        key,
         width,
         height,
-        sizeBytes: output.length
+        sizeBytes: output.length,
+        mime: "image/webp"
       };
     },
 
@@ -222,6 +225,69 @@ export function createR2MediaService(): MediaStorage {
         return { deleted: false };
       }
       return { deleted: true };
+    },
+
+    async uploadProofFile(params: {
+      inputBuffer: Buffer;
+      mimeType: string;
+    }): Promise<AdminMediaUploadResult & { key: string; mime: string }> {
+      if (!PROOF_ALLOWED_MIME.has(params.mimeType)) {
+        throw ApiErrors.proofInvalidType;
+      }
+      if (params.inputBuffer.length > MAX_UPLOAD_BYTES) {
+        throw ApiErrors.proofTooLarge;
+      }
+
+      let output = params.inputBuffer;
+      let contentType = params.mimeType;
+      let width = 0;
+      let height = 0;
+      let extension = "pdf";
+
+      if (params.mimeType.startsWith("image/")) {
+        try {
+          const pipeline = sharp(params.inputBuffer, { failOn: "error", limitInputPixels: 268402689 })
+            .rotate()
+            .resize({ width: MAX_WIDTH, withoutEnlargement: true, fit: "inside" })
+            .webp({ quality: 85 });
+          const metadata = await pipeline.metadata();
+          output = await pipeline.toBuffer();
+          width = metadata.width || 0;
+          height = metadata.height || 0;
+          contentType = "image/webp";
+          extension = "webp";
+        } catch {
+          throw ApiErrors.proofUploadFailed;
+        }
+      }
+
+      const appEnv = normalizeAppEnv(env.appEnv);
+      const key = `${appEnv}/proofs/${randomUUID()}.${extension}`;
+      try {
+        if (!s3 || !env.r2Bucket) {
+          throw ApiErrors.proofUploadFailed;
+        }
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: env.r2Bucket,
+            Key: key,
+            Body: output,
+            ContentType: contentType,
+            CacheControl: "public, max-age=604800, s-maxage=2592000"
+          })
+        );
+      } catch {
+        throw ApiErrors.proofUploadFailed;
+      }
+
+      return {
+        url: buildCdnUrl(key),
+        key,
+        width,
+        height,
+        sizeBytes: output.length,
+        mime: contentType
+      };
     }
   };
 }

@@ -195,8 +195,8 @@
         "errorInvalid": "Completa los campos obligatorios.",
         "errorServer": "No se pudo guardar el perfil.",
         "emailLocale": "Idioma de correo",
-        "emailLocaleEs": "Espa\u00f1ol (M\u00e9xico)",
-        "emailLocaleEn": "Ingl\u00e9s (EE. UU.)"
+        "emailLocaleEs": "Español (México)",
+        "emailLocaleEn": "Inglés (EE. UU.)"
       },
       "address": {
         "title": "Direccion (opcional)",
@@ -219,6 +219,16 @@
         "success": "Contrasena actualizada.",
         "errorInvalid": "Las contrasenas no coinciden.",
         "errorServer": "No se pudo actualizar la contrasena."
+      },
+      "pin": {
+        "title": "PIN para POS",
+        "description": "Solo para usuarios Admin y Empleado. Debe ser de 6 digitos.",
+        "pin": "PIN",
+        "confirm": "Confirmar PIN",
+        "submit": "Guardar PIN",
+        "success": "PIN actualizado.",
+        "errorInvalid": "El PIN debe tener 6 digitos y coincidir.",
+        "errorServer": "No se pudo actualizar el PIN."
       }
     }
   },
@@ -381,7 +391,8 @@
     },
     "roles": {
       "CUSTOMER": "Cliente",
-      "ADMIN": "Admin"
+      "ADMIN": "Admin",
+      "EMPLOYEE": "Empleado"
     },
     "statuses": {
       "ACTIVE": "Activo",
@@ -409,20 +420,127 @@
       "taxonomies": "Taxonomias del catalogo",
       "branches": "Sucursales",
       "orders": "Gestion de pedidos",
-      "blog": "Editor de blog"
+      "blog": "Editor de blog",
+      "terminals": "Terminales POS",
+      "proofs": "Archivos de comprobante"
+    }
+  },
+  "adminTerminals": {
+    "title": "Gestion de terminales",
+    "subtitle": "Crea, revisa y revoca terminales POS.",
+    "summary": "{count} terminales en total. Pagina {page} de {pages}.",
+    "status": {
+      "pending": "Pendiente",
+      "active": "Activa",
+      "revoked": "Revocada"
+    },
+    "table": {
+      "columns": {
+        "name": "Terminal",
+        "branch": "Sucursal",
+        "status": "Estado",
+        "lastRotation": "Ultima rotacion",
+        "createdAt": "Creada",
+        "actions": "Acciones"
+      },
+      "empty": "Aun no hay terminales registradas.",
+      "never": "Nunca",
+      "actions": {
+        "details": "Ver detalle",
+        "regenerate": "Regenerar llave",
+        "regenerating": "Regenerando...",
+        "revoke": "Revocar terminal",
+        "revoking": "Revocando...",
+        "disabled": "Ya revocada",
+        "menuLabel": "Abrir acciones de terminal"
+      }
+    },
+    "pagination": {
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "page": "Pagina {page} de {pages}"
+    },
+    "create": {
+      "trigger": "Crear terminal",
+      "title": "Crear terminal",
+      "description": "Genera una nueva terminal para una sucursal y muestra la llave de activacion una sola vez.",
+      "fields": {
+        "name": "Nombre de terminal",
+        "namePlaceholder": "Caja A",
+        "branch": "Sucursal",
+        "branchPlaceholder": "Selecciona una sucursal"
+      },
+      "actions": {
+        "cancel": "Cancelar",
+        "submit": "Crear terminal",
+        "creating": "Creando..."
+      },
+      "key": {
+        "title": "Llave de activacion generada",
+        "description": "Guarda esta llave en un lugar seguro. Solo se muestra una vez.",
+        "hint": "Al cerrar este dialogo, la llave no se podra ver de nuevo.",
+        "copy": "Copiar llave",
+        "copied": "Copiada",
+        "close": "Listo"
+      }
+    },
+    "revoke": {
+      "title": "Revocar terminal",
+      "description": "Revocar {name}? Los tokens activos del dispositivo se invalidaran.",
+      "cancel": "Cancelar",
+      "confirm": "Revocar"
+    },
+    "detail": {
+      "subtitle": "Metadatos y estado de seguridad de la terminal.",
+      "back": "Volver a terminales",
+      "regenerate": "Regenerar llave de activacion",
+      "regenerating": "Regenerando...",
+      "revoke": "Revocar terminal",
+      "revokeDisabled": "Terminal revocada",
+      "notRevoked": "No revocada",
+      "fields": {
+        "branch": "Sucursal",
+        "lastRotation": "Ultima rotacion",
+        "createdAt": "Creada",
+        "revokedAt": "Revocada"
+      }
+    },
+    "toasts": {
+      "created": "Terminal creada",
+      "createError": "No se pudo crear la terminal",
+      "regenerateOk": "Llave de activacion regenerada",
+      "regenerateError": "No se pudo regenerar la llave",
+      "revokeOk": "Terminal revocada",
+      "revokeError": "No se pudo revocar la terminal"
+    },
+    "errors": {
+      "generic": "Ocurrio un error. Intenta de nuevo.",
+      "nameRequired": "El nombre de terminal es obligatorio.",
+      "branchRequired": "Selecciona una sucursal.",
+      "unauthorized": "Tu sesion expiro. Inicia sesion de nuevo.",
+      "notFound": "Terminal no encontrada.",
+      "revoked": "La terminal ya esta revocada.",
+      "rateLimited": "Demasiadas solicitudes. Intenta en un momento."
     }
   },
   "adminInventory": {
     "title": "Inventario",
-    "subtitle": "Ajusta cantidades y controla existencias.",
+    "subtitle": "Controla existencias por sucursal y tienda digital.",
     "search": "Buscar inventario",
     "columns": {
       "product": "Producto",
+      "sku": "SKU",
       "available": "Disponible",
-      "adjust": "Ajuste"
+      "reserved": "Reservado",
+      "total": "Total",
+      "state": "Estado",
+      "adjust": "Ajuste",
+      "action": "Accion"
     },
     "labels": {
-      "uncategorized": "Sin categoria"
+      "uncategorized": "Sin categoria",
+      "noGame": "Sin juego",
+      "digitalScope": "Tienda digital"
     },
     "pagination": {
       "prev": "Anterior",
@@ -436,10 +554,94 @@
       "available": "Disponible"
     },
     "actions": {
-      "delta": "Delta",
       "reason": "Motivo",
-      "apply": "Aplicar"
-    }
+      "apply": "Aplicar",
+      "view": "Ver",
+      "exportCsv": "Exportar CSV",
+      "bulkAdjust": "Ajuste masivo"
+    },
+    "status": {
+      "available": "Disponible",
+      "lowStock": "Stock bajo",
+      "soldOut": "Agotado"
+    },
+    "filters": {
+      "scope": "Alcance",
+      "onlineStore": "Tienda en linea",
+      "branch": "Sucursal",
+      "branchLabel": "Sucursal destino",
+      "game": "Juego",
+      "allGames": "Todos los juegos",
+      "category": "Categoria",
+      "allCategories": "Todas las categorias",
+      "expansion": "Expansion",
+      "allExpansions": "Todas las expansiones",
+      "stockState": "Estado de stock",
+      "allStockStates": "Todos los estados",
+      "search": "Busqueda",
+      "searchPlaceholder": "Busca por nombre, SKU o categoria",
+      "apply": "Aplicar",
+      "reset": "Restablecer"
+    },
+    "branches": {
+      "digitalStore": "Tienda digital"
+    },
+    "toast": {
+      "adjustSuccess": "Inventario actualizado",
+      "adjustError": "No se pudo actualizar inventario"
+    },
+    "confirm": {
+      "title": "Confirmar ajuste de inventario",
+      "description": "Se aplicaran {count} ajustes validos. Esta accion no se puede deshacer.",
+      "continue": "Confirmar y aplicar",
+      "cancel": "Cancelar",
+      "invalid": "Corrige filas incompletas: solo se permite ajuste con delta y motivo."
+    },
+    "detail": {
+      "title": "Detalle de inventario",
+      "globalStock": "Existencia global",
+      "lowStockThreshold": "Umbral de stock bajo",
+      "tabs": {
+        "branches": "Stock por sucursal",
+        "movements": "Movimientos",
+        "settings": "Configuracion"
+      },
+      "stockTable": {
+        "branch": "Sucursal"
+      },
+      "movementFilters": {
+        "branch": "Sucursal",
+        "allBranches": "Todas",
+        "type": "Tipo",
+        "allTypes": "Todos",
+        "from": "Desde",
+        "to": "Hasta"
+      },
+      "movementTable": {
+        "date": "Fecha",
+        "branch": "Sucursal",
+        "user": "Usuario",
+        "role": "Rol",
+        "type": "Tipo",
+        "delta": "Cambio",
+        "before": "Antes",
+        "after": "Despues",
+        "reason": "Motivo",
+        "empty": "No hay movimientos para estos filtros."
+      },
+      "movementType": {
+        "manual": "Manual",
+        "order": "Orden",
+        "transfer": "Transferencia",
+        "correction": "Correccion"
+      },
+      "settings": {
+        "title": "Configuracion de stock",
+        "lastUpdate": "Ultima sincronizacion",
+        "notice": "La configuracion avanzada se mantiene en cloud-api y se sincroniza al POS."
+      }
+    },
+    "empty": "No hay productos para este alcance."
   },
   "adminProducts": {
     "title": "Productos",
@@ -607,29 +809,60 @@
   "adminBranches": {
     "title": "Sucursales",
     "subtitle": "Administra sucursales disponibles para retiro en tienda.",
+    "search": "Buscar sucursal",
+    "searchPlaceholder": "Buscar por nombre, ciudad o direccion",
+    "empty": "No hay sucursales para mostrar.",
     "fields": {
       "name": "Nombre de sucursal",
       "address": "Direccion",
       "city": "Ciudad",
-      "latitude": "Latitud",
-      "longitude": "Longitud",
-      "imageUrl": "URL de imagen"
+      "imageUrl": "Imagen de portada",
+      "googleMapsUrl": "Link de Google Maps"
     },
     "actions": {
       "create": "Crear sucursal",
+      "edit": "Editar",
       "save": "Guardar",
-      "delete": "Eliminar"
+      "delete": "Eliminar",
+      "cancel": "Cancelar",
+      "prev": "Anterior",
+      "next": "Siguiente"
     },
     "columns": {
       "name": "Nombre",
       "city": "Ciudad",
       "address": "Direccion",
       "coords": "Coordenadas",
+      "updatedAt": "Actualizado",
       "action": "Accion"
+    },
+    "modal": {
+      "createTitle": "Crear sucursal",
+      "createDescription": "Completa la informacion de la sucursal y confirma para guardar.",
+      "editTitle": "Editar sucursal",
+      "editDescription": "Actualiza la informacion y confirma los cambios."
+    },
+    "confirm": {
+      "title": "Confirmar cambios",
+      "createDescription": "Se creara la sucursal con los datos capturados. Esta accion impacta checkout y POS.",
+      "updateDescription": "Se guardaran los cambios de la sucursal seleccionada.",
+      "deleteTitle": "Eliminar sucursal",
+      "deleteDescription": "Se eliminara la sucursal {name}. Esta accion no se puede deshacer.",
+      "continue": "Confirmar",
+      "cancel": "Cancelar"
     },
     "errors": {
       "createFailed": "No se pudo crear la sucursal.",
-      "details": "Detalle: {detail}"
+      "updateFailed": "No se pudo actualizar la sucursal.",
+      "deleteFailed": "No se pudo eliminar la sucursal.",
+      "details": "Detalle: {detail}",
+      "required": "Nombre, ciudad y direccion son obligatorios.",
+      "invalidMapUrl": "El link de Google Maps no es valido."
+    },
+    "toast": {
+      "createSuccess": "Sucursal creada.",
+      "updateSuccess": "Sucursal actualizada.",
+      "deleteSuccess": "Sucursal eliminada."
     },
     "media": {
       "openLibrary": "Abrir biblioteca de medios",
@@ -686,7 +919,9 @@
     "branches": {
       "title": "Sucursal de retiro",
       "select": "Selecciona una sucursal",
-      "empty": "No hay sucursales disponibles por ahora."
+      "empty": "No hay sucursales disponibles por ahora.",
+      "openMap": "Abrir ubicacion",
+      "noMapLink": "Sin link de ubicacion"
     },
     "payment": {
       "title": "Metodo de pago",
@@ -965,7 +1200,7 @@
         "address": "Interior Plaza Ley, El Vigia, 85440 Guaymas, Son."
       }
     },
-    "copyright": "\u00a9 {year} DanimeZone. Todos los derechos reservados."
+    "copyright": "© {year} DanimeZone. Todos los derechos reservados."
   },
   "legal": {
     "back": "Volver al inicio",
@@ -983,23 +1218,23 @@
       },
       "questions": [
         {
-          "q": "\u00bfPuedo pagar en sucursal?",
+          "q": "¿Puedo pagar en sucursal?",
           "a": "Si. Selecciona pago en sucursal en checkout y liquida al recoger."
         },
         {
-          "q": "\u00bfCuanto tiempo tengo para recoger?",
+          "q": "¿Cuanto tiempo tengo para recoger?",
           "a": "Reservamos tu pedido por 10 dias. Si necesitas mas tiempo, contacta soporte."
         },
         {
-          "q": "\u00bfHacen envios nacionales?",
+          "q": "¿Hacen envios nacionales?",
           "a": "Si. Enviamos a todo Mexico con seguimiento una vez confirmado el pedido."
         },
         {
-          "q": "\u00bfLos productos son originales?",
+          "q": "¿Los productos son originales?",
           "a": "Todos los productos son oficiales y de distribuidores autorizados."
         },
         {
-          "q": "\u00bfCual es la politica de devoluciones?",
+          "q": "¿Cual es la politica de devoluciones?",
           "a": "Devoluciones en sellados sin abrir dentro de 10 dias. Singles y abiertos son venta final."
         }
       ]
@@ -1238,6 +1473,21 @@
     },
     "toc": {
       "title": "Tabla de contenido"
+    }
+  },
+  "adminProofs": {
+    "title": "Archivos de comprobante",
+    "subtitle": "Subidas globales de comprobantes desde terminales POS.",
+    "empty": "No se encontraron comprobantes.",
+    "table": {
+      "createdAt": "Creado",
+      "branch": "Sucursal",
+      "terminal": "Terminal",
+      "sale": "Venta",
+      "mime": "Tipo",
+      "size": "Tamano",
+      "url": "URL",
+      "open": "Abrir"
     }
   }
 }

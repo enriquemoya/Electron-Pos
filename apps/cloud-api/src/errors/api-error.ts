@@ -11,6 +11,12 @@ export class ApiError extends Error {
 
 export const ApiErrors = {
   unauthorized: new ApiError(401, "UNAUTHORIZED", "unauthorized"),
+  authInvalidCredentials: new ApiError(401, "AUTH_INVALID_CREDENTIALS", "auth invalid credentials"),
+  authForbidden: new ApiError(403, "AUTH_FORBIDDEN", "auth forbidden"),
+  authSessionExpired: new ApiError(401, "AUTH_SESSION_EXPIRED", "auth session expired"),
+  rbacForbidden: new ApiError(403, "RBAC_FORBIDDEN", "rbac forbidden"),
+  rbacRoleRequired: new ApiError(403, "RBAC_ROLE_REQUIRED", "rbac role required"),
+  branchForbidden: new ApiError(403, "BRANCH_FORBIDDEN", "branch forbidden"),
   serverError: new ApiError(500, "SERVER_ERROR", "server error"),
   invalidRequest: new ApiError(400, "INVALID_REQUEST", "invalid request"),
   catalogFiltersInvalid: new ApiError(400, "CATALOG_FILTERS_INVALID", "catalog filters invalid"),
@@ -34,6 +40,29 @@ export const ApiErrors = {
   addressInvalid: new ApiError(400, "ADDRESS_INVALID", "address invalid"),
   inventoryNotFound: new ApiError(404, "INVENTORY_NOT_FOUND", "inventory item not found"),
   inventoryInvalid: new ApiError(400, "INVENTORY_INVALID", "inventory adjustment invalid"),
+  inventoryScopeInvalid: new ApiError(400, "INVENTORY_SCOPE_INVALID", "inventory scope invalid"),
+  inventoryBranchRequired: new ApiError(400, "INVENTORY_BRANCH_REQUIRED", "inventory branch required"),
+  inventoryForbidden: new ApiError(403, "INVENTORY_FORBIDDEN", "inventory forbidden"),
+  inventoryNegativeNotAllowed: new ApiError(
+    400,
+    "INVENTORY_NEGATIVE_NOT_ALLOWED",
+    "inventory negative not allowed"
+  ),
+  inventoryMovementDuplicate: new ApiError(
+    200,
+    "INVENTORY_MOVEMENT_DUPLICATE",
+    "inventory movement duplicate"
+  ),
+  inventoryStockWriteFailed: new ApiError(
+    500,
+    "INVENTORY_STOCK_WRITE_FAILED",
+    "inventory stock write failed"
+  ),
+  inventoryStockReadFailed: new ApiError(
+    500,
+    "INVENTORY_STOCK_READ_FAILED",
+    "inventory stock read failed"
+  ),
   taxonomyNotFound: new ApiError(404, "TAXONOMY_NOT_FOUND", "taxonomy not found"),
   taxonomyInvalid: new ApiError(400, "TAXONOMY_INVALID", "taxonomy invalid"),
   productNotFound: new ApiError(404, "PRODUCT_NOT_FOUND", "product not found"),
@@ -76,12 +105,51 @@ export const ApiErrors = {
   blogMediaInvalidHost: new ApiError(400, "BLOG_MEDIA_INVALID_HOST", "blog media invalid host"),
   blogMediaNotAllowed: new ApiError(400, "BLOG_MEDIA_NOT_ALLOWED", "blog media not allowed"),
   blogInternalError: new ApiError(500, "BLOG_INTERNAL_ERROR", "blog internal error"),
+  terminalAlreadyActivated: new ApiError(400, "TERMINAL_ALREADY_ACTIVATED", "terminal already activated"),
+  terminalFingerprintMismatch: new ApiError(
+    403,
+    "TERMINAL_FINGERPRINT_MISMATCH",
+    "terminal fingerprint mismatch"
+  ),
+  terminalInvalidToken: new ApiError(401, "TERMINAL_INVALID_TOKEN", "terminal invalid token"),
+  terminalRevoked: new ApiError(403, "TERMINAL_REVOKED", "terminal revoked"),
+  terminalRotationFailed: new ApiError(500, "TERMINAL_ROTATION_FAILED", "terminal rotation failed"),
+  terminalInvalidGraceToken: new ApiError(
+    401,
+    "TERMINAL_INVALID_GRACE_TOKEN",
+    "terminal invalid grace token"
+  ),
+  terminalTokenExpired: new ApiError(401, "TERMINAL_TOKEN_EXPIRED", "terminal token expired"),
+  terminalRateLimited: new ApiError(429, "POS_RATE_LIMITED", "terminal rate limited"),
+  terminalNotFound: new ApiError(404, "POS_TERMINAL_NOT_FOUND", "terminal not found"),
+  terminalAlreadyRevoked: new ApiError(400, "POS_TERMINAL_ALREADY_REVOKED", "terminal already revoked"),
+  invalidActivationKey: new ApiError(401, "POS_INVALID_ACTIVATION_KEY", "invalid activation key"),
+  posSyncUnauthorized: new ApiError(401, "POS_SYNC_UNAUTHORIZED", "pos sync unauthorized"),
+  posSyncRateLimited: new ApiError(429, "POS_SYNC_RATE_LIMITED", "pos sync rate limited"),
+  posCatalogSnapshotFailed: new ApiError(500, "POS_CATALOG_SNAPSHOT_FAILED", "pos catalog snapshot failed"),
+  posCatalogDeltaFailed: new ApiError(500, "POS_CATALOG_DELTA_FAILED", "pos catalog delta failed"),
+  posCatalogReconcileFailed: new ApiError(500, "POS_CATALOG_RECONCILE_FAILED", "pos catalog reconcile failed"),
+  posCatalogManifestTooLarge: new ApiError(
+    413,
+    "POS_CATALOG_MANIFEST_TOO_LARGE",
+    "pos catalog manifest too large"
+  ),
+  posSyncEventInvalid: new ApiError(400, "POS_SYNC_EVENT_INVALID", "pos sync event invalid"),
+  posSyncEventDuplicate: new ApiError(200, "POS_SYNC_EVENT_DUPLICATE", "pos sync event duplicate"),
+  posSyncStorageFailed: new ApiError(500, "POS_SYNC_STORAGE_FAILED", "pos sync storage failed"),
+  proofInvalidType: new ApiError(400, "PROOF_INVALID_TYPE", "proof invalid type"),
+  proofTooLarge: new ApiError(413, "PROOF_TOO_LARGE", "proof too large"),
+  proofUploadFailed: new ApiError(500, "PROOF_UPLOAD_FAILED", "proof upload failed"),
+  proofNotAuthorized: new ApiError(403, "PROOF_NOT_AUTHORIZED", "proof not authorized"),
+  proofNotFound: new ApiError(404, "PROOF_NOT_FOUND", "proof not found"),
+  proofRateLimited: new ApiError(429, "PROOF_RATE_LIMITED", "proof rate limited"),
   orderTransferApprovalRequired: new ApiError(
     400,
     "ORDER_TRANSFER_APPROVAL_REQUIRED",
     "transfer approval message required"
   ),
   orderForbidden: new ApiError(403, "ORDER_FORBIDDEN", "order forbidden"),
+  branchInvalidMapUrl: new ApiError(400, "BRANCH_INVALID_MAP_URL", "branch invalid map url"),
   branchNotFound: new ApiError(404, "BRANCH_NOT_FOUND", "branch not found")
 };
 

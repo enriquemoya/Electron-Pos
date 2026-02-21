@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["endpoint","list","pagination","aggregation","query"]
 outputs: ["performance risks","query issues","audit notes"]
+recommended_skills: [backend-patterns, prisma-expert]
 ---
 
 ## Capabilities

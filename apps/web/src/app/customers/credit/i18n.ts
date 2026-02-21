@@ -1,4 +1,4 @@
-﻿export const esMX = {
+export const esMX = {
   title: "Crédito de tienda",
   subtitle: "Consulta y ajusta el saldo del cliente.",
   backAction: "← Volver",

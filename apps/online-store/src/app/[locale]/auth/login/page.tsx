@@ -83,6 +83,8 @@ async function passwordLogin(prev: { ok: boolean; error?: string }, formData: Fo
       const payload = jwt.verify(data.accessToken, secret) as { role?: string };
       if (payload.role === "ADMIN") {
         redirectPath = `/${locale}/admin/home`;
+      } else if (payload.role === "EMPLOYEE") {
+        redirectPath = `/${locale}/admin/orders`;
       }
     } catch {
       // ignore and fall back to default redirect

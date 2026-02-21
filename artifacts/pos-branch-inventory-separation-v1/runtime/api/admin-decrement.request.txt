@@ -1,0 +1,4 @@
+POST http://danimezone-api:4000/pos/inventory/admin-movements
+Authorization: Bearer <redacted>
+
+Body: {"productId":"<missing>","delta":-1,"reason":"admin-test","idempotencyKey":"admin-neg-001"}

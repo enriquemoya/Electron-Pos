@@ -15,8 +15,6 @@ function errorMessage(code: ImportError["code"]) {
       return t("errorMissingName");
     case "MISSING_CATEGORY":
       return t("errorMissingCategory");
-    case "INVALID_CATEGORY":
-      return t("errorInvalidCategory");
     case "INVALID_PRICE":
       return t("errorInvalidPrice");
     case "INVALID_STOCK_TRACKED":

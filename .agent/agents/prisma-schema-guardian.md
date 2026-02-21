@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["prisma schema change","model update","relation change","schema"]
 outputs: ["schema risks","compatibility issues","audit notes"]
+recommended_skills: [prisma-expert]
 ---
 
 ## Capabilities

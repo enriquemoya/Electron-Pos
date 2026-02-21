@@ -7,7 +7,6 @@ const {
   deriveProofStatus,
   requiresProof
 } = require("@pos/core");
-const { uploadProofFile } = require("../integrations/google-drive/drive-sync.ts");
 
 function buildEntryProduct(tournament, expansionName) {
   return {
@@ -41,7 +40,7 @@ function registerTournamentIpc(
     expansionRepo,
     storeCreditRepo,
     db,
-    getDriveConfig
+    uploadProof
   }
 ) {
   const resolveExpansion = (expansionId, gameTypeId) => {
@@ -277,16 +276,16 @@ function registerTournamentIpc(
 
     if (requiresProof(payload.payment.method) && payload.payment.proofFile) {
       try {
-        const result = await uploadProofFile({
-          config: getDriveConfig(),
-          data: payload.payment.proofFile.fileBuffer,
+        const result = await uploadProof({
+          fileBuffer: payload.payment.proofFile.fileBuffer,
           fileName: payload.payment.proofFile.fileName,
           mimeType: payload.payment.proofFile.mimeType,
           ticketNumber: sale.id,
           method: payload.payment.method,
-          dateIso: sale.createdAt
+          dateIso: sale.createdAt,
+          saleId: sale.id
         });
-        sale.proofFileRef = result.fileId;
+        sale.proofFileRef = result.proofFileRef;
         sale.proofStatus = deriveProofStatus(payload.payment.method, true);
       } catch {
         sale.proofStatus = deriveProofStatus(payload.payment.method, false);

@@ -12,9 +12,11 @@ export type UserPayload = {
   birthDate?: unknown;
   role?: unknown;
   status?: unknown;
+  branchId?: unknown;
+  pin?: unknown;
 };
 
-type UserRole = "CUSTOMER" | "ADMIN";
+type UserRole = "CUSTOMER" | "ADMIN" | "EMPLOYEE";
 type UserStatus = "ACTIVE" | "DISABLED";
 
 export type AddressPayload = {
@@ -35,6 +37,20 @@ function toNullableString(value: unknown) {
   }
   const stringValue = String(value).trim();
   return stringValue.length ? stringValue : null;
+}
+
+function parsePin(value: unknown) {
+  if (value === undefined) {
+    return undefined;
+  }
+  const pin = toNullableString(value);
+  if (pin === null) {
+    return null;
+  }
+  if (!/^\d{6}$/.test(pin)) {
+    throw ApiErrors.invalidRequest;
+  }
+  return pin;
 }
 
 function parseBirthDate(value: unknown) {
@@ -68,7 +84,7 @@ export function validateUserCreate(payload: UserPayload) {
   }
 
   const role = toNullableString(payload.role);
-  if (role && role !== "CUSTOMER" && role !== "ADMIN") {
+  if (role && role !== "CUSTOMER" && role !== "ADMIN" && role !== "EMPLOYEE") {
     throw ApiErrors.roleInvalid;
   }
 
@@ -86,7 +102,10 @@ export function validateUserCreate(payload: UserPayload) {
     phone,
     firstName: toNullableString(payload.firstName),
     lastName: toNullableString(payload.lastName),
+    displayName: toNullableString((payload as { displayName?: unknown }).displayName),
     birthDate,
+    branchId: toNullableString(payload.branchId),
+    pin: parsePin(payload.pin),
     role: parsedRole ?? undefined,
     status: parsedStatus ?? undefined
   };
@@ -105,7 +124,7 @@ export function validateUserUpdate(payload: UserPayload) {
   }
 
   const role = toNullableString(payload.role);
-  if (role && role !== "CUSTOMER" && role !== "ADMIN") {
+  if (role && role !== "CUSTOMER" && role !== "ADMIN" && role !== "EMPLOYEE") {
     throw ApiErrors.roleInvalid;
   }
 
@@ -123,7 +142,13 @@ export function validateUserUpdate(payload: UserPayload) {
     phone: payload.phone === undefined ? undefined : phone,
     firstName: payload.firstName === undefined ? undefined : toNullableString(payload.firstName),
     lastName: payload.lastName === undefined ? undefined : toNullableString(payload.lastName),
+    displayName:
+      (payload as { displayName?: unknown }).displayName === undefined
+        ? undefined
+        : toNullableString((payload as { displayName?: unknown }).displayName),
     birthDate,
+    branchId: payload.branchId === undefined ? undefined : toNullableString(payload.branchId),
+    pin: parsePin(payload.pin),
     role: parsedRole ?? undefined,
     status: parsedStatus ?? undefined
   };

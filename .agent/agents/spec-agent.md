@@ -10,6 +10,7 @@ allowed_write_paths: [".specs/**",".agent/**"]
 forbidden_write_paths: ["apps/**","packages/**",".memory-bank/**",".codex/**"]
 triggers: ["spec","requirements","design","tasks","create spec","update spec"]
 outputs: ["files changed","next command","notes"]
+recommended_skills: [clean-code]
 ---
 
 Scope

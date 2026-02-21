@@ -26,6 +26,7 @@ forbidden_paths:
   - packages/**
 tools:
   - mcp: shadcn
+recommended_skills: [frontend-design, ui-ux-pro-max]
 ---
 
 # shadcn-ui-expert

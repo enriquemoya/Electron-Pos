@@ -127,8 +127,10 @@ async function renderPdf(html, filepath) {
   win.close();
 }
 
-function registerDailyReportsIpc(ipcMain, saleRepo, shiftRepo, storeCreditRepo) {
+function registerDailyReportsIpc(ipcMain, saleRepo, shiftRepo, storeCreditRepo, options = {}) {
+  const authorize = typeof options.authorize === "function" ? options.authorize : null;
   ipcMain.handle("daily-reports:summary", (_event, date) => {
+    authorize?.("reports:view");
     const range = localDayRange(date);
     const salesSummary = saleRepo.getSummaryByDate(range.from, range.to);
     const creditSummary = storeCreditRepo.getSummaryByDate(range.from, range.to);
@@ -143,16 +145,19 @@ function registerDailyReportsIpc(ipcMain, saleRepo, shiftRepo, storeCreditRepo) 
   });
 
   ipcMain.handle("daily-reports:sales", (_event, date) => {
+    authorize?.("reports:view");
     const range = localDayRange(date);
     return saleRepo.listFiltered({ from: range.from, to: range.to });
   });
 
   ipcMain.handle("daily-reports:shifts", (_event, date) => {
+    authorize?.("reports:view");
     const range = localDayRange(date);
     return shiftRepo.listByDate(range.from, range.to);
   });
 
   ipcMain.handle("daily-reports:generatePdf", async (_event, date) => {
+    authorize?.("reports:view");
     const range = localDayRange(date);
     const salesSummary = saleRepo.getSummaryByDate(range.from, range.to);
     const creditSummary = storeCreditRepo.getSummaryByDate(range.from, range.to);
@@ -179,4 +184,3 @@ function registerDailyReportsIpc(ipcMain, saleRepo, shiftRepo, storeCreditRepo) 
 }
 
 module.exports = { registerDailyReportsIpc };
-

@@ -19,6 +19,8 @@ import { createUsersUseCases } from "./application/use-cases/users";
 import { createBranchUseCases } from "./application/use-cases/branches";
 import { createMediaUseCases } from "./application/use-cases/media";
 import { createBlogUseCases } from "./application/use-cases/blog";
+import { createTerminalUseCases } from "./application/use-cases/terminals";
+import { createPosAuthUseCases } from "./application/use-cases/pos-auth";
 import { env, envChecks } from "./config/env";
 import * as adminDashboardRepository from "./infrastructure/repositories/admin-dashboard-service";
 import * as authRepository from "./infrastructure/repositories/auth-service";
@@ -35,6 +37,7 @@ import { createR2MediaService } from "./infrastructure/storage/r2-media.service"
 import { startOrderExpirationJob } from "./infrastructure/jobs/order-expiration-job";
 import * as blogRepository from "./infrastructure/repositories/blog-service";
 import { createMediaRepository } from "./infrastructure/repositories/media-service";
+import * as terminalRepository from "./infrastructure/repositories/terminal-service";
 
 export function createApp() {
   const app = express();
@@ -76,6 +79,8 @@ export function createApp() {
   const mediaRepository = createMediaRepository({ mediaStorage });
   const mediaUseCases = createMediaUseCases({ mediaRepository });
   const blogUseCases = createBlogUseCases({ blogRepository, mediaStorage });
+  const terminalUseCases = createTerminalUseCases({ terminalRepository });
+  const posAuthUseCases = createPosAuthUseCases({ authRepository });
 
   app.use(createPublicRoutes({ catalogUseCases, authUseCases, branchUseCases, blogUseCases }));
   app.use(requireSecret);
@@ -92,7 +97,9 @@ export function createApp() {
       profileUseCases,
       usersUseCases,
       mediaUseCases,
-      blogUseCases
+      blogUseCases,
+      terminalUseCases,
+      posAuthUseCases
     })
   );
 

@@ -1,44 +1,25 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 
-import { requireAdmin } from "@/lib/admin-guard";
-import {
-  fetchAdminBranches,
-  createAdminBranch,
-  updateAdminBranch,
-  deleteAdminBranch
-} from "@/lib/admin-api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { BranchCreateForm } from "@/components/admin/branch-create-form";
-import { MediaSelector } from "@/components/admin/media/media-selector";
 import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
+import { AdminBranchesScreen } from "@/components/admin/admin-branches-screen";
+import { requireAdmin } from "@/lib/admin-guard";
+import { createAdminBranch, deleteAdminBranch, fetchAdminBranches, updateAdminBranch } from "@/lib/admin-api";
 
-function parseCoordinate(value: FormDataEntryValue | null) {
-  if (typeof value !== "string") {
-    return Number.NaN;
-  }
-  const normalized = value.trim().replace(",", ".");
-  return Number(normalized);
-}
+type ActionResult = { ok: boolean; error?: string };
 
-type CreateBranchState = { error?: string | null };
-
-async function createBranchAction(
-  _prevState: CreateBranchState,
-  formData: FormData
-): Promise<CreateBranchState> {
+async function createBranchAction(formData: FormData): Promise<ActionResult> {
   "use server";
+
   const locale = String(formData.get("locale") ?? "es");
   const name = String(formData.get("name") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
-  const latitude = parseCoordinate(formData.get("latitude"));
-  const longitude = parseCoordinate(formData.get("longitude"));
+  const googleMapsUrl = String(formData.get("googleMapsUrl") ?? "").trim();
   const imageUrl = String(formData.get("imageUrl") ?? "").trim();
 
-  if (!name || !address || !city || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    return { error: "invalid input" };
+  if (!name || !address || !city) {
+    return { ok: false, error: "invalid input" };
   }
 
   try {
@@ -46,53 +27,68 @@ async function createBranchAction(
       name,
       address,
       city,
-      latitude,
-      longitude,
+      googleMapsUrl: googleMapsUrl || null,
       imageUrl: imageUrl || undefined
     });
     revalidatePath(`/${locale}/admin/branches`);
-    return { error: null };
+    return { ok: true };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "branch create failed" };
+    return { ok: false, error: error instanceof Error ? error.message : "branch create failed" };
   }
 }
 
-async function updateBranchAction(formData: FormData) {
+async function updateBranchAction(formData: FormData): Promise<ActionResult> {
   "use server";
-  const id = String(formData.get("id") ?? "");
+
+  const id = String(formData.get("id") ?? "").trim();
   const locale = String(formData.get("locale") ?? "es");
+
   if (!id) {
-    return;
+    return { ok: false, error: "branch id required" };
   }
 
   const name = String(formData.get("name") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
-  const latitude = parseCoordinate(formData.get("latitude"));
-  const longitude = parseCoordinate(formData.get("longitude"));
+  const googleMapsUrl = String(formData.get("googleMapsUrl") ?? "").trim();
   const imageUrl = String(formData.get("imageUrl") ?? "").trim();
 
-  await updateAdminBranch(id, {
-    name: name || undefined,
-    address: address || undefined,
-    city: city || undefined,
-    latitude: Number.isFinite(latitude) ? latitude : undefined,
-    longitude: Number.isFinite(longitude) ? longitude : undefined,
-    imageUrl: imageUrl || undefined
-  });
+  if (!name || !address || !city) {
+    return { ok: false, error: "invalid input" };
+  }
 
-  revalidatePath(`/${locale}/admin/branches`);
+  try {
+    await updateAdminBranch(id, {
+      name,
+      address,
+      city,
+      googleMapsUrl: googleMapsUrl || null,
+      imageUrl: imageUrl || undefined
+    });
+    revalidatePath(`/${locale}/admin/branches`);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "branch update failed" };
+  }
 }
 
-async function deleteBranchAction(formData: FormData) {
+async function deleteBranchAction(formData: FormData): Promise<ActionResult> {
   "use server";
-  const id = String(formData.get("id") ?? "");
+
+  const id = String(formData.get("id") ?? "").trim();
   const locale = String(formData.get("locale") ?? "es");
+
   if (!id) {
-    return;
+    return { ok: false, error: "branch id required" };
   }
-  await deleteAdminBranch(id);
-  revalidatePath(`/${locale}/admin/branches`);
+
+  try {
+    await deleteAdminBranch(id);
+    revalidatePath(`/${locale}/admin/branches`);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "branch delete failed" };
+  }
 }
 
 export default async function BranchesPage({ params }: { params: { locale: string } }) {
@@ -102,7 +98,9 @@ export default async function BranchesPage({ params }: { params: { locale: strin
   const t = await getTranslations({ locale: params.locale, namespace: "adminBranches" });
   const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
   const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
+
   const branches = await fetchAdminBranches();
+
   const mediaLabels = {
     openLibrary: t("media.openLibrary"),
     selectedLabel: t("media.selectedLabel"),
@@ -146,96 +144,80 @@ export default async function BranchesPage({ params }: { params: { locale: strin
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <AdminBreadcrumb
-          locale={params.locale}
-          homeLabel={tSeo("home")}
-          adminLabel={tAdmin("title")}
-          items={[{ label: t("title") }]}
-          className="text-white/70"
-        />
-        <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
-        <p className="text-sm text-white/60">{t("subtitle")}</p>
-      </div>
-
-      <BranchCreateForm
+      <AdminBreadcrumb
         locale={params.locale}
-        action={createBranchAction}
-        labels={{
-          name: t("fields.name"),
-          city: t("fields.city"),
-          address: t("fields.address"),
-          imageUrl: t("fields.imageUrl"),
-          media: mediaLabels,
-          latitude: t("fields.latitude"),
-          longitude: t("fields.longitude"),
-          submit: t("actions.create"),
-          error: t("errors.createFailed"),
-          errorDetails: t("errors.details", { detail: "{detail}" })
-        }}
+        homeLabel={tSeo("home")}
+        adminLabel={tAdmin("title")}
+        items={[{ label: t("title") }]}
+        className="text-white/70"
       />
 
-      <div className="overflow-hidden rounded-2xl border border-white/10">
-        <table className="w-full text-left text-sm text-white/70">
-          <thead className="bg-white/5 text-xs uppercase text-white/50">
-            <tr>
-              <th className="px-4 py-3">{t("columns.name")}</th>
-              <th className="px-4 py-3">{t("columns.city")}</th>
-              <th className="px-4 py-3">{t("columns.address")}</th>
-              <th className="px-4 py-3">{t("columns.coords")}</th>
-              <th className="px-4 py-3">{t("columns.action")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {branches.map((branch) => {
-              const formId = `branch-${branch.id}`;
-              return (
-                <tr key={branch.id} className="border-t border-white/10">
-                  <td className="px-4 py-3">
-                    <form action={updateBranchAction} id={formId} className="grid gap-2">
-                      <input type="hidden" name="id" value={branch.id} />
-                      <input type="hidden" name="locale" value={params.locale} />
-                      <Input name="name" defaultValue={branch.name} className="h-8" form={formId} />
-                      <MediaSelector
-                        name="imageUrl"
-                        folder="banners"
-                        defaultValue={branch.imageUrl}
-                        labels={mediaLabels}
-                      />
-                    </form>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Input name="city" defaultValue={branch.city} className="h-8" form={formId} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <Input name="address" defaultValue={branch.address} className="h-8" form={formId} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="grid gap-2">
-                      <Input name="latitude" type="number" step="0.000001" defaultValue={branch.latitude} className="h-8" form={formId} />
-                      <Input name="longitude" type="number" step="0.000001" defaultValue={branch.longitude} className="h-8" form={formId} />
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col gap-2">
-                      <Button type="submit" size="sm" form={formId}>
-                        {t("actions.save")}
-                      </Button>
-                      <form action={deleteBranchAction}>
-                        <input type="hidden" name="id" value={branch.id} />
-                        <input type="hidden" name="locale" value={params.locale} />
-                        <Button type="submit" size="sm" variant="outline">
-                          {t("actions.delete")}
-                        </Button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <AdminBranchesScreen
+        locale={params.locale}
+        branches={branches}
+        createBranch={createBranchAction}
+        updateBranch={updateBranchAction}
+        deleteBranch={deleteBranchAction}
+        labels={{
+          title: t("title"),
+          subtitle: t("subtitle"),
+          search: t("search"),
+          searchPlaceholder: t("searchPlaceholder"),
+          empty: t("empty"),
+          columns: {
+            name: t("columns.name"),
+            city: t("columns.city"),
+            address: t("columns.address"),
+            coords: t("columns.coords"),
+            updatedAt: t("columns.updatedAt"),
+            action: t("columns.action")
+          },
+          fields: {
+            name: t("fields.name"),
+            city: t("fields.city"),
+            address: t("fields.address"),
+            imageUrl: t("fields.imageUrl"),
+            googleMapsUrl: t("fields.googleMapsUrl")
+          },
+          actions: {
+            create: t("actions.create"),
+            edit: t("actions.edit"),
+            save: t("actions.save"),
+            delete: t("actions.delete"),
+            cancel: t("actions.cancel"),
+            prev: t("actions.prev"),
+            next: t("actions.next")
+          },
+          modal: {
+            createTitle: t("modal.createTitle"),
+            createDescription: t("modal.createDescription"),
+            editTitle: t("modal.editTitle"),
+            editDescription: t("modal.editDescription")
+          },
+          confirm: {
+            title: t("confirm.title"),
+            createDescription: t("confirm.createDescription"),
+            updateDescription: t("confirm.updateDescription"),
+            deleteTitle: t("confirm.deleteTitle"),
+            deleteDescription: t("confirm.deleteDescription", { name: "{name}" }),
+            continue: t("confirm.continue"),
+            cancel: t("confirm.cancel")
+          },
+          errors: {
+            details: t("errors.details", { detail: "{detail}" }),
+            required: t("errors.required")
+          },
+          toasts: {
+            createSuccess: t("toast.createSuccess"),
+            createError: t("errors.createFailed"),
+            updateSuccess: t("toast.updateSuccess"),
+            updateError: t("errors.updateFailed"),
+            deleteSuccess: t("toast.deleteSuccess"),
+            deleteError: t("errors.deleteFailed")
+          },
+          media: mediaLabels
+        }}
+      />
     </div>
   );
 }

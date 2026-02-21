@@ -4,6 +4,7 @@ export { createMoney, addMoney, multiplyMoney } from "./models/money";
 export type { TcgMetadata } from "./models/tcg";
 export type { GameType } from "./models/game-type";
 export type { Expansion } from "./models/expansion";
+export type { Category } from "./models/category";
 export type { Product, ProductCategory } from "./models/product";
 export type { ProductListItem, ProductStockStatus } from "./models/product-list";
 export type { InventoryItem, InventoryState } from "./models/inventory";
@@ -70,6 +71,7 @@ export type {
   CashRegisterIpc,
   CustomersIpc,
   StoreCreditIpc,
+  CategoriesIpc,
   GameTypesIpc,
   ExpansionsIpc
 } from "./ipc-types";

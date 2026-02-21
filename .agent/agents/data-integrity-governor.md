@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["data mutation","migration","sync logic","integrity","invariants"]
 outputs: ["integrity risks","authority violations","audit notes"]
+recommended_skills: [prisma-expert, backend-patterns]
 ---
 
 ## Capabilities

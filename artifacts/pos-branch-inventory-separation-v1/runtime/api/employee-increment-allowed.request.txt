@@ -1,0 +1,5 @@
+POST http://localhost:4000/pos/inventory/movements
+Authorization: Bearer <REDACTED_TERMINAL_TOKEN>
+x-cloud-secret: <REDACTED>
+Content-Type: application/json
+Body: {"productId":"9b577ceb-53b9-498f-a531-fbfe0ff851ea","delta":5,"reason":"test","idempotencyKey":"rbac-pos-final-001"}

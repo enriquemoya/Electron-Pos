@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["endpoint","controller","service","refactor","architecture"]
 outputs: ["architecture risks","layering issues","audit notes"]
+recommended_skills: [backend-patterns, fullstack-developer, clean-code]
 ---
 
 ## Capabilities

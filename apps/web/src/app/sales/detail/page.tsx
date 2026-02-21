@@ -8,26 +8,6 @@ import { t } from "../i18n";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-declare global {
-  interface Window {
-    api?: {
-      salesHistory: {
-        getSaleDetail: (saleId: string) => Promise<Sale | null>;
-        attachProofToSale: (payload: {
-          saleId: string;
-          fileBuffer: ArrayBuffer;
-          fileName: string;
-          mimeType: string;
-          method: PaymentMethod;
-        }) => Promise<{ proofFileRef: string; fileName: string }>;
-      };
-      customers: {
-        getCustomerDetail: (customerId: string) => Promise<Customer | null>;
-      };
-    };
-  }
-}
-
 function formatMoney(amount: number) {
   return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(amount / 100);
 }

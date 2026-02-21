@@ -5,16 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { t } from "../i18n";
 
-declare global {
-  interface Window {
-    api?: {
-      dataSafety?: {
-        restartApp: () => Promise<{ restarted: boolean }>;
-      };
-    };
-  }
-}
-
 export default function RenderErrorPage() {
   const router = useRouter();
 

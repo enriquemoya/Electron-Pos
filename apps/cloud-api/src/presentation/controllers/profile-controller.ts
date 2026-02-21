@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 
 import { ApiErrors, asApiError } from "../../errors/api-error";
 import type { ProfileUseCases } from "../../application/use-cases/profile";
-import { validatePasswordUpdate, validateProfileUpdate } from "../../validation/profile";
+import { validatePasswordUpdate, validatePinUpdate, validateProfileUpdate } from "../../validation/profile";
 
 type AuthRequest = Request & { auth?: { userId: string; role: string } };
 
@@ -68,6 +68,34 @@ export function createProfileController(useCases: ProfileUseCases) {
       try {
         const payload = validatePasswordUpdate(req.body ?? {});
         await useCases.updatePassword(auth.userId, payload.password);
+        res.status(200).json({ status: "ok" });
+      } catch (error) {
+        const prismaError = mapPrismaError(error);
+        if (prismaError) {
+          res.status(prismaError.status).json({ error: prismaError.message });
+          return;
+        }
+        const apiError = asApiError(error, ApiErrors.invalidRequest);
+        res.status(apiError.status).json({ error: apiError.message });
+      }
+    },
+    async updatePinHandler(req: Request, res: Response) {
+      const auth = (req as AuthRequest).auth;
+      if (!auth) {
+        res.status(ApiErrors.unauthorized.status).json({ error: ApiErrors.unauthorized.message });
+        return;
+      }
+      if (auth.role !== "ADMIN" && auth.role !== "EMPLOYEE") {
+        res.status(ApiErrors.rbacForbidden.status).json({
+          error: ApiErrors.rbacForbidden.message,
+          code: ApiErrors.rbacForbidden.code
+        });
+        return;
+      }
+
+      try {
+        const payload = validatePinUpdate(req.body ?? {});
+        await useCases.updatePin(auth.userId, payload.pin);
         res.status(200).json({ status: "ok" });
       } catch (error) {
         const prismaError = mapPrismaError(error);

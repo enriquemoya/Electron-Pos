@@ -1,0 +1,6 @@
+POST http://localhost:4000/pos/inventory/admin-movements
+Authorization: Bearer <REDACTED_TERMINAL_TOKEN>
+x-pos-user-auth: Bearer <REDACTED_POS_ADMIN_TOKEN>
+x-cloud-secret: <REDACTED>
+Content-Type: application/json
+Body: {"productId":"9b577ceb-53b9-498f-a531-fbfe0ff851ea","delta":-5,"reason":"admin-test","idempotencyKey":"admin-neg-final-001"}

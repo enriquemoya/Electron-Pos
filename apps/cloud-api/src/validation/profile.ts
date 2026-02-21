@@ -108,3 +108,18 @@ export function validatePasswordUpdate(payload: unknown) {
 
   return { password };
 }
+
+export function validatePinUpdate(payload: unknown) {
+  const pin = String((payload as { pin?: unknown })?.pin ?? "").trim();
+  const confirmPin = String((payload as { confirmPin?: unknown })?.confirmPin ?? "").trim();
+
+  if (!/^\d{6}$/.test(pin) || !/^\d{6}$/.test(confirmPin)) {
+    throw ApiErrors.invalidRequest;
+  }
+
+  if (pin !== confirmPin) {
+    throw ApiErrors.invalidRequest;
+  }
+
+  return { pin };
+}

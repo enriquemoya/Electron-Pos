@@ -3,6 +3,7 @@ export const esMX = {
   subtitle: "Administra el catalogo y el inventario local.",
   filtersTitle: "Filtros",
   searchPlaceholder: "Buscar por nombre",
+  filterLabel: "Categoria",
   filterSearchLabel: "Buscar",
   filterAll: "Todas las categorias",
   filterCategoryLabel: "Categoria",
@@ -29,6 +30,7 @@ export const esMX = {
   tableGameType: "Juego",
   tablePrice: "Precio",
   tableStock: "Existencias",
+  tableAlerts: "Alertas",
   tableStatus: "Estado",
   tableActions: "Acciones",
   alertLowStock: "Stock bajo",
@@ -64,6 +66,7 @@ export const esMX = {
   expansionPlaceholder: "Selecciona una expansión",
   expansionEmpty: "Sin expansión",
   expansionInactive: "Inactiva",
+  uncategorizedLabel: "Sin categoria",
   saveAction: "Guardar",
   cancelAction: "Cancelar",
   yes: "Si",
@@ -82,11 +85,6 @@ export const esMX = {
   importNoFile: "Sin archivo seleccionado",
   exportFilename: "productos-inventario.xlsx",
   exportSheetName: "productos",
-  categoryTCGSealed: "Sellado TCG",
-  categoryTCGSingle: "Carta individual",
-  categoryAccessory: "Accesorio",
-  categoryCommodity: "Consumible",
-  categoryService: "Servicio",
   excelHeaderProductId: "product_id",
   excelHeaderName: "name",
   excelHeaderCategory: "category",
@@ -100,7 +98,6 @@ export const esMX = {
   excelHeaderImageUrl: "image_url",
   errorMissingName: "Falta el nombre del producto.",
   errorMissingCategory: "Falta la categoria del producto.",
-  errorInvalidCategory: "Categoria invalida.",
   errorInvalidPrice: "Precio invalido.",
   errorInvalidStockTracked: "Valor invalido en is_stock_tracked.",
   errorInvalidStock: "Stock invalido.",
@@ -121,7 +118,7 @@ export function t(key: DictionaryKey, params?: Record<string, string | number>):
   if (!params) {
     return template;
   }
-  return Object.entries(params).reduce((result, [token, value]) => {
+  return Object.entries(params).reduce<string>((result, [token, value]) => {
     return result.replace(new RegExp(`\\{${token}\\}`, "g"), String(value));
-  }, template);
+  }, String(template));
 }

@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 import { prisma } from "../db/prisma";
 
@@ -10,7 +11,7 @@ type ProfileUser = {
   lastName: string | null;
   birthDate: Date | null;
   emailLocale: "ES_MX" | "EN_US";
-  role: "CUSTOMER" | "ADMIN";
+  role: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
   status: "ACTIVE" | "DISABLED";
   emailVerifiedAt: Date | null;
   lastLoginAt: Date | null;
@@ -124,6 +125,22 @@ export async function updatePassword(userId: string, password: string) {
     data: {
       passwordHash: hash,
       passwordUpdatedAt: now
+    }
+  });
+}
+
+function hashPin(pin: string) {
+  return crypto.createHash("sha256").update(pin).digest("hex");
+}
+
+export async function updatePin(userId: string, pin: string) {
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      pinHash: hashPin(pin),
+      pinUpdatedAt: new Date(),
+      failedPinAttempts: 0,
+      pinLockedUntil: null
     }
   });
 }

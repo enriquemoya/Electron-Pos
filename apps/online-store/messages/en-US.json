@@ -219,6 +219,16 @@
         "success": "Password updated.",
         "errorInvalid": "Passwords must match.",
         "errorServer": "Unable to update password."
+      },
+      "pin": {
+        "title": "POS PIN",
+        "description": "Only for Admin and Employee users. PIN must be 6 digits.",
+        "pin": "PIN",
+        "confirm": "Confirm PIN",
+        "submit": "Save PIN",
+        "success": "PIN updated.",
+        "errorInvalid": "PIN must be 6 digits and both fields must match.",
+        "errorServer": "Unable to update PIN."
       }
     }
   },
@@ -381,7 +391,8 @@
     },
     "roles": {
       "CUSTOMER": "Customer",
-      "ADMIN": "Admin"
+      "ADMIN": "Admin",
+      "EMPLOYEE": "Employee"
     },
     "statuses": {
       "ACTIVE": "Active",
@@ -409,20 +420,127 @@
       "taxonomies": "Catalog taxonomies",
       "branches": "Pickup branches",
       "orders": "Order management",
-      "blog": "Blog editor"
+      "blog": "Blog editor",
+      "terminals": "POS terminals",
+      "proofs": "Proof files"
+    }
+  },
+  "adminTerminals": {
+    "title": "Terminal management",
+    "subtitle": "Create, review, and revoke POS terminals.",
+    "summary": "{count} terminals total. Page {page} of {pages}.",
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "table": {
+      "columns": {
+        "name": "Terminal",
+        "branch": "Branch",
+        "status": "Status",
+        "lastRotation": "Last rotation",
+        "createdAt": "Created at",
+        "actions": "Actions"
+      },
+      "empty": "No terminals found yet.",
+      "never": "Never",
+      "actions": {
+        "details": "View details",
+        "regenerate": "Regenerate key",
+        "regenerating": "Regenerating...",
+        "revoke": "Revoke terminal",
+        "revoking": "Revoking...",
+        "disabled": "Already revoked",
+        "menuLabel": "Open terminal actions"
+      }
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {pages}"
+    },
+    "create": {
+      "trigger": "Create terminal",
+      "title": "Create terminal",
+      "description": "Generate a new terminal for a branch and reveal its activation key once.",
+      "fields": {
+        "name": "Terminal name",
+        "namePlaceholder": "Counter A",
+        "branch": "Branch",
+        "branchPlaceholder": "Select a branch"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "submit": "Create terminal",
+        "creating": "Creating..."
+      },
+      "key": {
+        "title": "Activation key generated",
+        "description": "Store this key securely. It is only shown once.",
+        "hint": "After closing this dialog, the key cannot be displayed again.",
+        "copy": "Copy key",
+        "copied": "Copied",
+        "close": "Done"
+      }
+    },
+    "revoke": {
+      "title": "Revoke terminal",
+      "description": "Revoke {name}? Active device tokens will be invalidated.",
+      "cancel": "Cancel",
+      "confirm": "Revoke"
+    },
+    "detail": {
+      "subtitle": "Terminal metadata and security status.",
+      "back": "Back to terminals",
+      "regenerate": "Regenerate activation key",
+      "regenerating": "Regenerating...",
+      "revoke": "Revoke terminal",
+      "revokeDisabled": "Terminal revoked",
+      "notRevoked": "Not revoked",
+      "fields": {
+        "branch": "Branch",
+        "lastRotation": "Last rotation",
+        "createdAt": "Created at",
+        "revokedAt": "Revoked at"
+      }
+    },
+    "toasts": {
+      "created": "Terminal created",
+      "createError": "Could not create terminal",
+      "regenerateOk": "Activation key regenerated",
+      "regenerateError": "Could not regenerate key",
+      "revokeOk": "Terminal revoked",
+      "revokeError": "Could not revoke terminal"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "nameRequired": "Terminal name is required.",
+      "branchRequired": "Please select a branch.",
+      "unauthorized": "Your session expired. Please sign in again.",
+      "notFound": "Terminal not found.",
+      "revoked": "Terminal is already revoked.",
+      "rateLimited": "Too many requests. Try again in a moment."
     }
   },
   "adminInventory": {
     "title": "Inventory",
-    "subtitle": "Adjust quantities and track stock levels.",
+    "subtitle": "Manage stock by branch and digital store.",
     "search": "Search inventory",
     "columns": {
       "product": "Product",
+      "sku": "SKU",
       "available": "Available",
-      "adjust": "Adjust"
+      "reserved": "Reserved",
+      "total": "Total",
+      "state": "State",
+      "adjust": "Adjust",
+      "action": "Action"
     },
     "labels": {
-      "uncategorized": "Uncategorized"
+      "uncategorized": "Uncategorized",
+      "noGame": "No game",
+      "digitalScope": "Digital store"
     },
     "pagination": {
       "prev": "Prev",
@@ -436,10 +554,94 @@
       "available": "Available"
     },
     "actions": {
-      "delta": "Delta",
       "reason": "Reason",
-      "apply": "Apply"
-    }
+      "apply": "Apply",
+      "view": "View",
+      "exportCsv": "Export CSV",
+      "bulkAdjust": "Bulk adjust"
+    },
+    "status": {
+      "available": "Available",
+      "lowStock": "Low stock",
+      "soldOut": "Out of stock"
+    },
+    "filters": {
+      "scope": "Scope",
+      "onlineStore": "Online store",
+      "branch": "Branch",
+      "branchLabel": "Target branch",
+      "game": "Game",
+      "allGames": "All games",
+      "category": "Category",
+      "allCategories": "All categories",
+      "expansion": "Expansion",
+      "allExpansions": "All expansions",
+      "stockState": "Stock state",
+      "allStockStates": "All states",
+      "search": "Search",
+      "searchPlaceholder": "Search by name, SKU or category",
+      "apply": "Apply",
+      "reset": "Reset"
+    },
+    "branches": {
+      "digitalStore": "Digital store"
+    },
+    "toast": {
+      "adjustSuccess": "Inventory updated",
+      "adjustError": "Inventory update failed"
+    },
+    "confirm": {
+      "title": "Confirm inventory adjustment",
+      "description": "{count} valid adjustments will be applied. This action cannot be undone.",
+      "continue": "Confirm and apply",
+      "cancel": "Cancel",
+      "invalid": "Fix incomplete rows: adjustment requires both delta and reason."
+    },
+    "detail": {
+      "title": "Inventory detail",
+      "globalStock": "Global stock",
+      "lowStockThreshold": "Low stock threshold",
+      "tabs": {
+        "branches": "Stock by branch",
+        "movements": "Movements",
+        "settings": "Settings"
+      },
+      "stockTable": {
+        "branch": "Branch"
+      },
+      "movementFilters": {
+        "branch": "Branch",
+        "allBranches": "All",
+        "type": "Type",
+        "allTypes": "All",
+        "from": "From",
+        "to": "To"
+      },
+      "movementTable": {
+        "date": "Date",
+        "branch": "Branch",
+        "user": "User",
+        "role": "Role",
+        "type": "Type",
+        "delta": "Change",
+        "before": "Before",
+        "after": "After",
+        "reason": "Reason",
+        "empty": "No movements for the selected filters."
+      },
+      "movementType": {
+        "manual": "Manual",
+        "order": "Order",
+        "transfer": "Transfer",
+        "correction": "Correction"
+      },
+      "settings": {
+        "title": "Stock settings",
+        "lastUpdate": "Last sync",
+        "notice": "Advanced settings are maintained in cloud-api and synced to POS."
+      }
+    },
+    "empty": "No products found for this scope."
   },
   "adminProducts": {
     "title": "Products",
@@ -607,29 +809,60 @@
   "adminBranches": {
     "title": "Pickup branches",
     "subtitle": "Manage store pickup locations available for checkout.",
+    "search": "Search branch",
+    "searchPlaceholder": "Search by name, city, or address",
+    "empty": "No branches available.",
     "fields": {
       "name": "Branch name",
       "address": "Address",
       "city": "City",
-      "latitude": "Latitude",
-      "longitude": "Longitude",
-      "imageUrl": "Image URL"
+      "imageUrl": "Cover image",
+      "googleMapsUrl": "Google Maps URL"
     },
     "actions": {
       "create": "Create branch",
+      "edit": "Edit",
       "save": "Save",
-      "delete": "Delete"
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "prev": "Previous",
+      "next": "Next"
     },
     "columns": {
       "name": "Name",
       "city": "City",
       "address": "Address",
       "coords": "Coordinates",
+      "updatedAt": "Updated",
       "action": "Action"
+    },
+    "modal": {
+      "createTitle": "Create branch",
+      "createDescription": "Complete branch data and confirm to save.",
+      "editTitle": "Edit branch",
+      "editDescription": "Update branch information and confirm changes."
+    },
+    "confirm": {
+      "title": "Confirm changes",
+      "createDescription": "The branch will be created with the entered values. This affects checkout and POS.",
+      "updateDescription": "Selected branch changes will be saved.",
+      "deleteTitle": "Delete branch",
+      "deleteDescription": "Branch {name} will be deleted. This action cannot be undone.",
+      "continue": "Confirm",
+      "cancel": "Cancel"
     },
     "errors": {
       "createFailed": "Branch creation failed.",
-      "details": "Details: {detail}"
+      "updateFailed": "Branch update failed.",
+      "deleteFailed": "Branch delete failed.",
+      "details": "Details: {detail}",
+      "required": "Name, city, and address are required.",
+      "invalidMapUrl": "Google Maps URL is invalid."
+    },
+    "toast": {
+      "createSuccess": "Branch created.",
+      "updateSuccess": "Branch updated.",
+      "deleteSuccess": "Branch deleted."
     },
     "media": {
       "openLibrary": "Open media library",
@@ -686,7 +919,9 @@
     "branches": {
       "title": "Pickup branch",
       "select": "Select a pickup branch",
-      "empty": "No pickup branches are available right now."
+      "empty": "No pickup branches are available right now.",
+      "openMap": "Open location",
+      "noMapLink": "No location link"
     },
     "payment": {
       "title": "Payment method",
@@ -965,7 +1200,7 @@
         "address": "Interior Plaza Ley, El Vigia, 85440 Guaymas, Son."
       }
     },
-    "copyright": "\u00a9 {year} DanimeZone. All rights reserved."
+    "copyright": "© {year} DanimeZone. All rights reserved."
   },
   "legal": {
     "back": "Back to home",
@@ -1238,6 +1473,21 @@
     },
     "toc": {
       "title": "Table of contents"
+    }
+  },
+  "adminProofs": {
+    "title": "Proof files",
+    "subtitle": "Global proof uploads from POS terminals.",
+    "empty": "No proof files found.",
+    "table": {
+      "createdAt": "Created",
+      "branch": "Branch",
+      "terminal": "Terminal",
+      "sale": "Sale",
+      "mime": "Type",
+      "size": "Size",
+      "url": "URL",
+      "open": "Open"
     }
   }
 }

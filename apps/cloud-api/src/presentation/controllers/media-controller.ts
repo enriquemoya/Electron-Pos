@@ -3,9 +3,10 @@ import type { Request, Response } from "express";
 import { appLogger } from "../../config/app-logger";
 import type { MediaUseCases } from "../../application/use-cases/media";
 import { ApiErrors, asApiError } from "../../errors/api-error";
-import { validateMediaFolder, validateMediaKey, validateMediaListQuery } from "../../validation/media";
+import { validateMediaFolder, validateMediaKey, validateMediaListQuery, validateProofListQuery } from "../../validation/media";
 
 const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
+const PROOF_ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 
 function getAuthUserId(req: Request) {
   return (req as Request & { auth?: { userId: string } }).auth?.userId;
@@ -13,6 +14,78 @@ function getAuthUserId(req: Request) {
 
 export function createMediaController(useCases: MediaUseCases) {
   return {
+    async uploadPosProofHandler(req: Request, res: Response) {
+      const terminal = (req as Request & { terminal?: { terminalId: string; branchId: string } }).terminal;
+      if (!terminal?.terminalId || !terminal.branchId) {
+        res.status(ApiErrors.proofNotAuthorized.status).json({
+          error: ApiErrors.proofNotAuthorized.message,
+          code: ApiErrors.proofNotAuthorized.code
+        });
+        return;
+      }
+
+      try {
+        const file = (req as Request & { file?: Express.Multer.File }).file;
+        if (!file || !file.buffer || !file.mimetype) {
+          throw ApiErrors.invalidRequest;
+        }
+        if (!PROOF_ALLOWED_MIME.has(file.mimetype)) {
+          throw ApiErrors.proofInvalidType;
+        }
+        const saleIdRaw = req.body?.saleId;
+        const saleId = typeof saleIdRaw === "string" && saleIdRaw.trim().length > 0 ? saleIdRaw.trim() : null;
+        const result = await useCases.uploadPosProofMedia({
+          branchId: terminal.branchId,
+          terminalId: terminal.terminalId,
+          saleId,
+          fileBuffer: file.buffer,
+          mimeType: file.mimetype
+        });
+        res.status(201).json(result);
+      } catch (error) {
+        const apiError = asApiError(error, ApiErrors.proofUploadFailed);
+        res.status(apiError.status).json({
+          error: apiError.message,
+          code: apiError.code
+        });
+      }
+    },
+    async listAdminProofsHandler(req: Request, res: Response) {
+      const actorUserId = getAuthUserId(req);
+      if (!actorUserId) {
+        res.status(ApiErrors.proofNotAuthorized.status).json({
+          error: ApiErrors.proofNotAuthorized.message,
+          code: ApiErrors.proofNotAuthorized.code
+        });
+        return;
+      }
+      try {
+        const query = validateProofListQuery(req.query);
+        const result = await useCases.listAdminProofMedia(query);
+        res.status(200).json(result);
+      } catch (error) {
+        const apiError = asApiError(error, ApiErrors.proofUploadFailed);
+        res.status(apiError.status).json({ error: apiError.message, code: apiError.code });
+      }
+    },
+    async getAdminProofByIdHandler(req: Request, res: Response) {
+      const actorUserId = getAuthUserId(req);
+      if (!actorUserId) {
+        res.status(ApiErrors.proofNotAuthorized.status).json({
+          error: ApiErrors.proofNotAuthorized.message,
+          code: ApiErrors.proofNotAuthorized.code
+        });
+        return;
+      }
+      try {
+        const id = String(req.params.id || "");
+        const result = await useCases.getAdminProofMediaById(id);
+        res.status(200).json(result);
+      } catch (error) {
+        const apiError = asApiError(error, ApiErrors.proofNotFound);
+        res.status(apiError.status).json({ error: apiError.message, code: apiError.code });
+      }
+    },
     async listAdminMediaHandler(req: Request, res: Response) {
       const actorUserId = getAuthUserId(req);
       if (!actorUserId) {

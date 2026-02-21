@@ -1,0 +1,2 @@
+BLOCKED: request not executed.
+Expected: HTTP 200 with movement created.

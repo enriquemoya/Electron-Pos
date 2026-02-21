@@ -1,4 +1,10 @@
-function registerProductIpc(ipcMain, repo, expansionRepo) {
+function registerProductIpc(ipcMain, repo, expansionRepo, options = {}) {
+  const authorize = typeof options.authorize === "function" ? options.authorize : null;
+  const assertCatalogReadOnly = () => {
+    const error = new Error("Catalog is cloud-managed and read-only in POS.");
+    error.code = "CATALOG_READ_ONLY";
+    throw error;
+  };
   // Products CRUD is explicit and synchronous in the main process.
   ipcMain.handle("products:getAll", () => {
     return repo.list();
@@ -17,35 +23,13 @@ function registerProductIpc(ipcMain, repo, expansionRepo) {
   });
 
   ipcMain.handle("products:create", (_event, product) => {
-    if (product?.expansionId && !product?.gameTypeId) {
-      throw new Error("Expansion requires game type.");
-    }
-    if (product?.expansionId && product?.gameTypeId) {
-      const expansion = expansionRepo.getById(product.expansionId);
-      if (!expansion) {
-        throw new Error("Expansion not found.");
-      }
-      if (expansion.gameTypeId !== product.gameTypeId) {
-        throw new Error("Expansion mismatch.");
-      }
-    }
-    repo.create(product);
+    authorize?.("catalog:write");
+    assertCatalogReadOnly();
   });
 
   ipcMain.handle("products:update", (_event, product) => {
-    if (product?.expansionId && !product?.gameTypeId) {
-      throw new Error("Expansion requires game type.");
-    }
-    if (product?.expansionId && product?.gameTypeId) {
-      const expansion = expansionRepo.getById(product.expansionId);
-      if (!expansion) {
-        throw new Error("Expansion not found.");
-      }
-      if (expansion.gameTypeId !== product.gameTypeId) {
-        throw new Error("Expansion mismatch.");
-      }
-    }
-    repo.update(product);
+    authorize?.("catalog:write");
+    assertCatalogReadOnly();
   });
 }
 

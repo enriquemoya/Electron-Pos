@@ -22,23 +22,43 @@ function addDays(date: Date, days: number) {
   return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
-function signAccessToken(user: { id: string; role: string; email: string | null }) {
+function signAccessToken(user: {
+  id: string;
+  role: string;
+  email: string | null;
+  branchId?: string | null;
+  displayName?: string | null;
+}) {
   if (!env.jwtSecret) {
     throw new Error("JWT_SECRET is not configured");
   }
   return jwt.sign(
-    { sub: user.id, role: user.role, email: user.email },
+    {
+      sub: user.id,
+      role: user.role,
+      email: user.email,
+      branchId: user.branchId ?? null,
+      displayName: user.displayName ?? null
+    },
     env.jwtSecret,
     { expiresIn: `${ACCESS_TTL_MINUTES}m` }
   );
 }
 
-async function issueTokensForUser(user: { id: string; role: string; email: string | null }) {
+async function issueTokensForUser(user: {
+  id: string;
+  role: string;
+  email: string | null;
+  branchId?: string | null;
+  displayName?: string | null;
+}) {
   const now = new Date();
   const accessToken = signAccessToken({
     id: user.id,
     role: user.role,
-    email: user.email
+    email: user.email,
+    branchId: user.branchId ?? null,
+    displayName: user.displayName ?? null
   });
 
   const refreshToken = crypto.randomBytes(48).toString("hex");
@@ -124,7 +144,12 @@ export async function verifyMagicLink(token: string) {
   const tokens = await issueTokensForUser({
     id: record.user.id,
     role: record.user.role,
-    email: record.user.email
+    email: record.user.email,
+    branchId: record.user.branchId,
+    displayName:
+      (record.user.displayName ??
+      [record.user.firstName, record.user.lastName].filter(Boolean).join(" ")) ||
+      null
   });
 
   return {
@@ -172,7 +197,12 @@ export async function refreshTokens(refreshToken: string) {
   const accessToken = signAccessToken({
     id: existing.user.id,
     role: existing.user.role,
-    email: existing.user.email
+    email: existing.user.email,
+    branchId: existing.user.branchId,
+    displayName:
+      (existing.user.displayName ??
+      [existing.user.firstName, existing.user.lastName].filter(Boolean).join(" ")) ||
+      null
   });
 
   return { accessToken, refreshToken: nextRefreshToken };
@@ -211,7 +241,103 @@ export async function loginWithPassword(email: string, password: string) {
   return issueTokensForUser({
     id: user.id,
     role: user.role,
-    email: user.email
+    email: user.email,
+    branchId: user.branchId,
+    displayName: (user.displayName ?? [user.firstName, user.lastName].filter(Boolean).join(" ")) || null
+  });
+}
+
+export async function loginPosUserWithPin(params: {
+  pin: string;
+  terminalBranchId: string;
+}) {
+  const pinHash = hashToken(params.pin);
+  const now = new Date();
+  const user = await prisma.user.findFirst({
+    where: {
+      role: { in: ["EMPLOYEE", "ADMIN"] },
+      status: "ACTIVE",
+      pinHash
+    }
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  if (user.pinLockedUntil && user.pinLockedUntil > now) {
+    return { forbidden: true } as const;
+  }
+
+  if (user.role === "EMPLOYEE") {
+    if (!user.branchId || user.branchId !== params.terminalBranchId) {
+      return { branchForbidden: true } as const;
+    }
+  }
+
+  const displayName =
+    (user.displayName ?? [user.firstName, user.lastName].filter(Boolean).join(" ")) ||
+    user.email ||
+    "POS User";
+
+  const accessToken = signAccessToken({
+    id: user.id,
+    role: user.role,
+    email: user.email,
+    branchId: user.branchId,
+    displayName
+  });
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      lastLoginAt: now,
+      failedPinAttempts: 0,
+      pinLockedUntil: null
+    }
+  });
+
+  return {
+    accessToken,
+    user: {
+      id: user.id,
+      role: user.role,
+      branchId: user.branchId,
+      displayName
+    }
+  } as const;
+}
+
+export async function increasePinFailure(emailOrId: { userId?: string | null; pin?: string }) {
+  if (!emailOrId.userId) {
+    return;
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: emailOrId.userId },
+    select: { failedPinAttempts: true }
+  });
+  if (!user) {
+    return;
+  }
+  const nextAttempts = user.failedPinAttempts + 1;
+  const lockUntil = nextAttempts >= 5 ? addMinutes(new Date(), 15) : null;
+  await prisma.user.update({
+    where: { id: emailOrId.userId },
+    data: {
+      failedPinAttempts: nextAttempts,
+      pinLockedUntil: lockUntil
+    }
+  });
+}
+
+export async function findPosUserByPin(pin: string) {
+  const pinHash = hashToken(pin);
+  return prisma.user.findFirst({
+    where: {
+      role: { in: ["EMPLOYEE", "ADMIN"] },
+      pinHash
+    },
+    select: { id: true }
   });
 }
 

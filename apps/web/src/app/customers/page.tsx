@@ -27,24 +27,6 @@ const emptyForm: CustomerFormState = {
   email: ""
 };
 
-declare global {
-  interface Window {
-    api?: {
-      customers: {
-        createCustomer: (customer: Customer) => Promise<Customer>;
-        updateCustomer: (customer: Customer) => Promise<Customer>;
-        listPaged: (filters: {
-          name?: string;
-          phone?: string;
-          email?: string;
-          page?: number;
-          pageSize?: number;
-        }) => Promise<{ items: Customer[]; total: number; page: number; pageSize: number }>;
-      };
-    };
-  }
-}
-
 function mapError(message: string | undefined): string {
   switch (message) {
     case "CONTACT_REQUIRED":

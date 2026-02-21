@@ -1,0 +1,6 @@
+{
+  "eventId": "offline-cli-1771625095",
+  "idempotencyKey": "offline-cli-idem-1771625095",
+  "httpStatus": "200",
+  "note": "Queued event persisted locally, then replayed via API; row marked synced only after HTTP 200."
+}

@@ -33,14 +33,22 @@ export function createGameTypeRepository(db: DbHandle) {
 
   return {
     list(activeOnly = false): GameType[] {
-      const where = activeOnly ? "WHERE active = 1" : "";
+      const baseWhere = ["enabled_pos = 1", "is_deleted_cloud = 0"];
+      if (activeOnly) {
+        baseWhere.push("active = 1");
+      }
+      const where = `WHERE ${baseWhere.join(" AND ")}`;
       const rows = db
         .prepare(`SELECT * FROM game_types ${where} ORDER BY name ASC`)
         .all() as GameTypeRow[];
       return rows.map(mapRow);
     },
     getById(id: string): GameType | null {
-      const row = db.prepare("SELECT * FROM game_types WHERE id = ?").get(id) as
+      const row = db
+        .prepare(
+          "SELECT * FROM game_types WHERE id = ? AND enabled_pos = 1 AND is_deleted_cloud = 0"
+        )
+        .get(id) as
         | GameTypeRow
         | undefined;
       return row ? mapRow(row) : null;

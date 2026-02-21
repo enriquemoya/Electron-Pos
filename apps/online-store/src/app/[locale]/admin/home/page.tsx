@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { redirect } from "next/navigation";
 
-import { requireAdmin } from "@/lib/admin-guard";
+import { requireAdminOrEmployee } from "@/lib/admin-guard";
 import { fetchAdminSummary } from "@/lib/admin-api";
 import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 export default async function AdminHomePage({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale);
-  requireAdmin(params.locale);
+  const auth = requireAdminOrEmployee(params.locale);
+  if (auth.role === "EMPLOYEE") {
+    redirect(`/${params.locale}/admin/orders`);
+  }
 
   const t = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
   const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
@@ -31,7 +35,9 @@ export default async function AdminHomePage({ params }: { params: { locale: stri
     { href: `/${params.locale}/admin/products`, label: t("links.products") },
     { href: `/${params.locale}/admin/taxonomies`, label: t("links.taxonomies") },
     { href: `/${params.locale}/admin/branches`, label: t("links.branches") },
-    { href: `/${params.locale}/admin/blog`, label: t("links.blog") }
+    { href: `/${params.locale}/admin/blog`, label: t("links.blog") },
+    { href: `/${params.locale}/admin/terminals`, label: t("links.terminals") },
+    { href: `/${params.locale}/admin/proofs`, label: t("links.proofs") }
   ];
 
   return (

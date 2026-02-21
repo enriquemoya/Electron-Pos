@@ -2,22 +2,28 @@ import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
 import { env } from "../../config/env";
+import { ApiErrors } from "../../errors/api-error";
 
 type JwtPayload = {
   sub: string;
   role: string;
   email?: string | null;
+  branchId?: string | null;
+  displayName?: string | null;
 };
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const header = req.header("authorization");
   if (!header || !header.toLowerCase().startsWith("bearer ")) {
-    res.status(401).json({ error: "unauthorized" });
+    res.status(ApiErrors.authSessionExpired.status).json({
+      error: ApiErrors.authSessionExpired.message,
+      code: ApiErrors.authSessionExpired.code
+    });
     return;
   }
 
   if (!env.jwtSecret) {
-    res.status(500).json({ error: "server" });
+    res.status(ApiErrors.serverError.status).json({ error: ApiErrors.serverError.message, code: ApiErrors.serverError.code });
     return;
   }
 
@@ -25,21 +31,32 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   try {
     const decoded = jwt.verify(token, env.jwtSecret);
     if (typeof decoded === "string" || !decoded) {
-      res.status(401).json({ error: "unauthorized" });
+      res.status(ApiErrors.authSessionExpired.status).json({
+        error: ApiErrors.authSessionExpired.message,
+        code: ApiErrors.authSessionExpired.code
+      });
       return;
     }
     const payload = decoded as JwtPayload;
     if (payload.role !== "ADMIN") {
-      res.status(403).json({ error: "unauthorized" });
+      res.status(ApiErrors.rbacRoleRequired.status).json({
+        error: ApiErrors.rbacRoleRequired.message,
+        code: ApiErrors.rbacRoleRequired.code
+      });
       return;
     }
-    (req as Request & { auth?: { userId: string; role: string; email?: string | null } }).auth = {
+    (req as Request & { auth?: { userId: string; role: string; email?: string | null; branchId?: string | null; displayName?: string | null } }).auth = {
       userId: payload.sub,
       role: payload.role,
-      email: payload.email ?? null
+      email: payload.email ?? null,
+      branchId: payload.branchId ?? null,
+      displayName: payload.displayName ?? null
     };
   } catch {
-    res.status(401).json({ error: "unauthorized" });
+    res.status(ApiErrors.authSessionExpired.status).json({
+      error: ApiErrors.authSessionExpired.message,
+      code: ApiErrors.authSessionExpired.code
+    });
     return;
   }
 

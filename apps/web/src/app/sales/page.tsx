@@ -22,24 +22,6 @@ type Filters = {
   pageSize?: number;
 };
 
-declare global {
-  interface Window {
-    api?: {
-      salesHistory: {
-        listSales: (filters: Filters) => Promise<{
-          items: Sale[];
-          total: number;
-          page: number;
-          pageSize: number;
-        }>;
-      };
-      customers: {
-        searchCustomers: (query: string) => Promise<Customer[]>;
-      };
-    };
-  }
-}
-
 function formatMoney(amount: number) {
   return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(amount / 100);
 }

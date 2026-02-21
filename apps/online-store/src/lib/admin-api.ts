@@ -9,7 +9,7 @@ type AdminUser = {
   firstName: string | null;
   lastName: string | null;
   birthDate: string | null;
-  role: "CUSTOMER" | "ADMIN";
+  role: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
   status: "ACTIVE" | "DISABLED";
   createdAt: string;
   updatedAt: string;
@@ -27,19 +27,81 @@ type UserResponse = { user: AdminUser };
 
 type AdminSummary = { pendingShipments: number; onlineSalesTotal: number; currency: string };
 
+type InventoryScopeType = "ONLINE_STORE" | "BRANCH";
+
 type InventoryItem = {
   productId: string;
   displayName: string | null;
   slug: string | null;
   category: string | null;
+  categoryId?: string | null;
   game: string | null;
+  gameId?: string | null;
+  expansionId?: string | null;
   available: number;
+  reserved?: number;
+  total?: number;
   price: number | null;
   imageUrl: string | null;
+  scopeType?: InventoryScopeType;
+  branchId?: string | null;
+  updatedAt?: string;
 };
 
 type InventoryResponse = {
   items: InventoryItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+};
+
+type InventoryStockDetail = {
+  product: {
+    productId: string;
+    displayName: string | null;
+    slug: string | null;
+    category: string | null;
+    game: string | null;
+    imageUrl: string | null;
+    updatedAt: string;
+  };
+  summary: {
+    globalQuantity: number;
+    onlineStoreQuantity: number;
+    lowStockThreshold: number;
+  };
+  branches: Array<{
+    branchId: string;
+    branchName: string;
+    branchCity: string | null;
+    available: number;
+    reserved: number;
+    total: number;
+    updatedAt: string | null;
+  }>;
+};
+
+type InventoryMovementItem = {
+  id: string;
+  productId: string;
+  scopeType: InventoryScopeType;
+  branchId: string | null;
+  branchName: string | null;
+  actorRole: "ADMIN" | "EMPLOYEE" | "TERMINAL" | "SYSTEM";
+  actorDisplayName: string;
+  actorUserId: string | null;
+  actorTerminalId: string | null;
+  movementType: "MANUAL" | "ORDER" | "TRANSFER" | "CORRECTION";
+  delta: number;
+  reason: string;
+  previousQuantity: number;
+  newQuantity: number;
+  createdAt: string;
+};
+
+type InventoryMovementsResponse = {
+  items: InventoryMovementItem[];
   page: number;
   pageSize: number;
   total: number;
@@ -94,11 +156,59 @@ type PickupBranch = {
   name: string;
   address: string;
   city: string;
-  latitude: number;
-  longitude: number;
+  googleMapsUrl: string | null;
   imageUrl: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+type TerminalStatus = "PENDING" | "ACTIVE" | "REVOKED";
+
+type AdminTerminal = {
+  id: string;
+  name: string;
+  branchId: string;
+  branchName: string;
+  branchCity: string | null;
+  status: TerminalStatus;
+  revokedAt: string | null;
+  revokedByAdminId: string | null;
+  revokedByAdminName: string | null;
+  lastSeenAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type AdminTerminalCreateResponse = {
+  id: string;
+  name: string;
+  branchId: string;
+  branchName: string;
+  status: TerminalStatus;
+  activationApiKey: string;
+  createdAt: string;
+};
+
+type AdminProofMedia = {
+  id: string;
+  branchId: string;
+  terminalId: string;
+  saleId: string | null;
+  key: string;
+  url: string;
+  mime: string;
+  sizeBytes: number;
+  width: number | null;
+  height: number | null;
+  createdAt: string;
+};
+
+type AdminProofMediaResponse = {
+  items: AdminProofMedia[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
 };
 
 type OrderStatus =
@@ -238,6 +348,18 @@ function withQuery(url: URL, params: Record<string, string | number | undefined>
   return url;
 }
 
+async function readErrorCode(response: Response) {
+  try {
+    const payload = await response.json();
+    if (payload && typeof payload === "object" && typeof payload.code === "string") {
+      return payload.code;
+    }
+  } catch {
+    return "UNKNOWN";
+  }
+  return "UNKNOWN";
+}
+
 export async function fetchAdminUsers(page: number, pageSize: number): Promise<UsersResponse> {
   const baseUrl = getBaseUrl();
   const url = new URL(`${baseUrl}/admin/users`);
@@ -279,7 +401,7 @@ export async function fetchAdminUser(id: string): Promise<UserResponse> {
 export async function updateAdminUser(
   id: string,
   data: {
-    role: "CUSTOMER" | "ADMIN";
+    role: "CUSTOMER" | "ADMIN" | "EMPLOYEE";
     status: "ACTIVE" | "DISABLED";
   }
 ): Promise<UserResponse> {
@@ -319,15 +441,205 @@ export async function fetchAdminSummary(): Promise<AdminSummary> {
   return response.json();
 }
 
+export async function fetchAdminProofMedia(params: {
+  branchId?: string;
+  q?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<AdminProofMediaResponse> {
+  const baseUrl = getBaseUrl();
+  const url = withQuery(new URL(`${baseUrl}/admin/media/proofs`), {
+    branchId: params.branchId,
+    q: params.q,
+    from: params.from,
+    to: params.to,
+    page: params.page ?? 1,
+    pageSize: params.pageSize ?? 20
+  });
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+  if (!response.ok) {
+    throw new Error("admin proof media request failed");
+  }
+  return response.json();
+}
+
 export async function fetchInventory(params: {
   page: number;
   pageSize: number;
   query?: string;
   sort?: string;
   direction?: string;
+  scopeType?: InventoryScopeType;
+  branchId?: string | null;
 }): Promise<InventoryResponse> {
   const baseUrl = getBaseUrl();
-  const url = withQuery(new URL(`${baseUrl}/admin/inventory`), params);
+  const scopeType = params.scopeType ?? "ONLINE_STORE";
+  const stockUrl = withQuery(new URL(`${baseUrl}/admin/inventory/stock`), {
+    page: params.page,
+    pageSize: params.pageSize,
+    query: params.query,
+    sort: params.sort,
+    direction: params.direction,
+    scopeType,
+    branchId: scopeType === "BRANCH" ? (params.branchId ?? undefined) : undefined
+  });
+  const requestInit = {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  } as const;
+
+  let response = await fetch(stockUrl.toString(), requestInit);
+  if (response.status === 404) {
+    const legacyUrl = withQuery(new URL(`${baseUrl}/admin/inventory`), {
+      page: params.page,
+      pageSize: params.pageSize,
+      query: params.query,
+      sort: params.sort,
+      direction: params.direction
+    });
+    response = await fetch(legacyUrl.toString(), requestInit);
+  }
+
+  if (!response.ok) {
+    const code = await readErrorCode(response);
+    throw new Error(`inventory request failed (${response.status}:${code})`);
+  }
+
+  return response.json();
+}
+
+export async function adjustInventory(productId: string, data: {
+  delta: number;
+  reason: string;
+  scopeType?: InventoryScopeType;
+  branchId?: string | null;
+}) {
+  const baseUrl = getBaseUrl();
+  const scopeType = data.scopeType ?? "ONLINE_STORE";
+  const branchId = scopeType === "BRANCH" ? (data.branchId ?? null) : null;
+  const requestInit = {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      productId,
+      delta: data.delta,
+      reason: data.reason,
+      scopeType,
+      branchId
+    }),
+    cache: "no-store"
+  } as const;
+
+  let response = await fetch(`${baseUrl}/admin/inventory/movements`, requestInit);
+  if (response.status === 404) {
+    response = await fetch(`${baseUrl}/admin/inventory/${productId}/adjust`, {
+      ...requestInit,
+      body: JSON.stringify(data)
+    });
+  }
+
+  if (!response.ok) {
+    const code = await readErrorCode(response);
+    throw new Error(`inventory adjust failed (${response.status}:${code})`);
+  }
+
+  return response.json();
+}
+
+export async function fetchInventoryStockDetail(productId: string): Promise<InventoryStockDetail> {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/inventory/stock/${productId}`, {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      const [inventory, branches] = await Promise.all([
+        fetchInventory({
+          page: 1,
+          pageSize: 100,
+          query: productId,
+          scopeType: "ONLINE_STORE"
+        }),
+        fetchAdminBranches()
+      ]);
+      const item = inventory.items.find((entry) => entry.productId === productId);
+      if (item) {
+        return {
+          product: {
+            productId: item.productId,
+            displayName: item.displayName,
+            slug: item.slug,
+            category: item.category,
+            game: item.game,
+            imageUrl: item.imageUrl,
+            updatedAt: item.updatedAt ?? new Date().toISOString()
+          },
+          summary: {
+            globalQuantity: item.available,
+            onlineStoreQuantity: item.available,
+            lowStockThreshold: 5
+          },
+          branches: branches.map((branch) => ({
+            branchId: branch.id,
+            branchName: branch.name,
+            branchCity: branch.city,
+            available: 0,
+            reserved: 0,
+            total: 0,
+            updatedAt: null
+          }))
+        };
+      }
+    }
+    const code = await readErrorCode(response);
+    throw new Error(`inventory detail request failed (${response.status}:${code})`);
+  }
+
+  return response.json();
+}
+
+export async function fetchInventoryMovements(params: {
+  page?: number;
+  pageSize?: number;
+  productId?: string;
+  branchId?: string;
+  scopeType?: InventoryScopeType;
+  direction?: "asc" | "desc";
+  from?: string;
+  to?: string;
+}): Promise<InventoryMovementsResponse> {
+  const baseUrl = getBaseUrl();
+  const url = withQuery(new URL(`${baseUrl}/admin/inventory/movements`), {
+    page: params.page ?? 1,
+    pageSize: params.pageSize ?? 20,
+    productId: params.productId,
+    branchId: params.branchId,
+    scopeType: params.scopeType,
+    direction: params.direction,
+    from: params.from,
+    to: params.to
+  });
 
   const response = await fetch(url.toString(), {
     headers: {
@@ -338,27 +650,17 @@ export async function fetchInventory(params: {
   });
 
   if (!response.ok) {
-    throw new Error("inventory request failed");
-  }
-
-  return response.json();
-}
-
-export async function adjustInventory(productId: string, data: { delta: number; reason: string }) {
-  const baseUrl = getBaseUrl();
-  const response = await fetch(`${baseUrl}/admin/inventory/${productId}/adjust`, {
-    method: "POST",
-    headers: {
-      "x-cloud-secret": getSecret(),
-      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
-      "content-type": "application/json"
-    },
-    body: JSON.stringify(data),
-    cache: "no-store"
-  });
-
-  if (!response.ok) {
-    throw new Error("inventory adjust failed");
+    if (response.status === 404) {
+      return {
+        items: [],
+        page: params.page ?? 1,
+        pageSize: params.pageSize ?? 20,
+        total: 0,
+        hasMore: false
+      };
+    }
+    const code = await readErrorCode(response);
+    throw new Error(`inventory movements request failed (${response.status}:${code})`);
   }
 
   return response.json();
@@ -407,12 +709,72 @@ export async function fetchAdminBranches(): Promise<PickupBranch[]> {
   return data.items ?? [];
 }
 
+export async function fetchAdminTerminals(): Promise<AdminTerminal[]> {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/terminals`, {
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("terminals request failed");
+  }
+
+  const data = (await response.json()) as { items?: AdminTerminal[] };
+  return data.items ?? [];
+}
+
+export async function createAdminTerminal(data: {
+  name: string;
+  branchId: string;
+}): Promise<AdminTerminalCreateResponse> {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/terminals`, {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(data),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`terminal create failed (${response.status}): ${message}`);
+  }
+
+  return response.json() as Promise<AdminTerminalCreateResponse>;
+}
+
+export async function revokeAdminTerminal(id: string) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/admin/terminals/${id}/revoke`, {
+    method: "POST",
+    headers: {
+      "x-cloud-secret": getSecret(),
+      authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : ""
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`terminal revoke failed (${response.status}): ${message}`);
+  }
+
+  return response.json() as Promise<{ ok: boolean }>;
+}
+
 export async function createAdminBranch(data: {
   name: string;
   address: string;
   city: string;
-  latitude: number;
-  longitude: number;
+  googleMapsUrl?: string | null;
   imageUrl?: string;
 }) {
   const baseUrl = getBaseUrl();
@@ -441,8 +803,7 @@ export async function updateAdminBranch(
     name?: string;
     address?: string;
     city?: string;
-    latitude?: number;
-    longitude?: number;
+    googleMapsUrl?: string | null;
     imageUrl?: string;
   }
 ) {
@@ -746,9 +1107,16 @@ export async function createAdminRefund(
 export type {
   AdminUser,
   AdminSummary,
+  InventoryScopeType,
   InventoryItem,
+  InventoryStockDetail,
+  InventoryMovementItem,
+  PickupBranch,
   CatalogProduct,
   Taxonomy,
+  AdminTerminal,
+  AdminTerminalCreateResponse,
+  TerminalStatus,
   AdminOrderListItem,
   AdminOrderDetail,
   OrderStatus,

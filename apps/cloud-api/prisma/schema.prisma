@@ -65,6 +65,9 @@ model ReadModelInventory {
   lastSyncedAt      DateTime? @map("last_synced_at") @db.Timestamptz(6)
   isFeatured        Boolean  @default(false) @map("is_featured")
   featuredOrder     Int?     @map("featured_order")
+  branchScopes      BranchCatalogScope[]
+  inventoryStocks   InventoryStock[]
+  inventoryMovements InventoryMovement[]
 
   @@index([categoryId], name: "idx_read_model_category_id")
   @@index([gameId], name: "idx_read_model_game_id")
@@ -74,6 +77,7 @@ model ReadModelInventory {
 enum UserRole {
   CUSTOMER
   ADMIN
+  EMPLOYEE
 }
 
 enum UserStatus {
@@ -187,14 +191,41 @@ enum InventoryReservationStatus {
   RELEASED
 }
 
+enum InventoryScopeType {
+  ONLINE_STORE
+  BRANCH
+
+  @@map("inventory_scope_type")
+}
+
+enum InventoryMovementActorRole {
+  ADMIN
+  EMPLOYEE
+  TERMINAL
+
+  @@map("inventory_movement_actor_role")
+}
+
+enum TerminalStatus {
+  PENDING
+  ACTIVE
+  REVOKED
+}
+
 model User {
   id         String      @id @default(uuid()) @db.Uuid
   email      String?     @unique
   phone      String?     @unique
+  displayName String?    @map("display_name")
   firstName  String?     @map("first_name")
   lastName   String?     @map("last_name")
   passwordHash String?   @map("password_hash")
   passwordUpdatedAt DateTime? @map("password_updated_at") @db.Timestamptz(6)
+  pinHash    String?     @map("pin_hash")
+  pinUpdatedAt DateTime? @map("pin_updated_at") @db.Timestamptz(6)
+  failedPinAttempts Int  @default(0) @map("failed_pin_attempts")
+  pinLockedUntil DateTime? @map("pin_locked_until") @db.Timestamptz(6)
+  branchId   String?     @map("branch_id") @db.Uuid
   birthDate  DateTime?   @map("birth_date") @db.Date
   role       UserRole    @default(CUSTOMER)
   status     UserStatus  @default(ACTIVE)
@@ -214,7 +245,12 @@ model User {
   orderStatusLogs OnlineOrderStatusLog[] @relation("OnlineOrderStatusLogActor")
   paymentEntries OrderPaymentEntry[] @relation("OrderPaymentEntryActor")
   refunds      OnlineOrderRefund[]   @relation("OnlineOrderRefundAdmin")
+  revokedTerminals Terminal[]        @relation("TerminalRevokedByAdmin")
+  inventoryMovements InventoryMovement[] @relation("InventoryMovementActorUser")
+  branch     PickupBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
 
+  @@index([branchId], name: "idx_users_branch")
+  @@index([role, branchId], name: "idx_users_role_branch")
   @@map("users")
 }
 
@@ -317,16 +353,104 @@ model PickupBranch {
   name      String
   address   String
   city      String
-  latitude  Decimal  @db.Decimal(10, 6)
-  longitude Decimal  @db.Decimal(10, 6)
+  googleMapsUrl String? @map("google_maps_url")
   imageUrl  String?  @map("image_url")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   orders OnlineOrder[]
+  terminals Terminal[]
+  posSyncEvents PosSyncEvent[]
+  catalogScopes BranchCatalogScope[]
+  proofMedia ProofMedia[]
+  users User[]
+  inventoryStocks InventoryStock[]
+  inventoryMovements InventoryMovement[]
 
   @@index([city], name: "idx_pickup_branches_city")
   @@map("pickup_branches")
+}
+
+model BranchCatalogScope {
+  branchId  String   @map("branch_id") @db.Uuid
+  productId String   @map("product_id")
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  branch    PickupBranch      @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  product   ReadModelInventory @relation(fields: [productId], references: [productId], onDelete: Cascade)
+
+  @@id([branchId, productId])
+  @@index([branchId, updatedAt], name: "idx_branch_catalog_scope_branch_updated")
+  @@index([productId], name: "idx_branch_catalog_scope_product")
+  @@map("branch_catalog_scope")
+}
+
+model Terminal {
+  id                          String        @id @default(cuid())
+  name                        String
+  branchId                    String        @map("branch_id") @db.Uuid
+  activationApiKeyHash        String?       @map("activation_api_key_hash")
+  deviceFingerprintHash       String?       @map("device_fingerprint_hash")
+  currentDeviceTokenHash      String?       @map("current_device_token_hash")
+  previousDeviceTokenHash     String?       @map("previous_device_token_hash")
+  previousTokenGraceValidUntil DateTime?    @map("previous_token_grace_valid_until") @db.Timestamptz(6)
+  status                      TerminalStatus @default(PENDING)
+  revokedAt                   DateTime?     @map("revoked_at") @db.Timestamptz(6)
+  revokedByAdminId            String?       @map("revoked_by_admin_id") @db.Uuid
+  lastSeenAt                  DateTime?     @map("last_seen_at") @db.Timestamptz(6)
+  createdAt                   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  branch                      PickupBranch  @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  revokedByAdmin              User?         @relation("TerminalRevokedByAdmin", fields: [revokedByAdminId], references: [id], onDelete: SetNull)
+  posSyncEvents               PosSyncEvent[]
+  proofMedia                  ProofMedia[]
+  inventoryMovements          InventoryMovement[] @relation("InventoryMovementActorTerminal")
+
+  @@unique([activationApiKeyHash], name: "ux_terminals_activation_api_key_hash")
+  @@unique([currentDeviceTokenHash], name: "ux_terminals_current_device_token_hash")
+  @@index([branchId], name: "idx_terminals_branch")
+  @@index([deviceFingerprintHash], name: "idx_terminals_fingerprint")
+  @@index([previousDeviceTokenHash], name: "idx_terminals_previous_device_token_hash")
+  @@index([status], name: "idx_terminals_status")
+  @@map("terminals")
+}
+
+model ProofMedia {
+  id         String    @id @default(uuid()) @db.Uuid
+  branchId   String    @map("branch_id") @db.Uuid
+  terminalId String    @map("terminal_id")
+  saleId     String?   @map("sale_id")
+  objectKey  String    @map("object_key")
+  cdnUrl     String    @map("cdn_url")
+  mime       String
+  sizeBytes  Int       @map("size_bytes")
+  width      Int?
+  height     Int?
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  branch     PickupBranch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  terminal   Terminal  @relation(fields: [terminalId], references: [id], onDelete: Restrict)
+
+  @@index([branchId, createdAt(sort: Desc)], name: "idx_proof_media_branch_created")
+  @@index([saleId], name: "idx_proof_media_sale")
+  @@index([terminalId, createdAt(sort: Desc)], name: "idx_proof_media_terminal_created")
+  @@map("proof_media")
+}
+
+model PosSyncEvent {
+  id           String   @id @default(uuid()) @db.Uuid
+  terminalId   String   @map("terminal_id")
+  branchId     String   @map("branch_id") @db.Uuid
+  localEventId String   @map("local_event_id")
+  eventType    String   @map("event_type")
+  payload      Json
+  syncedAt     DateTime @default(now()) @map("synced_at") @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  terminal     Terminal @relation(fields: [terminalId], references: [id], onDelete: Restrict)
+  branch       PickupBranch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@unique([terminalId, localEventId], name: "ux_pos_sync_events_terminal_local_event")
+  @@index([branchId, syncedAt], name: "idx_pos_sync_events_branch_synced")
+  @@index([eventType], name: "idx_pos_sync_events_event_type")
+  @@map("pos_sync_events")
 }
 
 model PreorderDraft {
@@ -506,6 +630,8 @@ model OnlineOrderStatusLog {
   approvedByAdminName String?  @map("approved_by_admin_name")
   adminMessage String?         @map("admin_message")
   actorUserId String?          @map("actor_user_id") @db.Uuid
+  actorRole   String?          @map("actor_role")
+  actorDisplayName String?     @map("actor_display_name")
   createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   order       OnlineOrder      @relation(fields: [orderId], references: [id], onDelete: Cascade)
   actor       User?            @relation("OnlineOrderStatusLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
@@ -548,4 +674,46 @@ model InventoryAdjustment {
   @@index([actorUserId], name: "idx_inventory_adjustments_actor")
   @@index([createdAt], name: "idx_inventory_adjustments_created")
   @@map("inventory_adjustments")
+}
+
+model InventoryStock {
+  id        String             @id @default(uuid()) @db.Uuid
+  productId String             @map("product_id")
+  scopeType InventoryScopeType @map("scope_type")
+  branchId  String?            @map("branch_id") @db.Uuid
+  quantity  Int
+  updatedAt DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  product   ReadModelInventory @relation(fields: [productId], references: [productId], onDelete: Cascade)
+  branch    PickupBranch?      @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, scopeType, branchId], name: "ux_inventory_stock_scope")
+  @@index([scopeType, branchId], name: "idx_inventory_stock_scope_branch")
+  @@index([productId], name: "idx_inventory_stock_product")
+  @@map("inventory_stock")
+}
+
+model InventoryMovement {
+  id              String                     @id @default(uuid()) @db.Uuid
+  productId       String                     @map("product_id")
+  scopeType       InventoryScopeType         @map("scope_type")
+  branchId        String?                    @map("branch_id") @db.Uuid
+  delta           Int
+  reason          String
+  actorRole       InventoryMovementActorRole @map("actor_role")
+  actorUserId     String?                    @map("actor_user_id") @db.Uuid
+  actorTerminalId String?                    @map("actor_terminal_id")
+  idempotencyKey  String                     @map("idempotency_key")
+  previousQuantity Int                       @map("previous_quantity")
+  newQuantity     Int                        @map("new_quantity")
+  createdAt       DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  product         ReadModelInventory         @relation(fields: [productId], references: [productId], onDelete: Cascade)
+  branch          PickupBranch?              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  actorUser       User?                      @relation("InventoryMovementActorUser", fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorTerminal   Terminal?                  @relation("InventoryMovementActorTerminal", fields: [actorTerminalId], references: [id], onDelete: SetNull)
+
+  @@unique([idempotencyKey], name: "ux_inventory_movement_idempotency")
+  @@index([branchId, createdAt(sort: Desc)], name: "idx_inventory_movement_branch_created")
+  @@index([productId, createdAt(sort: Desc)], name: "idx_inventory_movement_product_created")
+  @@index([scopeType], name: "idx_inventory_movement_scope")
+  @@map("inventory_movement")
 }

@@ -2,7 +2,7 @@ import CreditClient from "./credit-client";
 
 // Required for output: "export" builds. Dynamic params resolved client-side.
 export function generateStaticParams() {
-  return [];
+  return [{ id: "detail" }];
 }
 
 export default function CreditPage() {

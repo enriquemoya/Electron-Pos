@@ -1,4 +1,4 @@
-﻿export const esMX = {
+export const esMX = {
   title: "Inventario",
   subtitle: "Revisa existencias y estados de stock.",
   filtersTitle: "Filtros",
@@ -18,6 +18,17 @@
   tableGame: "Juego",
   tableStock: "Existencias",
   tableStatus: "Estado",
+  tableAdjust: "Ajuste",
+  adjustAmount: "Cantidad",
+  adjustReason: "Motivo",
+  increment: "Incrementar",
+  decrement: "Decrementar",
+  adjustSuccess: "Ajuste aplicado.",
+  adjustQueued: "Sin conexion. Ajuste en cola para reintento.",
+  adjustForbidden: "No tienes permisos para decrementar inventario.",
+  adjustInvalid: "Ingresa una cantidad valida mayor a 0.",
+  adjustSessionExpired: "Sesion expirada. Inicia sesion nuevamente.",
+  reasonPlaceholder: "Ajuste manual",
   pageLabel: "Pagina {page} de {total}",
   prevPage: "Anterior",
   nextPage: "Siguiente",
@@ -33,7 +44,7 @@ export function t(key: DictionaryKey, params?: Record<string, string | number>):
   if (!params) {
     return template;
   }
-  return Object.entries(params).reduce((result, [token, value]) => {
+  return Object.entries(params).reduce<string>((result, [token, value]) => {
     return result.replace(new RegExp(`\\{${token}\\}`, "g"), String(value));
-  }, template);
+  }, String(template));
 }

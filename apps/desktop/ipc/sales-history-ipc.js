@@ -1,7 +1,6 @@
 const { deriveProofStatus } = require("@pos/core");
-const { uploadProofFile } = require("../integrations/google-drive/drive-sync.ts");
 
-function registerSalesHistoryIpc(ipcMain, saleRepo, getDriveConfig) {
+function registerSalesHistoryIpc(ipcMain, saleRepo, uploadProof) {
   ipcMain.handle("sales-history:list", (_event, filters) => {
     return saleRepo.listPaged(filters ?? {});
   });
@@ -19,20 +18,19 @@ function registerSalesHistoryIpc(ipcMain, saleRepo, getDriveConfig) {
       throw new Error("Payment method mismatch.");
     }
 
-    const config = getDriveConfig();
-    const result = await uploadProofFile({
-      config,
-      data: payload.fileBuffer,
+    const result = await uploadProof({
+      fileBuffer: payload.fileBuffer,
       fileName: payload.fileName,
       mimeType: payload.mimeType,
       ticketNumber: sale.id,
       method: payload.method,
-      dateIso: sale.createdAt
+      dateIso: sale.createdAt,
+      saleId: sale.id
     });
 
     const status = deriveProofStatus(payload.method, true);
-    saleRepo.updateProof(sale.id, result.fileId, status);
-    return { proofFileRef: result.fileId, fileName: result.fileName };
+    saleRepo.updateProof(sale.id, result.proofFileRef, status);
+    return { proofFileRef: result.proofFileRef, fileName: result.fileName };
   });
 }
 

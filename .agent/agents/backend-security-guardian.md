@@ -10,6 +10,7 @@ allowed_write_paths: []
 forbidden_write_paths: [".specs/**","apps/**","packages/**",".memory-bank/**",".codex/**",".agent/**"]
 triggers: ["endpoint","auth","secret","security","data exposure"]
 outputs: ["security risks","severity rating","audit notes"]
+recommended_skills: [clean-code, backend-patterns, fullstack-developer]
 ---
 
 ## Capabilities

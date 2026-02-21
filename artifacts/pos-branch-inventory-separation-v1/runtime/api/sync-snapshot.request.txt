@@ -1,0 +1,3 @@
+GET http://localhost:4000/pos/catalog/snapshot?page=1&pageSize=200
+Authorization: Bearer <REDACTED_TERMINAL_TOKEN>
+x-cloud-secret: <REDACTED>

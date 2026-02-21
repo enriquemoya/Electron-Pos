@@ -1,0 +1,4 @@
+interface:
+  display_name: "typescript-review"
+  short_description: "TypeScript/JavaScript review checklist for quality and style."
+  default_prompt: "Use this skill for TS/JS code review on PRs or diffs."

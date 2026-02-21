@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { ProfileForm } from "@/components/account/profile-form";
 import { PasswordForm } from "@/components/account/password-form";
+import { PinForm } from "@/components/account/pin-form";
 import { Card } from "@/components/ui/card";
 import { fetchProfile } from "@/lib/profile-api";
 import { toEmailLocaleValue } from "@/lib/email-locale";
@@ -102,6 +103,40 @@ async function updatePasswordAction(prev: State, formData: FormData): Promise<St
   return { ok: true };
 }
 
+async function updatePinAction(prev: State, formData: FormData): Promise<State> {
+  "use server";
+  const token = cookies().get("auth_access")?.value;
+  if (!token) {
+    return { ok: false, error: "server" };
+  }
+
+  const baseUrl = process.env.CLOUD_API_URL;
+  if (!baseUrl) {
+    return { ok: false, error: "server" };
+  }
+
+  const pin = String(formData.get("pin") ?? "").trim();
+  const confirmPin = String(formData.get("confirmPin") ?? "").trim();
+
+  const response = await fetch(`${baseUrl}/profile/pin`, {
+    method: "PATCH",
+    headers: {
+      "content-type": "application/json",
+      "x-cloud-secret": process.env.CLOUD_SHARED_SECRET || "",
+      authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ pin, confirmPin }),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const error = response.status === 400 ? "invalid" : "server";
+    return { ok: false, error };
+  }
+
+  return { ok: true };
+}
+
 export default async function ProfilePage({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale);
 
@@ -184,6 +219,24 @@ export default async function ProfilePage({ params }: { params: { locale: string
           }}
         />
       </Card>
+
+      {profile?.user.role === "ADMIN" || profile?.user.role === "EMPLOYEE" ? (
+        <Card className="p-6">
+          <PinForm
+            action={updatePinAction}
+            labels={{
+              title: t("profile.pin.title"),
+              description: t("profile.pin.description"),
+              pin: t("profile.pin.pin"),
+              confirmPin: t("profile.pin.confirm"),
+              submit: t("profile.pin.submit"),
+              success: t("profile.pin.success"),
+              errorInvalid: t("profile.pin.errorInvalid"),
+              errorServer: t("profile.pin.errorServer")
+            }}
+          />
+        </Card>
+      ) : null}
     </div>
   );
 }

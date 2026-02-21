@@ -1,0 +1,4 @@
+interface:
+  display_name: "prompt-lookup"
+  short_description: "Search, retrieve, and improve prompts via prompt libraries."
+  default_prompt: "Use this skill when the user asks for prompt templates, prompt search, or prompt improvement."

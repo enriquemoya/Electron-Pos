@@ -19,42 +19,6 @@ type Filters = {
   maxParticipants?: number;
 };
 
-declare global {
-  interface Window {
-    api?: {
-      tournaments: {
-        createTournament: (payload: {
-          name: string;
-          game: string;
-          gameTypeId?: string | null;
-          expansionId?: string | null;
-          date: string;
-          maxCapacity: number;
-          entryPriceAmount: number;
-          prizeType: Tournament["prizeType"];
-          prizeValueAmount: number;
-          winnerCount: number;
-          prizeDistribution: number[];
-        }) => Promise<Tournament>;
-        listTournamentsPaged: (filters: Filters & {
-          sortBy?: "DATE" | "GAME" | "PARTICIPANTS";
-          sortDir?: "ASC" | "DESC";
-          page?: number;
-          pageSize?: number;
-        }) => Promise<{
-          items: { tournament: Tournament; participantCount: number }[];
-          total: number;
-          page: number;
-          pageSize: number;
-        }>;
-      };
-      gameTypes: {
-        listGameTypes: (activeOnly?: boolean) => Promise<GameType[]>;
-      };
-    };
-  }
-}
-
 function getToday(): string {
   return new Date().toLocaleDateString("en-CA");
 }

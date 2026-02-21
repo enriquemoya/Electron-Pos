@@ -1,0 +1,30 @@
+$ npm run prisma:migrate:deploy -w apps/cloud-api
+
+> @pos/cloud-api@0.0.0 prisma:migrate:deploy
+> prisma migrate deploy
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "neondb", schema "public" at "ep-aged-frog-afnguqc6-pooler.c-2.us-west-2.aws.neon.tech"
+
+27 migrations found in prisma/migrations
+
+Applying migration `20260219090000_pos_offline_sync_engine_v1`
+Applying migration `20260219121000_branch_catalog_scope`
+Applying migration `20260219153000_proof_media`
+Applying migration `20260219190000_pos_rbac_users_v1`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20260219090000_pos_offline_sync_engine_v1/
+    └─ migration.sql
+  └─ 20260219121000_branch_catalog_scope/
+    └─ migration.sql
+  └─ 20260219153000_proof_media/
+    └─ migration.sql
+  └─ 20260219190000_pos_rbac_users_v1/
+    └─ migration.sql
+      
+All migrations have been successfully applied.
+

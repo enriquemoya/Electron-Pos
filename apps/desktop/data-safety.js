@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { app } = require("electron");
+const { desktopLogger } = require("./logger");
 
 const DEFAULT_RETENTION = 10;
 
@@ -159,7 +160,7 @@ class DataSafetyManager {
         at: new Date().toISOString(),
         message: error instanceof Error ? error.message : "Backup failed"
       };
-      console.error("data-safety: backup failed", this.lastBackup.message);
+      desktopLogger.error("data-safety.backup.failed", { message: this.lastBackup.message });
       throw error;
     }
   }
@@ -173,7 +174,7 @@ class DataSafetyManager {
         at: new Date().toISOString(),
         message: error instanceof Error ? error.message : "Backup failed"
       };
-      console.error("data-safety: startup backup failed", this.lastBackup.message);
+      desktopLogger.error("data-safety.startup-backup.failed", { message: this.lastBackup.message });
       throw error;
     }
   }
@@ -195,7 +196,9 @@ class DataSafetyManager {
       app.exit(0);
       return { restored: true };
     } catch (error) {
-      console.error("data-safety: restore failed", error instanceof Error ? error.message : error);
+      desktopLogger.error("data-safety.restore.failed", {
+        message: error instanceof Error ? error.message : String(error)
+      });
       throw error;
     }
   }

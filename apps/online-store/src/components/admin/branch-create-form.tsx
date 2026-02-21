@@ -53,8 +53,7 @@ type BranchCreateLabels = {
       };
     };
   };
-  latitude: string;
-  longitude: string;
+  googleMapsUrl: string;
   submit: string;
   error: string;
   errorDetails: string;
@@ -93,8 +92,7 @@ export function BranchCreateForm({ locale, action, labels }: BranchCreateFormPro
             labels={labels.media}
           />
         </div>
-        <Input name="latitude" type="text" placeholder={labels.latitude} required />
-        <Input name="longitude" type="text" placeholder={labels.longitude} required />
+        <Input name="googleMapsUrl" type="url" placeholder={labels.googleMapsUrl} />
       </div>
       {state?.error ? (
         <div className="space-y-1 text-xs text-rose-200">

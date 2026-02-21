@@ -32,13 +32,13 @@ export function createAuthController(useCases: AuthUseCases) {
         const token = validateTokenPayload(req.body ?? {});
         const result = await useCases.verifyMagicLink(token);
         if (!result) {
-          res.status(400).json({ error: ApiErrors.invalidRequest.message });
+          res.status(400).json({ error: ApiErrors.invalidRequest.message, code: ApiErrors.invalidRequest.code });
           return;
         }
         res.status(200).json({ accessToken: result.accessToken, refreshToken: result.refreshToken });
       } catch (error) {
         const apiError = asApiError(error, ApiErrors.invalidRequest);
-        res.status(apiError.status).json({ error: apiError.message });
+        res.status(apiError.status).json({ error: apiError.message, code: apiError.code });
       }
     },
     async refreshTokenHandler(req: Request, res: Response) {
@@ -46,13 +46,16 @@ export function createAuthController(useCases: AuthUseCases) {
         const token = validateRefreshPayload(req.body ?? {});
         const result = await useCases.refreshTokens(token);
         if (!result) {
-          res.status(401).json({ error: ApiErrors.unauthorized.message });
+          res.status(ApiErrors.authSessionExpired.status).json({
+            error: ApiErrors.authSessionExpired.message,
+            code: ApiErrors.authSessionExpired.code
+          });
           return;
         }
         res.status(200).json({ accessToken: result.accessToken, refreshToken: result.refreshToken });
       } catch (error) {
         const apiError = asApiError(error, ApiErrors.unauthorized);
-        res.status(apiError.status).json({ error: apiError.message });
+        res.status(apiError.status).json({ error: apiError.message, code: apiError.code });
       }
     },
     async logoutHandler(req: Request, res: Response) {
@@ -62,7 +65,7 @@ export function createAuthController(useCases: AuthUseCases) {
         res.status(200).json({ status: "ok" });
       } catch (error) {
         const apiError = asApiError(error, ApiErrors.invalidRequest);
-        res.status(apiError.status).json({ error: apiError.message });
+        res.status(apiError.status).json({ error: apiError.message, code: apiError.code });
       }
     },
     async passwordLoginHandler(req: Request, res: Response) {
@@ -70,13 +73,16 @@ export function createAuthController(useCases: AuthUseCases) {
         const payload = validatePasswordLoginPayload(req.body ?? {});
         const result = await useCases.loginWithPassword(payload.email, payload.password);
         if (!result) {
-          res.status(ApiErrors.unauthorized.status).json({ error: ApiErrors.unauthorized.message });
+          res.status(ApiErrors.authInvalidCredentials.status).json({
+            error: ApiErrors.authInvalidCredentials.message,
+            code: ApiErrors.authInvalidCredentials.code
+          });
           return;
         }
         res.status(200).json({ accessToken: result.accessToken, refreshToken: result.refreshToken });
       } catch (error) {
         const apiError = asApiError(error, ApiErrors.invalidRequest);
-        res.status(apiError.status).json({ error: apiError.message });
+        res.status(apiError.status).json({ error: apiError.message, code: apiError.code });
       }
     }
   };

@@ -1,4 +1,4 @@
-﻿export const esMX = {
+export const esMX = {
   title: "Caja",
   subtitle: "Abre y cierra turnos de caja.",
   openTitle: "Abrir caja",

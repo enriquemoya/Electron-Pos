@@ -10,18 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { t } from "./i18n";
 
-declare global {
-  interface Window {
-    api?: {
-      gameTypes: {
-        listGameTypes: (activeOnly?: boolean) => Promise<GameType[]>;
-        createGameType: (payload: { name: string }) => Promise<GameType>;
-        updateGameType: (payload: { id: string; name: string; active: boolean }) => Promise<GameType>;
-      };
-    };
-  }
-}
-
 export default function GameTypesPage() {
   const [gameTypes, setGameTypes] = useState<GameType[]>([]);
   const [loading, setLoading] = useState(false);
