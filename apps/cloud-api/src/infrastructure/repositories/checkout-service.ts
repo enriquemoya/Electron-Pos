@@ -573,7 +573,7 @@ export async function createOrder(params: {
       where: { draftId: params.draftId },
       include: {
         user: { select: { email: true, emailLocale: true } },
-        pickupBranch: { select: { name: true } }
+        pickupBranch: { select: { name: true, googleMapsUrl: true } }
       }
     });
 
@@ -591,7 +591,8 @@ export async function createOrder(params: {
         customerEmailLocale: existingOrder.user?.emailLocale ?? null,
         subtotal: Number(existingOrder.subtotal),
         currency: existingOrder.currency,
-        pickupBranchName: existingOrder.pickupBranch?.name ?? null
+        pickupBranchName: existingOrder.pickupBranch?.name ?? null,
+        pickupBranchMapUrl: existingOrder.pickupBranch?.googleMapsUrl ?? null
       };
     }
 
@@ -609,12 +610,14 @@ export async function createOrder(params: {
     }
 
     let pickupBranchName: string | null = null;
+    let pickupBranchMapUrl: string | null = null;
     if (params.pickupBranchId) {
       const branch = await tx.pickupBranch.findUnique({ where: { id: params.pickupBranchId } });
       if (!branch) {
         throw ApiErrors.branchNotFound;
       }
       pickupBranchName = branch.name;
+      pickupBranchMapUrl = branch.googleMapsUrl;
     }
 
     if (!draft.items.length) {
@@ -669,7 +672,7 @@ export async function createOrder(params: {
       },
       include: {
         user: { select: { email: true, emailLocale: true } },
-        pickupBranch: { select: { name: true } }
+        pickupBranch: { select: { name: true, googleMapsUrl: true } }
       }
     });
 
@@ -744,7 +747,8 @@ export async function createOrder(params: {
       customerEmailLocale: order.user?.emailLocale ?? null,
       subtotal,
       currency: order.currency,
-      pickupBranchName: order.pickupBranch?.name ?? null
+      pickupBranchName: order.pickupBranch?.name ?? null,
+      pickupBranchMapUrl: order.pickupBranch?.googleMapsUrl ?? pickupBranchMapUrl
     };
   });
 }

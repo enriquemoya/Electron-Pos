@@ -18,3 +18,26 @@ export function validateInventoryAdjustment(payload: unknown) {
 
   return { delta, reason };
 }
+
+export function validateInventoryMovementPayload(
+  payload: unknown,
+  options: { requireIdempotency?: boolean } = { requireIdempotency: true }
+) {
+  const base = validateInventoryAdjustment(payload);
+  const productId = String((payload as { productId?: unknown })?.productId ?? "").trim();
+  const idempotencyKey = String((payload as { idempotencyKey?: unknown })?.idempotencyKey ?? "").trim();
+
+  if (!productId) {
+    throw ApiErrors.inventoryInvalid;
+  }
+  if (options.requireIdempotency !== false && !idempotencyKey) {
+    throw ApiErrors.inventoryInvalid;
+  }
+
+  return {
+    productId,
+    delta: base.delta,
+    reason: base.reason,
+    idempotencyKey
+  };
+}

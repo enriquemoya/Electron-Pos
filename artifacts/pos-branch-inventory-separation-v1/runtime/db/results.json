@@ -1,0 +1,4 @@
+{
+  "status": "BLOCKED",
+  "reason": "No runtime DB query execution in this pass"
+}

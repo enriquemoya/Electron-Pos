@@ -66,6 +66,8 @@ model ReadModelInventory {
   isFeatured        Boolean  @default(false) @map("is_featured")
   featuredOrder     Int?     @map("featured_order")
   branchScopes      BranchCatalogScope[]
+  inventoryStocks   InventoryStock[]
+  inventoryMovements InventoryMovement[]
 
   @@index([categoryId], name: "idx_read_model_category_id")
   @@index([gameId], name: "idx_read_model_game_id")
@@ -189,6 +191,21 @@ enum InventoryReservationStatus {
   RELEASED
 }
 
+enum InventoryScopeType {
+  ONLINE_STORE
+  BRANCH
+
+  @@map("inventory_scope_type")
+}
+
+enum InventoryMovementActorRole {
+  ADMIN
+  EMPLOYEE
+  TERMINAL
+
+  @@map("inventory_movement_actor_role")
+}
+
 enum TerminalStatus {
   PENDING
   ACTIVE
@@ -229,6 +246,7 @@ model User {
   paymentEntries OrderPaymentEntry[] @relation("OrderPaymentEntryActor")
   refunds      OnlineOrderRefund[]   @relation("OnlineOrderRefundAdmin")
   revokedTerminals Terminal[]        @relation("TerminalRevokedByAdmin")
+  inventoryMovements InventoryMovement[] @relation("InventoryMovementActorUser")
   branch     PickupBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
 
   @@index([branchId], name: "idx_users_branch")
@@ -335,8 +353,7 @@ model PickupBranch {
   name      String
   address   String
   city      String
-  latitude  Decimal  @db.Decimal(10, 6)
-  longitude Decimal  @db.Decimal(10, 6)
+  googleMapsUrl String? @map("google_maps_url")
   imageUrl  String?  @map("image_url")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -347,6 +364,8 @@ model PickupBranch {
   catalogScopes BranchCatalogScope[]
   proofMedia ProofMedia[]
   users User[]
+  inventoryStocks InventoryStock[]
+  inventoryMovements InventoryMovement[]
 
   @@index([city], name: "idx_pickup_branches_city")
   @@map("pickup_branches")
@@ -384,6 +403,7 @@ model Terminal {
   revokedByAdmin              User?         @relation("TerminalRevokedByAdmin", fields: [revokedByAdminId], references: [id], onDelete: SetNull)
   posSyncEvents               PosSyncEvent[]
   proofMedia                  ProofMedia[]
+  inventoryMovements          InventoryMovement[] @relation("InventoryMovementActorTerminal")
 
   @@unique([activationApiKeyHash], name: "ux_terminals_activation_api_key_hash")
   @@unique([currentDeviceTokenHash], name: "ux_terminals_current_device_token_hash")
@@ -654,4 +674,46 @@ model InventoryAdjustment {
   @@index([actorUserId], name: "idx_inventory_adjustments_actor")
   @@index([createdAt], name: "idx_inventory_adjustments_created")
   @@map("inventory_adjustments")
+}
+
+model InventoryStock {
+  id        String             @id @default(uuid()) @db.Uuid
+  productId String             @map("product_id")
+  scopeType InventoryScopeType @map("scope_type")
+  branchId  String?            @map("branch_id") @db.Uuid
+  quantity  Int
+  updatedAt DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  product   ReadModelInventory @relation(fields: [productId], references: [productId], onDelete: Cascade)
+  branch    PickupBranch?      @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, scopeType, branchId], name: "ux_inventory_stock_scope")
+  @@index([scopeType, branchId], name: "idx_inventory_stock_scope_branch")
+  @@index([productId], name: "idx_inventory_stock_product")
+  @@map("inventory_stock")
+}
+
+model InventoryMovement {
+  id              String                     @id @default(uuid()) @db.Uuid
+  productId       String                     @map("product_id")
+  scopeType       InventoryScopeType         @map("scope_type")
+  branchId        String?                    @map("branch_id") @db.Uuid
+  delta           Int
+  reason          String
+  actorRole       InventoryMovementActorRole @map("actor_role")
+  actorUserId     String?                    @map("actor_user_id") @db.Uuid
+  actorTerminalId String?                    @map("actor_terminal_id")
+  idempotencyKey  String                     @map("idempotency_key")
+  previousQuantity Int                       @map("previous_quantity")
+  newQuantity     Int                        @map("new_quantity")
+  createdAt       DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  product         ReadModelInventory         @relation(fields: [productId], references: [productId], onDelete: Cascade)
+  branch          PickupBranch?              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  actorUser       User?                      @relation("InventoryMovementActorUser", fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorTerminal   Terminal?                  @relation("InventoryMovementActorTerminal", fields: [actorTerminalId], references: [id], onDelete: SetNull)
+
+  @@unique([idempotencyKey], name: "ux_inventory_movement_idempotency")
+  @@index([branchId, createdAt(sort: Desc)], name: "idx_inventory_movement_branch_created")
+  @@index([productId, createdAt(sort: Desc)], name: "idx_inventory_movement_product_created")
+  @@index([scopeType], name: "idx_inventory_movement_scope")
+  @@map("inventory_movement")
 }

@@ -3,11 +3,13 @@ function registerInventorySyncIpc(
   {
     inventorySyncRepo,
     posSyncRepo,
+    inventoryRepo,
     terminalAuthService,
     createCloudClient,
     runCatalogSync,
     runReconcile,
     flushSalesJournal,
+    flushInventoryAdjustmentJournal,
     catalogProjectionService
   }
 ) {
@@ -39,10 +41,17 @@ function registerInventorySyncIpc(
       cloudClient,
       posSyncRepo
     });
+    const inventoryQueue = await flushInventoryAdjustmentJournal({
+      cloudClient,
+      posSyncRepo,
+      inventoryRepo,
+      terminalAuthService
+    });
 
     return {
       catalog,
       queue,
+      inventoryQueue,
       state: posSyncRepo.getState(),
       journal: posSyncRepo.getJournalStats()
     };

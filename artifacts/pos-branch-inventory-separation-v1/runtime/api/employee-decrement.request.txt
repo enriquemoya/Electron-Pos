@@ -1,0 +1,3 @@
+POST http://danimezone-api:4000/pos/inventory/movements
+Authorization: Bearer <redacted>
+Body: {"productId":"<missing>","delta":-1,"reason":"test","idempotencyKey":"rbac-neg-001"}

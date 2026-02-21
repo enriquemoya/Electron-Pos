@@ -139,11 +139,48 @@ export type InventoryRepository = {
     query?: string;
     sort?: "updatedAt" | "available" | "name";
     direction?: "asc" | "desc";
+    scopeType?: "ONLINE_STORE" | "BRANCH";
+    branchId?: string | null;
   }) => Promise<{ items: Array<Record<string, unknown>>; total: number }>;
-  adjustInventory: (params: { productId: string; delta: number; reason: string; actorUserId: string }) => Promise<{
+  adjustInventory: (params: {
+    productId: string;
+    delta: number;
+    reason: string;
+    actorUserId: string;
+    scopeType?: "ONLINE_STORE" | "BRANCH";
+    branchId?: string | null;
+    idempotencyKey?: string | null;
+  }) => Promise<{
     item: Record<string, unknown>;
     adjustment: Record<string, unknown>;
   } | null>;
+  createMovement: (params: {
+    productId: string;
+    scopeType: "ONLINE_STORE" | "BRANCH";
+    branchId: string | null;
+    delta: number;
+    reason: string;
+    actorRole: "ADMIN" | "EMPLOYEE" | "TERMINAL";
+    actorUserId?: string | null;
+    actorTerminalId?: string | null;
+    idempotencyKey: string;
+  }) => Promise<{
+    item: Record<string, unknown>;
+    adjustment: Record<string, unknown>;
+  } | null>;
+  getInventoryStockDetail: (params: {
+    productId: string;
+  }) => Promise<Record<string, unknown> | null>;
+  listInventoryMovements: (params: {
+    page: number;
+    pageSize: number;
+    productId?: string;
+    branchId?: string | null;
+    scopeType?: "ONLINE_STORE" | "BRANCH";
+    direction?: "asc" | "desc";
+    from?: string | null;
+    to?: string | null;
+  }) => Promise<{ items: Array<Record<string, unknown>>; total: number }>;
 };
 
 export type CheckoutRepository = {
@@ -213,6 +250,7 @@ export type CheckoutRepository = {
     subtotal: number;
     currency: string;
     pickupBranchName: string | null;
+    pickupBranchMapUrl: string | null;
   }>;
   getOrder: (params: { userId: string; orderId: string }) => Promise<Record<string, unknown> | null>;
 };
@@ -300,16 +338,14 @@ export type BranchRepository = {
     name: string;
     address: string;
     city: string;
-    latitude: number;
-    longitude: number;
+    googleMapsUrl?: string | null;
     imageUrl?: string | null;
   }) => Promise<Record<string, unknown>>;
   updateBranch: (id: string, data: {
     name?: string;
     address?: string;
     city?: string;
-    latitude?: number;
-    longitude?: number;
+    googleMapsUrl?: string | null;
     imageUrl?: string | null;
   }) => Promise<Record<string, unknown> | null>;
   deleteBranch: (id: string) => Promise<Record<string, unknown> | null>;

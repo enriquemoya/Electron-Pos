@@ -1,0 +1,10 @@
+{
+  "productZeroStockAssertion": {
+    "productId": "9b577ceb-53b9-498f-a531-fbfe0ff851ea",
+    "branchQuantity": 0,
+    "enabledPOS": true,
+    "isDeletedCloud": false
+  },
+  "snapshotVersion": "2026-02-20T22:07:43.336Z",
+  "totalItems": 1
+}

@@ -1,0 +1,9 @@
+HTTP/1.1 403 Forbidden
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 50
+ETag: W/"32-UsKEKPZwMCyQ2AWsJzuto85NcEg"
+Date: Fri, 20 Feb 2026 22:01:50 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+

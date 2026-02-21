@@ -1,0 +1,1 @@
+[{"id":"offline-cli-1771625095","event_type":"INVENTORY_MANUAL_ADJUST","status":"PENDING","retry_count":0,"last_error_code":null,"next_retry_at":null,"manual_intervention_required":0,"payload":"{\"productId\": \"9b577ceb-53b9-498f-a531-fbfe0ff851ea\", \"delta\": 1, \"reason\": \"offline_test\", \"endpoint\": \"TERMINAL\", \"idempotencyKey\": \"offline-cli-idem-1771625095\"}"}]

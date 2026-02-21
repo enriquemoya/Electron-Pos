@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { MapPin } from "lucide-react";
 
 import { useCart } from "@/components/cart/cart-context";
 import { CartItemRow } from "@/components/cart/cart-item-row";
@@ -16,8 +17,7 @@ export type PickupBranch = {
   name: string;
   address: string;
   city: string;
-  latitude: number;
-  longitude: number;
+  googleMapsUrl: string | null;
   imageUrl: string | null;
 };
 
@@ -58,6 +58,10 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
   const lastPayload = useRef<string | null>(null);
 
   const branchOptions = useMemo(() => branches, [branches]);
+  const selectedBranch = useMemo(
+    () => branchOptions.find((branch) => branch.id === selectedBranchId) ?? null,
+    [branchOptions, selectedBranchId]
+  );
 
   useEffect(() => {
     if (!items.length) {
@@ -275,9 +279,22 @@ export function CheckoutPage({ branches }: { branches: PickupBranch[] }) {
                 </SelectContent>
               </Select>
               {selectedBranchId ? (
-                <p className="text-xs text-white/60">
-                  {branchOptions.find((branch) => branch.id === selectedBranchId)?.address}
-                </p>
+                <div className="flex items-center justify-between gap-2 text-xs text-white/60">
+                  <p>{selectedBranch?.address}</p>
+                  {selectedBranch?.googleMapsUrl ? (
+                    <a
+                      href={selectedBranch.googleMapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t("branches.openMap")}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white transition hover:border-white/30 hover:bg-white/10"
+                    >
+                      <MapPin className="h-4 w-4" />
+                    </a>
+                  ) : (
+                    <span className="text-[11px] text-white/40">{t("branches.noMapLink")}</span>
+                  )}
+                </div>
               ) : null}
               <p className="text-xs text-white/50">{tCommon("conversion.pickupWindow")}</p>
             </div>

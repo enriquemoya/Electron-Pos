@@ -525,15 +525,22 @@
   },
   "adminInventory": {
     "title": "Inventory",
-    "subtitle": "Adjust quantities and track stock levels.",
+    "subtitle": "Manage stock by branch and digital store.",
     "search": "Search inventory",
     "columns": {
       "product": "Product",
+      "sku": "SKU",
       "available": "Available",
-      "adjust": "Adjust"
+      "reserved": "Reserved",
+      "total": "Total",
+      "state": "State",
+      "adjust": "Adjust",
+      "action": "Action"
     },
     "labels": {
-      "uncategorized": "Uncategorized"
+      "uncategorized": "Uncategorized",
+      "noGame": "No game",
+      "digitalScope": "Digital store"
     },
     "pagination": {
       "prev": "Prev",
@@ -547,10 +554,94 @@
       "available": "Available"
     },
     "actions": {
-      "delta": "Delta",
       "reason": "Reason",
-      "apply": "Apply"
-    }
+      "apply": "Apply",
+      "view": "View",
+      "exportCsv": "Export CSV",
+      "bulkAdjust": "Bulk adjust"
+    },
+    "status": {
+      "available": "Available",
+      "lowStock": "Low stock",
+      "soldOut": "Out of stock"
+    },
+    "filters": {
+      "scope": "Scope",
+      "onlineStore": "Online store",
+      "branch": "Branch",
+      "branchLabel": "Target branch",
+      "game": "Game",
+      "allGames": "All games",
+      "category": "Category",
+      "allCategories": "All categories",
+      "expansion": "Expansion",
+      "allExpansions": "All expansions",
+      "stockState": "Stock state",
+      "allStockStates": "All states",
+      "search": "Search",
+      "searchPlaceholder": "Search by name, SKU or category",
+      "apply": "Apply",
+      "reset": "Reset"
+    },
+    "branches": {
+      "digitalStore": "Digital store"
+    },
+    "toast": {
+      "adjustSuccess": "Inventory updated",
+      "adjustError": "Inventory update failed"
+    },
+    "confirm": {
+      "title": "Confirm inventory adjustment",
+      "description": "{count} valid adjustments will be applied. This action cannot be undone.",
+      "continue": "Confirm and apply",
+      "cancel": "Cancel",
+      "invalid": "Fix incomplete rows: adjustment requires both delta and reason."
+    },
+    "detail": {
+      "title": "Inventory detail",
+      "globalStock": "Global stock",
+      "lowStockThreshold": "Low stock threshold",
+      "tabs": {
+        "branches": "Stock by branch",
+        "movements": "Movements",
+        "settings": "Settings"
+      },
+      "stockTable": {
+        "branch": "Branch"
+      },
+      "movementFilters": {
+        "branch": "Branch",
+        "allBranches": "All",
+        "type": "Type",
+        "allTypes": "All",
+        "from": "From",
+        "to": "To"
+      },
+      "movementTable": {
+        "date": "Date",
+        "branch": "Branch",
+        "user": "User",
+        "role": "Role",
+        "type": "Type",
+        "delta": "Change",
+        "before": "Before",
+        "after": "After",
+        "reason": "Reason",
+        "empty": "No movements for the selected filters."
+      },
+      "movementType": {
+        "manual": "Manual",
+        "order": "Order",
+        "transfer": "Transfer",
+        "correction": "Correction"
+      },
+      "settings": {
+        "title": "Stock settings",
+        "lastUpdate": "Last sync",
+        "notice": "Advanced settings are maintained in cloud-api and synced to POS."
+      }
+    },
+    "empty": "No products found for this scope."
   },
   "adminProducts": {
     "title": "Products",
@@ -718,29 +809,60 @@
   "adminBranches": {
     "title": "Pickup branches",
     "subtitle": "Manage store pickup locations available for checkout.",
+    "search": "Search branch",
+    "searchPlaceholder": "Search by name, city, or address",
+    "empty": "No branches available.",
     "fields": {
       "name": "Branch name",
       "address": "Address",
       "city": "City",
-      "latitude": "Latitude",
-      "longitude": "Longitude",
-      "imageUrl": "Image URL"
+      "imageUrl": "Cover image",
+      "googleMapsUrl": "Google Maps URL"
     },
     "actions": {
       "create": "Create branch",
+      "edit": "Edit",
       "save": "Save",
-      "delete": "Delete"
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "prev": "Previous",
+      "next": "Next"
     },
     "columns": {
       "name": "Name",
       "city": "City",
       "address": "Address",
       "coords": "Coordinates",
+      "updatedAt": "Updated",
       "action": "Action"
+    },
+    "modal": {
+      "createTitle": "Create branch",
+      "createDescription": "Complete branch data and confirm to save.",
+      "editTitle": "Edit branch",
+      "editDescription": "Update branch information and confirm changes."
+    },
+    "confirm": {
+      "title": "Confirm changes",
+      "createDescription": "The branch will be created with the entered values. This affects checkout and POS.",
+      "updateDescription": "Selected branch changes will be saved.",
+      "deleteTitle": "Delete branch",
+      "deleteDescription": "Branch {name} will be deleted. This action cannot be undone.",
+      "continue": "Confirm",
+      "cancel": "Cancel"
     },
     "errors": {
       "createFailed": "Branch creation failed.",
-      "details": "Details: {detail}"
+      "updateFailed": "Branch update failed.",
+      "deleteFailed": "Branch delete failed.",
+      "details": "Details: {detail}",
+      "required": "Name, city, and address are required.",
+      "invalidMapUrl": "Google Maps URL is invalid."
+    },
+    "toast": {
+      "createSuccess": "Branch created.",
+      "updateSuccess": "Branch updated.",
+      "deleteSuccess": "Branch deleted."
     },
     "media": {
       "openLibrary": "Open media library",
@@ -797,7 +919,9 @@
     "branches": {
       "title": "Pickup branch",
       "select": "Select a pickup branch",
-      "empty": "No pickup branches are available right now."
+      "empty": "No pickup branches are available right now.",
+      "openMap": "Open location",
+      "noMapLink": "No location link"
     },
     "payment": {
       "title": "Payment method",
@@ -1076,7 +1200,7 @@
         "address": "Interior Plaza Ley, El Vigia, 85440 Guaymas, Son."
       }
     },
-    "copyright": "\u00a9 {year} DanimeZone. All rights reserved."
+    "copyright": "© {year} DanimeZone. All rights reserved."
   },
   "legal": {
     "back": "Back to home",

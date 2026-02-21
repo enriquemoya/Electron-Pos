@@ -1,0 +1,2 @@
+BLOCKED: request not executed.
+Expected: HTTP 403, code RBAC_FORBIDDEN.

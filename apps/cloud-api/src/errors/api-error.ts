@@ -40,6 +40,29 @@ export const ApiErrors = {
   addressInvalid: new ApiError(400, "ADDRESS_INVALID", "address invalid"),
   inventoryNotFound: new ApiError(404, "INVENTORY_NOT_FOUND", "inventory item not found"),
   inventoryInvalid: new ApiError(400, "INVENTORY_INVALID", "inventory adjustment invalid"),
+  inventoryScopeInvalid: new ApiError(400, "INVENTORY_SCOPE_INVALID", "inventory scope invalid"),
+  inventoryBranchRequired: new ApiError(400, "INVENTORY_BRANCH_REQUIRED", "inventory branch required"),
+  inventoryForbidden: new ApiError(403, "INVENTORY_FORBIDDEN", "inventory forbidden"),
+  inventoryNegativeNotAllowed: new ApiError(
+    400,
+    "INVENTORY_NEGATIVE_NOT_ALLOWED",
+    "inventory negative not allowed"
+  ),
+  inventoryMovementDuplicate: new ApiError(
+    200,
+    "INVENTORY_MOVEMENT_DUPLICATE",
+    "inventory movement duplicate"
+  ),
+  inventoryStockWriteFailed: new ApiError(
+    500,
+    "INVENTORY_STOCK_WRITE_FAILED",
+    "inventory stock write failed"
+  ),
+  inventoryStockReadFailed: new ApiError(
+    500,
+    "INVENTORY_STOCK_READ_FAILED",
+    "inventory stock read failed"
+  ),
   taxonomyNotFound: new ApiError(404, "TAXONOMY_NOT_FOUND", "taxonomy not found"),
   taxonomyInvalid: new ApiError(400, "TAXONOMY_INVALID", "taxonomy invalid"),
   productNotFound: new ApiError(404, "PRODUCT_NOT_FOUND", "product not found"),
@@ -126,6 +149,7 @@ export const ApiErrors = {
     "transfer approval message required"
   ),
   orderForbidden: new ApiError(403, "ORDER_FORBIDDEN", "order forbidden"),
+  branchInvalidMapUrl: new ApiError(400, "BRANCH_INVALID_MAP_URL", "branch invalid map url"),
   branchNotFound: new ApiError(404, "BRANCH_NOT_FOUND", "branch not found")
 };
 

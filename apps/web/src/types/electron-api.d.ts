@@ -14,6 +14,7 @@ type ProductApi = {
 type InventoryApi = {
   getInventory: AsyncFn;
   updateStock: AsyncFn;
+  adjustManual: AsyncFn;
 };
 
 type InventoryAlertsApi = {

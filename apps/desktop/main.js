@@ -40,6 +40,7 @@ const {
   runCatalogSync,
   runReconcile,
   flushSalesJournal,
+  flushInventoryAdjustmentJournal,
   flushProofUploadJournal,
   enqueueSaleSyncEvent
 } = require("./integrations/pos-sync/engine");
@@ -396,6 +397,7 @@ app.whenReady().then(async () => {
   registerInventorySyncIpc(ipcMain, {
     inventorySyncRepo,
     posSyncRepo,
+    inventoryRepo,
     terminalAuthService,
     createCloudClient: () => {
       if (!(process.env.CLOUD_API_URL || process.env.API_URL || process.env.CLOUD_API_BASE_URL)) {
@@ -408,11 +410,22 @@ app.whenReady().then(async () => {
     runCatalogSync,
     runReconcile,
     flushSalesJournal,
+    flushInventoryAdjustmentJournal,
     catalogProjectionService
   });
   registerProductIpc(ipcMain, productRepo, expansionRepo, { authorize: assertPosPermission });
   registerInventoryIpc(ipcMain, inventoryRepo, productAlertRepo, inventoryAlertRepo, {
-    authorize: assertPosPermission
+    authorize: assertPosPermission,
+    createCloudClient: () => {
+      if (!(process.env.CLOUD_API_URL || process.env.API_URL || process.env.CLOUD_API_BASE_URL)) {
+        return null;
+      }
+      return new PosSyncCloudClient((pathname, init) =>
+        terminalAuthService.authenticatedRequest(pathname, init)
+      );
+    },
+    posSyncRepo,
+    terminalAuthService
   });
   registerInventoryAlertsIpc(ipcMain, {
     productAlertRepo,
@@ -491,6 +504,14 @@ app.whenReady().then(async () => {
     }).catch(() => {
       // Proof upload retries are best effort.
     });
+    flushInventoryAdjustmentJournal({
+      cloudClient,
+      posSyncRepo,
+      inventoryRepo,
+      terminalAuthService
+    }).catch(() => {
+      // Inventory adjustment retries are best effort.
+    });
     setInterval(() => {
       flushSalesJournal({
         cloudClient,
@@ -499,6 +520,16 @@ app.whenReady().then(async () => {
         // Background retries are best effort.
       });
     }, 30_000);
+    setInterval(() => {
+      flushInventoryAdjustmentJournal({
+        cloudClient,
+        posSyncRepo,
+        inventoryRepo,
+        terminalAuthService
+      }).catch(() => {
+        // Inventory adjustment retries are best effort.
+      });
+    }, 30 * 60_000);
     setInterval(() => {
       flushProofUploadJournal({
         cloudClient,

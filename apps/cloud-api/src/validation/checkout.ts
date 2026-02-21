@@ -3,18 +3,35 @@ import { assertAllowedMediaCdnUrl } from "./media-source";
 
 const AVAILABILITY_VALUES = ["in_stock", "low_stock", "out_of_stock", "pending_sync", "unknown"];
 
-function parseNumeric(value: unknown) {
-  if (value === null || value === undefined) {
-    return Number.NaN;
+const ALLOWED_GOOGLE_MAP_HOSTS = new Set(["maps.google.com", "maps.app.goo.gl", "www.google.com"]);
+
+function validateGoogleMapsUrl(value: unknown, { required }: { required: boolean }) {
+  const raw = String(value ?? "").trim();
+  if (!raw) {
+    if (required) {
+      throw ApiErrors.branchInvalidMapUrl;
+    }
+    return null;
   }
-  if (typeof value === "number") {
-    return value;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    throw ApiErrors.branchInvalidMapUrl;
   }
-  if (typeof value === "string") {
-    const normalized = value.trim().replace(",", ".");
-    return Number(normalized);
+
+  if (parsed.protocol !== "https:") {
+    throw ApiErrors.branchInvalidMapUrl;
   }
-  return Number(value);
+  if (!ALLOWED_GOOGLE_MAP_HOSTS.has(parsed.hostname)) {
+    throw ApiErrors.branchInvalidMapUrl;
+  }
+  if (parsed.hostname === "www.google.com" && !parsed.pathname.startsWith("/maps")) {
+    throw ApiErrors.branchInvalidMapUrl;
+  }
+
+  return parsed.toString();
 }
 
 export type DraftItemPayload = {
@@ -110,37 +127,37 @@ export function validateBranchCreate(payload: unknown) {
   const name = String((payload as { name?: unknown })?.name ?? "").trim();
   const address = String((payload as { address?: unknown })?.address ?? "").trim();
   const city = String((payload as { city?: unknown })?.city ?? "").trim();
-  const latitude = parseNumeric((payload as { latitude?: unknown })?.latitude);
-  const longitude = parseNumeric((payload as { longitude?: unknown })?.longitude);
+  const googleMapsUrl = validateGoogleMapsUrl((payload as { googleMapsUrl?: unknown })?.googleMapsUrl, { required: false });
   const imageUrlRaw = (payload as { imageUrl?: unknown })?.imageUrl;
   const imageUrl = imageUrlRaw === undefined || imageUrlRaw === null || imageUrlRaw === ""
     ? null
     : String(imageUrlRaw).trim();
 
-  if (!name || !address || !city || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+  if (!name || !address || !city) {
     throw ApiErrors.checkoutInvalid;
   }
   if (imageUrl) {
     assertAllowedMediaCdnUrl(imageUrl);
   }
 
-  return { name, address, city, latitude, longitude, imageUrl };
+  return { name, address, city, googleMapsUrl, imageUrl };
 }
 
 export function validateBranchUpdate(payload: unknown) {
   const nameRaw = (payload as { name?: unknown })?.name;
   const addressRaw = (payload as { address?: unknown })?.address;
   const cityRaw = (payload as { city?: unknown })?.city;
-  const latitudeRaw = (payload as { latitude?: unknown })?.latitude;
-  const longitudeRaw = (payload as { longitude?: unknown })?.longitude;
+  const googleMapsUrlRaw = (payload as { googleMapsUrl?: unknown })?.googleMapsUrl;
   const imageUrlRaw = (payload as { imageUrl?: unknown })?.imageUrl;
 
   const data = {
     name: nameRaw === undefined ? undefined : String(nameRaw ?? "").trim(),
     address: addressRaw === undefined ? undefined : String(addressRaw ?? "").trim(),
     city: cityRaw === undefined ? undefined : String(cityRaw ?? "").trim(),
-    latitude: latitudeRaw === undefined ? undefined : parseNumeric(latitudeRaw),
-    longitude: longitudeRaw === undefined ? undefined : parseNumeric(longitudeRaw),
+    googleMapsUrl:
+      googleMapsUrlRaw === undefined
+        ? undefined
+        : validateGoogleMapsUrl(googleMapsUrlRaw, { required: false }),
     imageUrl:
       imageUrlRaw === undefined
         ? undefined
@@ -161,12 +178,6 @@ export function validateBranchUpdate(payload: unknown) {
     throw ApiErrors.checkoutInvalid;
   }
   if (data.city !== undefined && !data.city) {
-    throw ApiErrors.checkoutInvalid;
-  }
-  if (data.latitude !== undefined && !Number.isFinite(data.latitude)) {
-    throw ApiErrors.checkoutInvalid;
-  }
-  if (data.longitude !== undefined && !Number.isFinite(data.longitude)) {
     throw ApiErrors.checkoutInvalid;
   }
   if (data.imageUrl) {

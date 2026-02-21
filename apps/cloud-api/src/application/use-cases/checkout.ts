@@ -77,7 +77,8 @@ export function createCheckoutUseCases(deps: {
             subtotal: created.subtotal,
             currency: created.currency,
             expiresAt: created.expiresAt,
-            pickupBranchName: created.pickupBranchName
+            pickupBranchName: created.pickupBranchName,
+            pickupBranchMapUrl: created.pickupBranchMapUrl
           });
           await deps.emailService?.sendEmail({
             to: customerEmail,

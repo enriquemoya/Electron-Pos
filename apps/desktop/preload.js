@@ -35,7 +35,9 @@ contextBridge.exposeInMainWorld("api", {
   },
   inventory: {
     getInventory: () => ipcRenderer.invoke("inventory:get"),
-    updateStock: (productId, delta) => ipcRenderer.invoke("inventory:updateStock", productId, delta)
+    updateStock: (productId, delta, reason) =>
+      ipcRenderer.invoke("inventory:updateStock", productId, delta, reason),
+    adjustManual: (payload) => ipcRenderer.invoke("inventory:adjustManual", payload)
   },
   inventoryAlerts: {
     getActiveInventoryAlerts: (filters) => ipcRenderer.invoke("inventory-alerts:getActive", filters),

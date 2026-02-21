@@ -1,26 +1,20 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { revalidatePath } from "next/cache";
 
-import { adjustInventory, fetchInventory } from "@/lib/admin-api";
-import { requireAdmin } from "@/lib/admin-guard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { AdminTableControls } from "@/components/admin/admin-table-controls";
 import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
+import { InventoryListScreen } from "@/components/admin/inventory-list-screen";
+import { fetchAdminBranches, fetchInventory, fetchTaxonomies } from "@/lib/admin-api";
+import { requireAdmin } from "@/lib/admin-guard";
 
-async function adjustInventoryAction(formData: FormData) {
-  "use server";
-  const productId = String(formData.get("productId") ?? "");
-  const delta = Number(formData.get("delta"));
-  const reason = String(formData.get("reason") ?? "").trim();
-  const locale = String(formData.get("locale") ?? "es");
+type InventoryScopeType = "ONLINE_STORE" | "BRANCH";
 
-  if (!productId || !Number.isFinite(delta) || !reason) {
-    return;
+function getStockState(total: number): "AVAILABLE" | "LOW_STOCK" | "SOLD_OUT" {
+  if (total <= 0) {
+    return "SOLD_OUT";
   }
-
-  await adjustInventory(productId, { delta, reason });
-  revalidatePath(`/${locale}/admin/inventory`);
+  if (total < 5) {
+    return "LOW_STOCK";
+  }
+  return "AVAILABLE";
 }
 
 export default async function InventoryPage({
@@ -28,7 +22,19 @@ export default async function InventoryPage({
   searchParams
 }: {
   params: { locale: string };
-  searchParams?: { page?: string; pageSize?: string; query?: string; sort?: string; direction?: string };
+  searchParams?: {
+    page?: string;
+    pageSize?: string;
+    query?: string;
+    sort?: string;
+    direction?: string;
+    scopeType?: string;
+    branchId?: string;
+    gameId?: string;
+    categoryId?: string;
+    expansionId?: string;
+    stockState?: string;
+  };
 }) {
   setRequestLocale(params.locale);
   requireAdmin(params.locale);
@@ -36,94 +42,136 @@ export default async function InventoryPage({
   const t = await getTranslations({ locale: params.locale, namespace: "adminInventory" });
   const tSeo = await getTranslations({ locale: params.locale, namespace: "seo.breadcrumb" });
   const tAdmin = await getTranslations({ locale: params.locale, namespace: "adminDashboard" });
-  const page = Number(searchParams?.page ?? 1) || 1;
-  const pageSize = Number(searchParams?.pageSize ?? 20) || 20;
-  const query = searchParams?.query ?? "";
-  const sort = searchParams?.sort ?? "updatedAt";
-  const direction = searchParams?.direction ?? "desc";
 
-  const result = await fetchInventory({ page, pageSize, query, sort, direction });
+  const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
+  const pageSize = Number(searchParams?.pageSize ?? 20) || 20;
+  const query = searchParams?.query?.trim() ?? "";
+  const scopeType: InventoryScopeType = searchParams?.scopeType === "BRANCH" ? "BRANCH" : "ONLINE_STORE";
+  const branchIdParam = searchParams?.branchId?.trim() || "";
+  const stockState = searchParams?.stockState ?? "ALL";
+  const gameId = searchParams?.gameId?.trim() || "ALL";
+  const categoryId = searchParams?.categoryId?.trim() || "ALL";
+  const expansionId = searchParams?.expansionId?.trim() || "ALL";
+  const direction = searchParams?.direction === "asc" ? "asc" : "desc";
+  const sort = searchParams?.sort ?? "updatedAt";
+
+  const [branches, games, categories, expansions] = await Promise.all([
+    fetchAdminBranches(),
+    fetchTaxonomies({ type: "GAME", page: 1, pageSize: 100 }),
+    fetchTaxonomies({ type: "CATEGORY", page: 1, pageSize: 100 }),
+    fetchTaxonomies({ type: "EXPANSION", page: 1, pageSize: 100 })
+  ]);
+
+  const selectedBranchId = scopeType === "BRANCH" ? (branchIdParam || branches[0]?.id || "") : "";
+  const canLoadInventory = scopeType === "ONLINE_STORE" || Boolean(selectedBranchId);
+  const inventory = canLoadInventory
+    ? await fetchInventory({
+        page,
+        pageSize,
+        query,
+        sort,
+        direction,
+        scopeType,
+        branchId: selectedBranchId || null
+      })
+    : { items: [], page, pageSize, total: 0, hasMore: false };
+
+  const filteredItems = inventory.items.filter((item) => {
+    if (gameId !== "ALL" && item.gameId !== gameId) {
+      return false;
+    }
+    if (categoryId !== "ALL" && item.categoryId !== categoryId) {
+      return false;
+    }
+    if (expansionId !== "ALL" && item.expansionId !== expansionId) {
+      return false;
+    }
+    if (stockState !== "ALL") {
+      const available = item.available ?? 0;
+      const reserved = item.reserved ?? 0;
+      const total = item.total ?? available + reserved;
+      const state = getStockState(total);
+      if (stockState === "AVAILABLE" && state !== "AVAILABLE") {
+        return false;
+      }
+      if (stockState === "LOW_STOCK" && state !== "LOW_STOCK") {
+        return false;
+      }
+      if (stockState === "SOLD_OUT" && state !== "SOLD_OUT") {
+        return false;
+      }
+    }
+    return true;
+  });
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <AdminBreadcrumb
-          locale={params.locale}
-          homeLabel={tSeo("home")}
-          adminLabel={tAdmin("title")}
-          items={[{ label: t("title") }]}
-        />
-        <h1 className="text-2xl font-semibold text-white">{t("title")}</h1>
-        <p className="text-sm text-white/60">{t("subtitle")}</p>
-      </div>
-
-      <AdminTableControls
-        basePath={`/${params.locale}/admin/inventory`}
-        page={page}
-        pageSize={pageSize}
-        hasMore={result.hasMore}
-        query={query}
-        sort={sort}
-        direction={direction === "asc" ? "asc" : "desc"}
-        sortOptions={[
-          { value: "updatedAt", label: t("sort.updated") },
-          { value: "name", label: t("sort.name") },
-          { value: "available", label: t("sort.available") }
-        ]}
-        labels={{
-          search: t("search"),
-          prev: t("pagination.prev"),
-          next: t("pagination.next"),
-          pageSize: t("pagination.pageSize"),
-          sort: t("pagination.sort")
-        }}
+      <AdminBreadcrumb
+        locale={params.locale}
+        homeLabel={tSeo("home")}
+        adminLabel={tAdmin("title")}
+        items={[{ label: t("title") }]}
       />
 
-      <div className="overflow-hidden rounded-2xl border border-white/10">
-        <table className="w-full text-left text-sm text-white/70">
-          <thead className="bg-white/5 text-xs uppercase text-white/50">
-            <tr>
-              <th className="px-4 py-3">{t("columns.product")}</th>
-              <th className="px-4 py-3">{t("columns.available")}</th>
-              <th className="px-4 py-3">{t("columns.adjust")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result.items.map((item) => (
-              <tr key={item.productId} className="border-t border-white/10">
-                <td className="px-4 py-3">
-                  <div className="text-white">{item.displayName ?? item.productId}</div>
-                  <div className="text-xs text-white/50">{item.category ?? t("labels.uncategorized")}</div>
-                </td>
-                <td className="px-4 py-3 text-white">{item.available}</td>
-                <td className="px-4 py-3">
-                  <form action={adjustInventoryAction} className="flex flex-wrap items-center gap-2">
-                    <input type="hidden" name="productId" value={item.productId} />
-                    <input type="hidden" name="locale" value={params.locale} />
-                    <Input
-                      name="delta"
-                      type="number"
-                      step="1"
-                      className="h-8 w-20"
-                      placeholder={t("actions.delta")}
-                      required
-                    />
-                    <Input
-                      name="reason"
-                      className="h-8 min-w-[180px]"
-                      placeholder={t("actions.reason")}
-                      required
-                    />
-                    <Button type="submit" size="sm">
-                      {t("actions.apply")}
-                    </Button>
-                  </form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <InventoryListScreen
+        locale={params.locale}
+        title={t("title")}
+        subtitle={t("subtitle")}
+        branches={branches.map((branch) => ({ id: branch.id, name: branch.name }))}
+        games={games.items.map((taxonomy) => ({ id: taxonomy.id, name: taxonomy.name }))}
+        categories={categories.items.map((taxonomy) => ({ id: taxonomy.id, name: taxonomy.name }))}
+        expansions={expansions.items.map((taxonomy) => ({ id: taxonomy.id, name: taxonomy.name }))}
+        items={filteredItems}
+        initialFilters={{
+          scopeType,
+          branchId: selectedBranchId,
+          query,
+          gameId,
+          categoryId,
+          expansionId,
+          stockState
+        }}
+        labels={{
+          product: t("columns.product"),
+          sku: t("columns.sku"),
+          available: t("columns.available"),
+          reserved: t("columns.reserved"),
+          total: t("columns.total"),
+          state: t("columns.state"),
+          adjust: t("columns.adjust"),
+          action: t("columns.action"),
+          noGame: t("labels.noGame"),
+          empty: t("empty"),
+          apply: t("filters.apply"),
+          reset: t("filters.reset"),
+          exportCsv: t("actions.exportCsv"),
+          bulkAdjust: t("actions.bulkAdjust"),
+          view: t("actions.view"),
+          reason: t("actions.reason"),
+          scope: t("filters.scope"),
+          onlineStore: t("filters.onlineStore"),
+          branch: t("filters.branch"),
+          branchLabel: t("filters.branchLabel"),
+          game: t("filters.game"),
+          allGames: t("filters.allGames"),
+          category: t("filters.category"),
+          allCategories: t("filters.allCategories"),
+          expansion: t("filters.expansion"),
+          allExpansions: t("filters.allExpansions"),
+          stockState: t("filters.stockState"),
+          allStockStates: t("filters.allStockStates"),
+          search: t("filters.search"),
+          searchPlaceholder: t("filters.searchPlaceholder"),
+          availableState: t("status.available"),
+          lowStockState: t("status.lowStock"),
+          soldOutState: t("status.soldOut"),
+          confirmTitle: t("confirm.title"),
+          confirmDescription: t("confirm.description", { count: "{count}" }),
+          confirmContinue: t("confirm.continue"),
+          confirmCancel: t("confirm.cancel"),
+          invalidToast: t("confirm.invalid")
+        }}
+      />
     </div>
   );
 }

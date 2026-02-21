@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import type { GameType, ProductListItem, ProductStockStatus } from "@pos/core";
@@ -8,6 +8,31 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+type SessionRole = "ADMIN" | "EMPLOYEE" | null;
+
+type AdjustmentState = {
+  amount: string;
+  reason: string;
+};
+
+function getErrorMessage(error: unknown): string {
+  const code =
+    typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code?: unknown }).code ?? "")
+      : "";
+  const message = error instanceof Error ? error.message : "";
+  const source = `${code} ${message}`;
+
+  if (source.includes("RBAC_FORBIDDEN")) {
+    return t("adjustForbidden");
+  }
+  if (source.includes("AUTH_SESSION_EXPIRED")) {
+    return t("adjustSessionExpired");
+  }
+
+  return t("errorLoad");
+}
 
 export default function InventoryPage() {
   const [items, setItems] = useState<ProductListItem[]>([]);
@@ -22,6 +47,10 @@ export default function InventoryPage() {
   const [stockStatus, setStockStatus] = useState<ProductStockStatus | "ALL">("ALL");
 
   const [gameTypes, setGameTypes] = useState<GameType[]>([]);
+  const [sessionRole, setSessionRole] = useState<SessionRole>(null);
+  const [adjustments, setAdjustments] = useState<Record<string, AdjustmentState>>({});
+  const [adjustingId, setAdjustingId] = useState<string | null>(null);
+  const [adjustNotice, setAdjustNotice] = useState<string | null>(null);
 
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
@@ -30,6 +59,15 @@ export default function InventoryPage() {
     gameTypes.forEach((game) => map.set(game.id, game));
     return map;
   }, [gameTypes]);
+
+  const loadSessionRole = async () => {
+    const session = await window.koyotePosUserAuth?.getSession?.();
+    if (session?.authenticated && session.user?.role) {
+      setSessionRole(session.user.role);
+      return;
+    }
+    setSessionRole(null);
+  };
 
   const loadGameTypes = async () => {
     const api = window.api;
@@ -68,6 +106,9 @@ export default function InventoryPage() {
 
   useEffect(() => {
     loadGameTypes();
+    loadSessionRole().catch(() => {
+      setSessionRole(null);
+    });
   }, []);
 
   useEffect(() => {
@@ -79,6 +120,57 @@ export default function InventoryPage() {
     setGameTypeId("ALL");
     setStockStatus("ALL");
     setPage(1);
+  };
+
+  const adjustmentFor = (productId: string): AdjustmentState => {
+    return adjustments[productId] ?? { amount: "1", reason: "manual_adjustment" };
+  };
+
+  const updateAdjustment = (productId: string, next: Partial<AdjustmentState>) => {
+    setAdjustments((current) => ({
+      ...current,
+      [productId]: {
+        ...(current[productId] ?? { amount: "1", reason: "manual_adjustment" }),
+        ...next
+      }
+    }));
+  };
+
+  const applyAdjustment = async (productId: string, direction: 1 | -1) => {
+    const api = window.api;
+    if (!api) {
+      return;
+    }
+
+    const current = adjustmentFor(productId);
+    const amount = Number.parseInt(current.amount, 10);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setAdjustNotice(t("adjustInvalid"));
+      return;
+    }
+
+    if (direction < 0 && sessionRole !== "ADMIN") {
+      setAdjustNotice(t("adjustForbidden"));
+      return;
+    }
+
+    setAdjustingId(productId);
+    setAdjustNotice(null);
+    setError(null);
+
+    try {
+      const result = await api.inventory.adjustManual({
+        productId,
+        delta: direction * amount,
+        reason: current.reason || "manual_adjustment"
+      });
+      setAdjustNotice(result?.queued ? t("adjustQueued") : t("adjustSuccess"));
+      await loadInventory();
+    } catch (adjustError) {
+      setError(getErrorMessage(adjustError));
+    } finally {
+      setAdjustingId(null);
+    }
   };
 
   return (
@@ -156,6 +248,7 @@ export default function InventoryPage() {
       <Card className="rounded-2xl border border-white/10 bg-base-900 p-4">
         {loading ? <div className="text-sm text-zinc-400">{t("loading")}</div> : null}
         {error ? <div className="text-sm text-rose-300">{error}</div> : null}
+        {adjustNotice ? <div className="text-sm text-emerald-300">{adjustNotice}</div> : null}
 
         <Table>
           <TableHeader>
@@ -164,12 +257,13 @@ export default function InventoryPage() {
               <TableHead>{t("tableGame")}</TableHead>
               <TableHead>{t("tableStock")}</TableHead>
               <TableHead>{t("tableStatus")}</TableHead>
+              <TableHead>{t("tableAdjust")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-zinc-400">
+                <TableCell colSpan={5} className="text-center text-zinc-400">
                   {t("emptyState")}
                 </TableCell>
               </TableRow>
@@ -186,6 +280,8 @@ export default function InventoryPage() {
                     : item.stockStatus === "LOW"
                       ? t("stockLow")
                       : t("stockNormal");
+                const rowAdjustment = adjustmentFor(item.product.id);
+                const busy = adjustingId === item.product.id;
 
                 return (
                   <TableRow key={item.product.id}>
@@ -204,6 +300,42 @@ export default function InventoryPage() {
                       >
                         {statusLabel}
                       </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex min-w-[320px] flex-wrap items-center gap-2">
+                        <Input
+                          value={rowAdjustment.amount}
+                          onChange={(event) => updateAdjustment(item.product.id, { amount: event.target.value })}
+                          className="h-8 w-20 border-white/10 bg-base-900 text-white"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          placeholder={t("adjustAmount")}
+                        />
+                        <Input
+                          value={rowAdjustment.reason}
+                          onChange={(event) => updateAdjustment(item.product.id, { reason: event.target.value })}
+                          className="h-8 min-w-[140px] border-white/10 bg-base-900 text-white"
+                          placeholder={t("reasonPlaceholder")}
+                        />
+                        <Button
+                          size="sm"
+                          disabled={busy}
+                          onClick={() => applyAdjustment(item.product.id, 1)}
+                        >
+                          {t("increment")}
+                        </Button>
+                        {sessionRole === "ADMIN" ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-white/10 text-white"
+                            disabled={busy}
+                            onClick={() => applyAdjustment(item.product.id, -1)}
+                          >
+                            {t("decrement")}
+                          </Button>
+                        ) : null}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );

@@ -6,16 +6,14 @@ export type BranchUseCases = {
     name: string;
     address: string;
     city: string;
-    latitude: number;
-    longitude: number;
+    googleMapsUrl?: string | null;
     imageUrl?: string | null;
   }) => Promise<Record<string, unknown>>;
   updateBranch: (id: string, data: {
     name?: string;
     address?: string;
     city?: string;
-    latitude?: number;
-    longitude?: number;
+    googleMapsUrl?: string | null;
     imageUrl?: string | null;
   }) => Promise<Record<string, unknown> | null>;
   deleteBranch: (id: string) => Promise<Record<string, unknown> | null>;

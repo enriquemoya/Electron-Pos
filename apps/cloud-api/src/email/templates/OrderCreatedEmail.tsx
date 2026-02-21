@@ -16,6 +16,7 @@ export type OrderCreatedEmailInput = {
   currency: string;
   expiresAt: string;
   pickupBranchName?: string | null;
+  pickupBranchMapUrl?: string | null;
 };
 
 const content = {
@@ -29,6 +30,7 @@ const content = {
     subtotalLabel: "Subtotal",
     expiresLabel: "Vence",
     pickupLabel: "Sucursal",
+    pickupMapButton: "Abrir ubicacion en Google Maps",
     transferTitle: "Pago por transferencia",
     transferBody: "Envia tu comprobante de pago por WhatsApp para validar tu orden.",
     transferButton: "Enviar comprobante por WhatsApp"
@@ -43,6 +45,7 @@ const content = {
     subtotalLabel: "Subtotal",
     expiresLabel: "Expires",
     pickupLabel: "Pickup branch",
+    pickupMapButton: "Open location in Google Maps",
     transferTitle: "Bank transfer payment",
     transferBody: "Send your payment receipt via WhatsApp to validate your order.",
     transferButton: "Send receipt via WhatsApp"
@@ -135,6 +138,11 @@ export function OrderCreatedEmail({ locale, ...props }: OrderCreatedEmailInput) 
         <Section style={{ marginTop: SPACING.md }}>
           <SectionCard title={copy.pickupLabel}>
             <Text style={{ ...TYPOGRAPHY.body, margin: 0 }}>{props.pickupBranchName}</Text>
+            {props.pickupBranchMapUrl ? (
+              <Section style={{ marginTop: SPACING.sm }}>
+                <PrimaryButton href={props.pickupBranchMapUrl}>{copy.pickupMapButton}</PrimaryButton>
+              </Section>
+            ) : null}
           </SectionCard>
         </Section>
       ) : null}

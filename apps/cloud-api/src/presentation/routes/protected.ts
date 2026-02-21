@@ -35,6 +35,7 @@ import { createTerminalController } from "../controllers/terminal-controller";
 import { requireTerminalAuth } from "../middleware/require-terminal-auth";
 import { posProofUploadMiddleware } from "../middleware/pos-proof-upload";
 import { createPosAuthController } from "../controllers/pos-auth-controller";
+import { requirePosAdminSession } from "../middleware/require-pos-user-session";
 
 export function createProtectedRoutes(params: {
   adminDashboardUseCases: AdminDashboardUseCases;
@@ -123,6 +124,14 @@ export function createProtectedRoutes(params: {
   router.get("/pos/catalog/delta", terminalSyncRateLimit, requirePosToken, syncController.catalogDeltaHandler);
   router.post("/pos/catalog/reconcile", terminalSyncRateLimit, requirePosToken, syncController.reconcileCatalogHandler);
   router.post("/pos/sync/sales-events", terminalSyncRateLimit, requirePosToken, syncController.ingestSalesEventHandler);
+  router.post("/pos/inventory/movements", terminalSyncRateLimit, requirePosToken, inventoryController.createPosMovementHandler);
+  router.post(
+    "/pos/inventory/admin-movements",
+    terminalSyncRateLimit,
+    requirePosToken,
+    requirePosAdminSession,
+    inventoryController.createPosAdminMovementHandler
+  );
   router.post("/pos/media/proofs/upload", posProofUploadRateLimit, requirePosToken, posProofUploadMiddleware, mediaController.uploadPosProofHandler);
   router.post("/pos/auth/pin-login", terminalSyncRateLimit, requirePosToken, posAuthController.loginWithPinHandler);
   router.post("/orders", terminalSyncRateLimit, requirePosToken, syncController.createOrderHandler);
@@ -154,6 +163,10 @@ export function createProtectedRoutes(params: {
   router.use("/admin", requireAuth);
   router.get("/admin/dashboard/summary", requireAdminRole, adminDashboardController.getAdminSummaryHandler);
   router.get("/admin/inventory", requireAdminRole, inventoryController.listInventoryHandler);
+  router.get("/admin/inventory/stock", requireAdminRole, inventoryController.listInventoryStockHandler);
+  router.get("/admin/inventory/stock/:productId", requireAdminRole, inventoryController.getInventoryStockDetailHandler);
+  router.get("/admin/inventory/movements", requireAdminRole, inventoryController.listInventoryMovementsHandler);
+  router.post("/admin/inventory/movements", requireAdminRole, inventoryController.createAdminMovementHandler);
   router.post("/admin/inventory/:productId/adjust", requireAdminRole, inventoryController.adjustInventoryHandler);
   router.get("/admin/catalog/products", requireAdminRole, catalogAdminController.listCatalogProductsHandler);
   router.get("/admin/catalog/products/:productId", requireAdminRole, catalogAdminController.getCatalogProductHandler);

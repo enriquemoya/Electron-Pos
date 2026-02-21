@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import { prisma } from "../db/prisma";
 
 function mapBranch(row: {
@@ -7,8 +5,7 @@ function mapBranch(row: {
   name: string;
   address: string;
   city: string;
-  latitude: Prisma.Decimal;
-  longitude: Prisma.Decimal;
+  googleMapsUrl: string | null;
   imageUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -18,8 +15,7 @@ function mapBranch(row: {
     name: row.name,
     address: row.address,
     city: row.city,
-    latitude: Number(row.latitude),
-    longitude: Number(row.longitude),
+    googleMapsUrl: row.googleMapsUrl,
     imageUrl: row.imageUrl,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt
@@ -34,8 +30,7 @@ export async function listBranches() {
       name: true,
       address: true,
       city: true,
-      latitude: true,
-      longitude: true,
+      googleMapsUrl: true,
       imageUrl: true,
       createdAt: true,
       updatedAt: true
@@ -48,8 +43,7 @@ export async function createBranch(data: {
   name: string;
   address: string;
   city: string;
-  latitude: number;
-  longitude: number;
+  googleMapsUrl?: string | null;
   imageUrl?: string | null;
 }) {
   const row = await prisma.pickupBranch.create({
@@ -57,8 +51,7 @@ export async function createBranch(data: {
       name: data.name,
       address: data.address,
       city: data.city,
-      latitude: data.latitude,
-      longitude: data.longitude,
+      googleMapsUrl: data.googleMapsUrl ?? null,
       imageUrl: data.imageUrl ?? null
     },
     select: {
@@ -66,8 +59,7 @@ export async function createBranch(data: {
       name: true,
       address: true,
       city: true,
-      latitude: true,
-      longitude: true,
+      googleMapsUrl: true,
       imageUrl: true,
       createdAt: true,
       updatedAt: true
@@ -82,8 +74,7 @@ export async function updateBranch(
     name?: string;
     address?: string;
     city?: string;
-    latitude?: number;
-    longitude?: number;
+    googleMapsUrl?: string | null;
     imageUrl?: string | null;
   }
 ) {
@@ -93,8 +84,7 @@ export async function updateBranch(
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.address !== undefined ? { address: data.address } : {}),
       ...(data.city !== undefined ? { city: data.city } : {}),
-      ...(data.latitude !== undefined ? { latitude: data.latitude } : {}),
-      ...(data.longitude !== undefined ? { longitude: data.longitude } : {}),
+      ...(data.googleMapsUrl !== undefined ? { googleMapsUrl: data.googleMapsUrl } : {}),
       ...(data.imageUrl !== undefined ? { imageUrl: data.imageUrl } : {})
     },
     select: {
@@ -102,8 +92,7 @@ export async function updateBranch(
       name: true,
       address: true,
       city: true,
-      latitude: true,
-      longitude: true,
+      googleMapsUrl: true,
       imageUrl: true,
       createdAt: true,
       updatedAt: true
@@ -120,8 +109,7 @@ export async function deleteBranch(id: string) {
       name: true,
       address: true,
       city: true,
-      latitude: true,
-      longitude: true,
+      googleMapsUrl: true,
       imageUrl: true,
       createdAt: true,
       updatedAt: true

@@ -101,13 +101,6 @@ function buildSnapshotVersion(date: Date | null): string {
 }
 
 async function ensureBranchCatalogScope(branchId: string) {
-  const existing = await prisma.branchCatalogScope.count({
-    where: { branchId }
-  });
-  if (existing > 0) {
-    return;
-  }
-
   await prisma.$executeRaw`
     INSERT INTO branch_catalog_scope (branch_id, product_id)
     SELECT ${branchId}::uuid, product_id
@@ -116,10 +109,12 @@ async function ensureBranchCatalogScope(branchId: string) {
   `;
 }
 
-function buildVersionHash(params: { updatedAt: Date; available: number; price: Prisma.Decimal | null }) {
+function buildVersionHash(params: { updatedAt: Date; branchQuantity: number; price: Prisma.Decimal | null }) {
   return crypto
     .createHash("sha256")
-    .update(`${params.updatedAt.toISOString()}|${params.available}|${params.price ? params.price.toString() : "null"}`)
+    .update(
+      `${params.updatedAt.toISOString()}|${params.branchQuantity}|${params.price ? params.price.toString() : "null"}`
+    )
     .digest("hex");
 }
 
@@ -144,7 +139,7 @@ function toCatalogEntity(row: {
   expansionId: string | null;
   expansionName: string | null;
   price: Prisma.Decimal | null;
-  available: number;
+  branchQuantity: number;
   updatedAt: Date;
   availabilityState: string | null;
   isActive: boolean;
@@ -156,7 +151,7 @@ function toCatalogEntity(row: {
     updatedAt: row.updatedAt.toISOString(),
     versionHash: buildVersionHash({
       updatedAt: row.updatedAt,
-      available: row.available,
+      branchQuantity: row.branchQuantity,
       price: row.price
     }),
     payload: {
@@ -176,7 +171,8 @@ function toCatalogEntity(row: {
       expansionCloudId: row.expansionId ?? null,
       expansion: row.expansionName ?? null,
       price: row.price == null ? null : Number(row.price),
-      available: row.available,
+      available: row.branchQuantity,
+      branchQuantity: row.branchQuantity,
       availabilityState: row.availabilityState ?? null,
       enabledPOS: row.isActive,
       enabledOnlineStore: row.isActive,
@@ -333,6 +329,34 @@ async function listTaxonomyEntitiesForRows(rows: Array<{
   return entities;
 }
 
+async function loadBranchStockByProduct(params: { branchId: string; productIds: string[] }) {
+  if (params.productIds.length === 0) {
+    return new Map<string, number>();
+  }
+
+  const rows = await prisma.inventoryStock.findMany({
+    where: {
+      scopeType: "BRANCH",
+      branchId: params.branchId,
+      productId: { in: params.productIds }
+    },
+    select: {
+      productId: true,
+      quantity: true
+    }
+  });
+
+  return new Map(rows.map((row) => [row.productId, row.quantity]));
+}
+
+function maxDateOrNull(values: Array<Date | null | undefined>) {
+  const filtered = values.filter((value): value is Date => value instanceof Date);
+  if (filtered.length === 0) {
+    return null;
+  }
+  return filtered.reduce((acc, value) => (value > acc ? value : acc), filtered[0]);
+}
+
 export async function getCatalogSnapshot(params: { branchId: string; page: number; pageSize: number }) {
   const branch = await prisma.pickupBranch.findUnique({
     where: { id: params.branchId },
@@ -350,7 +374,7 @@ export async function getCatalogSnapshot(params: { branchId: string; page: numbe
     branchScopes: { some: { branchId: params.branchId } }
   };
 
-  const [items, total, latest] = await prisma.$transaction([
+  const [items, total, latestProduct, latestBranchStock] = await prisma.$transaction([
     prisma.readModelInventory.findMany({
       where,
       orderBy: [{ updatedAt: "asc" }, { productId: "asc" }],
@@ -369,7 +393,6 @@ export async function getCatalogSnapshot(params: { branchId: string; page: numbe
         game: true,
         expansionId: true,
         price: true,
-        available: true,
         updatedAt: true,
         availabilityState: true,
         isActive: true
@@ -380,8 +403,21 @@ export async function getCatalogSnapshot(params: { branchId: string; page: numbe
       where: branchScopeWhere,
       orderBy: [{ updatedAt: "desc" }],
       select: { updatedAt: true }
+    }),
+    prisma.inventoryStock.findFirst({
+      where: {
+        scopeType: "BRANCH",
+        branchId: params.branchId
+      },
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true }
     })
   ]);
+
+  const branchStockByProduct = await loadBranchStockByProduct({
+    branchId: params.branchId,
+    productIds: items.map((row) => row.productId)
+  });
 
   const taxonomyEntities = await listTaxonomyEntitiesForRows(
     items.map((row) => ({
@@ -398,14 +434,17 @@ export async function getCatalogSnapshot(params: { branchId: string; page: numbe
   const productEntities = items.map((row) =>
     toCatalogEntity({
       ...row,
+      branchQuantity: branchStockByProduct.get(row.productId) ?? 0,
       expansionName: row.expansionId ? taxonomyNameById.get(row.expansionId) ?? null : null
     })
   );
 
+  const snapshotLatest = maxDateOrNull([latestProduct?.updatedAt, latestBranchStock?.updatedAt]);
+
   return {
     items: [...taxonomyEntities, ...productEntities],
     total,
-    snapshotVersion: buildSnapshotVersion(latest?.updatedAt ?? null),
+    snapshotVersion: buildSnapshotVersion(snapshotLatest),
     appliedAt: new Date().toISOString()
   };
 }
@@ -426,14 +465,36 @@ export async function getCatalogDelta(params: {
   await ensureBranchCatalogScope(params.branchId);
 
   const sinceDate = params.since ? new Date(params.since) : null;
+  const isValidSince = sinceDate && !Number.isNaN(sinceDate.getTime());
+  const changedStockProductIds =
+    isValidSince
+      ? (
+          await prisma.inventoryStock.findMany({
+            where: {
+              scopeType: "BRANCH",
+              branchId: params.branchId,
+              updatedAt: { gt: sinceDate as Date }
+            },
+            select: { productId: true }
+          })
+        ).map((row) => row.productId)
+      : [];
+
   const where: Prisma.ReadModelInventoryWhereInput = {
     branchScopes: { some: { branchId: params.branchId } },
-    ...(sinceDate && !Number.isNaN(sinceDate.getTime()) ? { updatedAt: { gt: sinceDate } } : {})
+    ...(isValidSince
+      ? {
+          OR: [
+            { updatedAt: { gt: sinceDate as Date } },
+            ...(changedStockProductIds.length > 0 ? [{ productId: { in: changedStockProductIds } }] : [])
+          ]
+        }
+      : {})
   };
   const branchScopeWhere: Prisma.ReadModelInventoryWhereInput = {
     branchScopes: { some: { branchId: params.branchId } }
   };
-  const [items, total, latest] = await prisma.$transaction([
+  const [items, total, latestProduct, latestBranchStock] = await prisma.$transaction([
     prisma.readModelInventory.findMany({
       where,
       orderBy: [{ updatedAt: "asc" }, { productId: "asc" }],
@@ -452,7 +513,6 @@ export async function getCatalogDelta(params: {
         game: true,
         expansionId: true,
         price: true,
-        available: true,
         updatedAt: true,
         availabilityState: true,
         isActive: true
@@ -463,8 +523,21 @@ export async function getCatalogDelta(params: {
       where: branchScopeWhere,
       orderBy: [{ updatedAt: "desc" }],
       select: { updatedAt: true }
+    }),
+    prisma.inventoryStock.findFirst({
+      where: {
+        scopeType: "BRANCH",
+        branchId: params.branchId
+      },
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true }
     })
   ]);
+
+  const branchStockByProduct = await loadBranchStockByProduct({
+    branchId: params.branchId,
+    productIds: items.map((row) => row.productId)
+  });
 
   const taxonomyEntities = await listTaxonomyEntitiesForRows(
     items.map((row) => ({
@@ -481,14 +554,17 @@ export async function getCatalogDelta(params: {
   const productEntities = items.map((row) =>
     toCatalogEntity({
       ...row,
+      branchQuantity: branchStockByProduct.get(row.productId) ?? 0,
       expansionName: row.expansionId ? taxonomyNameById.get(row.expansionId) ?? null : null
     })
   );
 
+  const snapshotLatest = maxDateOrNull([latestProduct?.updatedAt, latestBranchStock?.updatedAt]);
+
   return {
     items: [...taxonomyEntities, ...productEntities],
     total,
-    snapshotVersion: buildSnapshotVersion(latest?.updatedAt ?? null),
+    snapshotVersion: buildSnapshotVersion(snapshotLatest),
     appliedAt: new Date().toISOString()
   };
 }
@@ -523,9 +599,12 @@ export async function reconcileCatalog(params: {
       expansionId: true,
       isActive: true,
       updatedAt: true,
-      available: true,
       price: true
     }
+  });
+  const branchStockByProduct = await loadBranchStockByProduct({
+    branchId: params.branchId,
+    productIds: cloudRows.map((row) => row.productId)
   });
   const taxonomyEntities = await listTaxonomyEntitiesForRows(
     cloudRows.map((row) => ({
@@ -554,7 +633,7 @@ export async function reconcileCatalog(params: {
       updatedAt: row.updatedAt.toISOString(),
       versionHash: buildVersionHash({
         updatedAt: row.updatedAt,
-        available: row.available,
+        branchQuantity: branchStockByProduct.get(row.productId) ?? 0,
         price: row.price
       })
     });
@@ -610,9 +689,18 @@ export async function reconcileCatalog(params: {
       localId: entry.localId
     }));
 
-  const latest = cloudRows.length
+  const latestProduct = cloudRows.length
     ? cloudRows.reduce((acc, row) => (row.updatedAt > acc ? row.updatedAt : acc), cloudRows[0].updatedAt)
     : null;
+  const latestStock = await prisma.inventoryStock.findFirst({
+    where: {
+      scopeType: "BRANCH",
+      branchId: params.branchId
+    },
+    orderBy: { updatedAt: "desc" },
+    select: { updatedAt: true }
+  });
+  const latest = maxDateOrNull([latestProduct, latestStock?.updatedAt]);
 
   return {
     missing,
@@ -629,14 +717,104 @@ export async function ingestSalesEvent(params: {
   eventType: string;
   payload: Record<string, unknown>;
 }) {
+  const parseSaleItems = () => {
+    const sale =
+      params.payload?.sale && typeof params.payload.sale === "object"
+        ? (params.payload.sale as Record<string, unknown>)
+        : null;
+    const rawItems = Array.isArray(sale?.items)
+      ? sale.items
+      : Array.isArray(params.payload?.items)
+        ? params.payload.items
+        : [];
+
+    return rawItems
+      .map((entry) => {
+        if (!entry || typeof entry !== "object") {
+          return null;
+        }
+        const row = entry as Record<string, unknown>;
+        const productId = String(row.productId ?? "").trim();
+        const quantity = Math.trunc(Number(row.quantity ?? 0));
+        if (!productId || !Number.isFinite(quantity) || quantity <= 0) {
+          return null;
+        }
+        return { productId, quantity };
+      })
+      .filter((entry): entry is { productId: string; quantity: number } => Boolean(entry));
+  };
+
   try {
-    await prisma.posSyncEvent.create({
-      data: {
-        terminalId: params.terminalId,
-        branchId: params.branchId,
-        localEventId: params.localEventId,
-        eventType: params.eventType,
-        payload: params.payload as Prisma.InputJsonValue
+    await prisma.$transaction(async (tx) => {
+      await tx.posSyncEvent.create({
+        data: {
+          terminalId: params.terminalId,
+          branchId: params.branchId,
+          localEventId: params.localEventId,
+          eventType: params.eventType,
+          payload: params.payload as Prisma.InputJsonValue
+        }
+      });
+
+      if (params.eventType !== "SALE_COMMITTED") {
+        return;
+      }
+
+      const saleItems = parseSaleItems();
+      for (let index = 0; index < saleItems.length; index += 1) {
+        const item = saleItems[index];
+        const stock = await tx.inventoryStock.findFirst({
+          where: {
+            productId: item.productId,
+            scopeType: "BRANCH",
+            branchId: params.branchId
+          },
+          select: {
+            id: true,
+            quantity: true
+          }
+        });
+
+        const previousQuantity = stock?.quantity ?? 0;
+        const newQuantity = previousQuantity - item.quantity;
+        if (newQuantity < 0) {
+          throw ApiErrors.inventoryNegativeNotAllowed;
+        }
+
+        if (stock) {
+          await tx.inventoryStock.update({
+            where: { id: stock.id },
+            data: {
+              quantity: newQuantity,
+              updatedAt: new Date()
+            }
+          });
+        } else {
+          await tx.inventoryStock.create({
+            data: {
+              productId: item.productId,
+              scopeType: "BRANCH",
+              branchId: params.branchId,
+              quantity: newQuantity,
+              updatedAt: new Date()
+            }
+          });
+        }
+
+        await tx.inventoryMovement.create({
+          data: {
+            productId: item.productId,
+            scopeType: "BRANCH",
+            branchId: params.branchId,
+            delta: -item.quantity,
+            reason: "sale_committed",
+            actorRole: "TERMINAL",
+            actorTerminalId: params.terminalId,
+            idempotencyKey: `${params.terminalId}:${params.localEventId}:${index}`,
+            previousQuantity,
+            newQuantity
+          }
+        });
       }
     });
     return { duplicate: false };

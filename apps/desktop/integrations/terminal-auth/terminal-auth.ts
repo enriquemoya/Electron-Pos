@@ -421,6 +421,19 @@ export function createTerminalAuthService() {
     };
   }
 
+  function getUserAccessToken() {
+    const session = loadUserSession();
+    if (!session) {
+      return null;
+    }
+    const expiresAtMs = new Date(session.expiresAt).valueOf();
+    if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
+      clearUserSession();
+      return null;
+    }
+    return session.accessToken;
+  }
+
   async function authenticatedRequest(pathname: string, init?: RequestInit) {
     const credentials = loadCredentials();
     if (!credentials) {
@@ -457,6 +470,7 @@ export function createTerminalAuthService() {
     clear,
     loginPosUserWithPin,
     getUserSessionState,
+    getUserAccessToken,
     clearUserSession,
     authenticatedRequest
   };

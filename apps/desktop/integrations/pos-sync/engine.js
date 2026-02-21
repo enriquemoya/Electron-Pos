@@ -4,7 +4,9 @@ const { deriveProofStatus } = require("@pos/core");
 const RETRIABLE_CODES = new Set([
   "POS_SYNC_STORAGE_FAILED",
   "POS_SYNC_RATE_LIMITED",
-  "SERVER_ERROR"
+  "SERVER_ERROR",
+  "INVENTORY_STOCK_WRITE_FAILED",
+  "INVENTORY_STOCK_READ_FAILED"
 ]);
 
 function nowIso() {
@@ -255,6 +257,97 @@ async function flushProofUploadJournal({ cloudClient, posSyncRepo, saleRepo }) {
   };
 }
 
+async function flushInventoryAdjustmentJournal({
+  cloudClient,
+  posSyncRepo,
+  inventoryRepo,
+  terminalAuthService
+}) {
+  const pending = posSyncRepo
+    .listPendingEvents(100)
+    .filter((event) => event.eventType === "INVENTORY_MANUAL_ADJUST");
+  let synced = 0;
+
+  for (const event of pending) {
+    try {
+      const payload = event.payload || {};
+      const endpoint = String(payload.endpoint || "TERMINAL");
+      const productId = String(payload.productId || "");
+      const delta = Number(payload.delta || 0);
+      const reason = String(payload.reason || "");
+      const idempotencyKey = String(payload.idempotencyKey || event.id);
+      if (!productId || !Number.isInteger(delta) || delta === 0 || !reason) {
+        posSyncRepo.markEventRetry(event.id, {
+          retryCount: event.retryCount + 1,
+          nextRetryAt: toIsoAfter(backoffMs(event.retryCount + 1)),
+          errorCode: "INVENTORY_INVALID",
+          nowIso: nowIso(),
+          manualInterventionRequired: true
+        });
+        continue;
+      }
+
+      let response;
+      if (endpoint === "ADMIN") {
+        const session = terminalAuthService?.getUserSessionState?.();
+        const posUserToken = terminalAuthService?.getUserAccessToken?.();
+        if (!session?.authenticated || session.user?.role !== "ADMIN" || !posUserToken) {
+          posSyncRepo.markEventRetry(event.id, {
+            retryCount: event.retryCount + 1,
+            nextRetryAt: toIsoAfter(Math.max(30 * 60_000, backoffMs(event.retryCount + 1))),
+            errorCode: "AUTH_SESSION_EXPIRED",
+            nowIso: nowIso(),
+            manualInterventionRequired: false
+          });
+          continue;
+        }
+        response = await cloudClient.sendAdminInventoryMovement({
+          productId,
+          delta,
+          reason,
+          idempotencyKey,
+          posUserToken: posUserToken
+        });
+      } else {
+        response = await cloudClient.sendInventoryMovement({
+          productId,
+          delta,
+          reason,
+          idempotencyKey
+        });
+      }
+
+      const nextQuantity =
+        typeof response?.item?.available === "number"
+          ? response.item.available
+          : Number(response?.adjustment?.newQuantity ?? NaN);
+      if (Number.isFinite(nextQuantity) && inventoryRepo) {
+        inventoryRepo.setStock(productId, Math.max(0, Math.trunc(nextQuantity)), nowIso());
+      }
+      posSyncRepo.markEventSynced(event.id, nowIso());
+      synced += 1;
+    } catch (error) {
+      const errorCode = normalizeErrorCode(error);
+      const retryCount = event.retryCount + 1;
+      const shouldRetry = RETRIABLE_CODES.has(errorCode) || errorCode.startsWith("POS_") || errorCode === "fetch failed";
+      const manualInterventionRequired = retryCount >= event.maxRetries || !shouldRetry;
+      posSyncRepo.markEventRetry(event.id, {
+        retryCount,
+        nextRetryAt: toIsoAfter(Math.max(30 * 60_000, backoffMs(retryCount))),
+        errorCode,
+        nowIso: nowIso(),
+        manualInterventionRequired
+      });
+    }
+  }
+
+  return {
+    attempted: pending.length,
+    synced,
+    remaining: Math.max(0, pending.length - synced)
+  };
+}
+
 async function runReconcile({ cloudClient, posSyncRepo, catalogProjectionService }) {
   const manifest = posSyncRepo.listCatalogManifest(5000);
   const plan = await cloudClient.reconcileCatalog({ catalogManifest: manifest });
@@ -345,6 +438,7 @@ module.exports = {
   runCatalogSync,
   runReconcile,
   flushSalesJournal,
+  flushInventoryAdjustmentJournal,
   flushProofUploadJournal,
   enqueueSaleSyncEvent
 };
